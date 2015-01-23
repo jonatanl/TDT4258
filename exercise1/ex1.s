@@ -95,6 +95,25 @@ _reset:
       
       	//store new value
       	str r2, [r1, #CMU_HFPERCLKEN0]
+        
+
+        // set drive strength to high (0x2)
+        ldr r1, gpio_base_addr
+        mov r2, #0x2
+      	str r2, [r1, #GPIO_CTRL]
+        
+        // Set pin 8-15 output
+        ldr r1, gpio_base_addr
+        mov r2, #0x55
+        orr r2, r2, r2, lsl #8
+        orr r2, r2, r2, lsl #16
+        str r2, [r1, #GPIO_MODEH]
+
+        // Set 8-15 high
+        ldr r1, gpio_base_addr
+        mov r2, #0x1
+        lsl r2, r2, #8
+        str r2, [r1, #GPIO_DOUT]
 
         b .  // do nothing
   
@@ -117,3 +136,6 @@ dummy_handler:
 
 cmu_base_addr:
 	.long CMU_BASE        
+
+gpio_base_addr:
+        .long GPIO_PA_BASE
