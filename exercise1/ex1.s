@@ -82,6 +82,20 @@
         .type   _reset, %function
         .thumb_func
 _reset: 
+      	// load CMU base address
+      	ldr r1, cmu_base_addr
+      
+      	// load current value of HFPERCLK_ENABLE
+      	ldr r2, [r1, #CMU_HFPERCLKEN0]
+      
+      	// set bit for GPIO clk
+      	mov r3, #1
+      	lsl r3, r3, #CMU_HFPERCLKEN0_GPIO
+      	orr r2, r2, r3
+      
+      	//store new value
+      	str r2, [r1, #CMU_HFPERCLKEN0]
+
         b .  // do nothing
   
   /////////////////////////////////////////////////////////////////////////////
@@ -93,7 +107,6 @@ _reset:
   
         .thumb_func
 gpio_handler:  
-
         b .  // do nothing
   
   /////////////////////////////////////////////////////////////////////////////
@@ -102,3 +115,5 @@ gpio_handler:
 dummy_handler:  
         b .  // do nothing
 
+cmu_base_addr:
+	.long CMU_BASE        
