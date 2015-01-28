@@ -98,24 +98,50 @@ _reset:
         
 
         // set drive strength to high (0x2)
-        ldr r1, gpio_base_addr
+        ldr r1, gpio_pa_base
         mov r2, #0x2
       	str r2, [r1, #GPIO_CTRL]
         
         // Set pin 8-15 output
-        ldr r1, gpio_base_addr
+        ldr r1, gpio_pa_base
         mov r2, #0x55
         orr r2, r2, r2, lsl #8
         orr r2, r2, r2, lsl #16
         str r2, [r1, #GPIO_MODEH]
 
         // Set 8-15 high
-        ldr r1, gpio_base_addr
+        ldr r1, gpio_pa_base
         mov r2, #0x1
         lsl r2, r2, #8
         str r2, [r1, #GPIO_DOUT]
 
-        b .  // do nothing
+		// Set pins 0-7 to input
+        ldr r1, gpio_pc_base
+        mov r2, #0x33
+        orr r2, r2, r2, lsl #8
+        orr r2, r2, r2, lsl #16
+        str r2, [r1, #GPIO_MODEL]
+
+		// Enable pull-up
+        ldr r1, gpio_pc_base
+        mov r2, #0xff
+        str r2, [r1, #GPIO_DOUT]
+
+
+read_input:
+		
+		mov r1, gpio_pc_base
+		add r1, r1, #GPIO_DIN
+
+		mov r2, #0
+		ldr r2, [r1]
+		lsl r2, r2, #8
+
+		ldr r3, gpio_pa_base
+		str r2, [r3, #GPIO_DOUT]
+
+		//b read_input 
+
   
   /////////////////////////////////////////////////////////////////////////////
   //
@@ -137,5 +163,8 @@ dummy_handler:
 cmu_base_addr:
 	.long CMU_BASE        
 
-gpio_base_addr:
+gpio_pa_base:
         .long GPIO_PA_BASE
+
+gpio_pc_base:
+        .long GPIO_PC_BASE
