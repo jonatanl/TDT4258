@@ -115,32 +115,32 @@ _reset:
         lsl r2, r2, #8
         str r2, [r1, #GPIO_DOUT]
 
-		// Set pins 0-7 to input
+	// Set pins 0-7 to input
         ldr r1, gpio_pc_base
         mov r2, #0x33
         orr r2, r2, r2, lsl #8
         orr r2, r2, r2, lsl #16
         str r2, [r1, #GPIO_MODEL]
 
-		// Enable pull-up
+	// Enable pull-up
         ldr r1, gpio_pc_base
         mov r2, #0xff
         str r2, [r1, #GPIO_DOUT]
 
-
+	.thumb_func
 read_input:
-		
-		mov r1, gpio_pc_base
-		add r1, r1, #GPIO_DIN
 
-		mov r2, #0
-		ldr r2, [r1]
-		lsl r2, r2, #8
+	// Read button input	
+	ldr r1, gpio_pc_base
+	mov r2, #0
+	ldr r2, [r1, #GPIO_DIN]
 
-		ldr r3, gpio_pa_base
-		str r2, [r3, #GPIO_DOUT]
+	// Write button input to leds
+	lsl r2, r2, #8
+	ldr r3, gpio_pa_base
+	str r2, [r3, #GPIO_DOUT]
 
-		//b read_input 
+	b read_input 
 
   
   /////////////////////////////////////////////////////////////////////////////
