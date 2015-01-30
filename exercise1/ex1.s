@@ -95,7 +95,6 @@ _reset:
       
       	//store new value
       	str r2, [r1, #CMU_HFPERCLKEN0]
-        
 
         // set drive strength to high (0x2)
         ldr r1, =GPIO_PA_BASE + GPIO_CTRL
@@ -127,21 +126,28 @@ _reset:
         mov r2, #0xff
         str r2, [r1]
 
-	.thumb_func
-read_input:
+enable_interrupt:
+	ldr r1, =GPIO_BASE
+	ldr r2, =0x22222222
+	str r2, [r1, #GPIO_EXTIPSELL]
 
-	// Read button input	
-	ldr r1, =GPIO_PC_BASE
-	mov r2, #0
-	ldr r2, [r1, #GPIO_DIN]
+	// Set interrupt on 1->0
+	ldr r2, =0x0ff
+	str r2, [r1, #GPIO_EXTIFALL]
 
-	// Write button input to leds
-	lsl r2, r2, #8
-	ldr r3, =GPIO_PA_BASE
-	str r2, [r3, #GPIO_DOUT]
+	// Set interrupt on 0->1
+	str r2, [r1, #GPIO_EXTIRISE]
 
-	b read_input 
-  
+	// Enable interrupt generation
+	str r2, [r1, #GPIO_IEN]
+	
+	// Enable interrupt handling
+	ldr r1, =ISER0
+	ldr r2, =0x802
+	str r2, [r1] 
+
+infinite_loop:
+	b infinite_loop  
   /////////////////////////////////////////////////////////////////////////////
   //
   // GPIO handler
@@ -151,8 +157,17 @@ read_input:
   
         .thumb_func
 gpio_handler:  
-        
-  
+        ldr r1, =GPIO_BASE
+	ldr r2, [r1, #GPIO_IF]
+	str r2, [r1, #GPIO_IFC]
+	
+	// Write button input to leds
+	ldr r3, =GPIO_PA_BASE + GPIO_DOUT
+	lsl r2, r2, #8
+	str r2, [r3]
+	
+	bx lr
+
   /////////////////////////////////////////////////////////////////////////////
   
         .thumb_func
