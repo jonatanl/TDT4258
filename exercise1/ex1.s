@@ -146,8 +146,16 @@ enable_interrupt:
 	ldr r2, =0x802
 	str r2, [r1] 
 
-infinite_loop:
-	b infinite_loop  
+enable_sleep: 
+	// Enable deep sleep mode 2
+	ldr r1, =SCR
+	mov r2, #6
+	str r2, [r1]
+
+program_loop:
+	// Go to sleep
+ 	wfi
+	b program_loop  
   /////////////////////////////////////////////////////////////////////////////
   //
   // GPIO handler
@@ -164,6 +172,7 @@ gpio_handler:
 	// Write button input to leds
 	ldr r3, =GPIO_PA_BASE + GPIO_DOUT
 	lsl r2, r2, #8
+	mvn r2, r2
 	str r2, [r3]
 	
 	bx lr
