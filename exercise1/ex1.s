@@ -83,7 +83,7 @@
         .thumb_func
 _reset: 
       	// load CMU base address
-      	ldr r1, cmu_base_addr
+      	ldr r1, =CMU_BASE
       
       	// load current value of HFPERCLK_ENABLE
       	ldr r2, [r1, #CMU_HFPERCLKEN0]
@@ -98,50 +98,49 @@ _reset:
         
 
         // set drive strength to high (0x2)
-        ldr r1, gpio_pa_base
+        ldr r1, =GPIO_PA_BASE + GPIO_CTRL
         mov r2, #0x2
-      	str r2, [r1, #GPIO_CTRL]
+      	str r2, [r1]
         
         // Set pin 8-15 output
-        ldr r1, gpio_pa_base
+        ldr r1, =GPIO_PA_BASE + GPIO_MODEH
         mov r2, #0x55
         orr r2, r2, r2, lsl #8
         orr r2, r2, r2, lsl #16
-        str r2, [r1, #GPIO_MODEH]
+        str r2, [r1]
 
         // Set 8-15 high
-        ldr r1, gpio_pa_base
+        ldr r1, =GPIO_PA_BASE + GPIO_DOUT
         mov r2, #0x1
         lsl r2, r2, #8
-        str r2, [r1, #GPIO_DOUT]
+        str r2, [r1]
 
 	// Set pins 0-7 to input
-        ldr r1, gpio_pc_base
+        ldr r1, =GPIO_PC_BASE + GPIO_MODEL
         mov r2, #0x33
         orr r2, r2, r2, lsl #8
         orr r2, r2, r2, lsl #16
-        str r2, [r1, #GPIO_MODEL]
+        str r2, [r1]
 
 	// Enable pull-up
-        ldr r1, gpio_pc_base
+        ldr r1, =GPIO_PC_BASE + GPIO_DOUT
         mov r2, #0xff
-        str r2, [r1, #GPIO_DOUT]
+        str r2, [r1]
 
 	.thumb_func
 read_input:
 
 	// Read button input	
-	ldr r1, gpio_pc_base
+	ldr r1, =GPIO_PC_BASE
 	mov r2, #0
 	ldr r2, [r1, #GPIO_DIN]
 
 	// Write button input to leds
 	lsl r2, r2, #8
-	ldr r3, gpio_pa_base
+	ldr r3, =GPIO_PA_BASE
 	str r2, [r3, #GPIO_DOUT]
 
 	b read_input 
-
   
   /////////////////////////////////////////////////////////////////////////////
   //
@@ -152,7 +151,7 @@ read_input:
   
         .thumb_func
 gpio_handler:  
-        b .  // do nothing
+        
   
   /////////////////////////////////////////////////////////////////////////////
   
@@ -160,11 +159,3 @@ gpio_handler:
 dummy_handler:  
         b .  // do nothing
 
-cmu_base_addr:
-	.long CMU_BASE        
-
-gpio_pa_base:
-        .long GPIO_PA_BASE
-
-gpio_pc_base:
-        .long GPIO_PC_BASE
