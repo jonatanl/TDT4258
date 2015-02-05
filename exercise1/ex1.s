@@ -98,8 +98,7 @@ _reset:
 	ldr GPIO, =GPIO_BASE
 	mov LED, #0x0
 
-	
-      	// set bit for GPIO clk
+	// set bit for GPIO clk
       	mov r2, #1
       	lsl r2, r2, #CMU_HFPERCLKEN0_GPIO
       	orr r1, r1, r2
@@ -131,28 +130,13 @@ _reset:
         str r1, [GPIO_btn, #GPIO_DOUT]
 
 	// Disable SRAM
-	// We get the contents of the address we want to write to and XOR it.
-	add r1, EMU, #EMU_MEM_CTRL
-	ldr r1, [r1]
-	eor r2, r1, #0x7
-	str r2, [EMU, #EMU_MEM_CTRL]
-					
-	// TODO reduce HFRCO oscillator to 1 MHz:
-	// Set HRFCO frequency
-	//add r1, CMU, #CMU_HFROCTRL
-	//mov r2, #0
-	//str r2, [r1]
-	
-	//mov r1, #0
-	//str r1, [CMU, #CMU_HRFCOCTRL]
-	
-	// reduce HF clock speed:
-	//mov r2, #9
-	//str r2, [r1, #CMU_HFCORECLKDIV]
-	
-	// reduce HF peripheral speed
-	//mov r2, #9
-	//str r2, [r1, #CMU_HFPERCLKDIV]
+	mov r1, #0x7
+	str r1, [EMU, #EMU_MEM_CTRL]
+
+	// Disabling LFACLK and LFBCLK
+	mov r1, #0x0
+	//str r1, [CMU, #CMU_LFCLKSEL]
+
 	
 enable_interrupt:
 	ldr r1, =0x22222222
@@ -192,16 +176,20 @@ program_loop:
   
         .thumb_func
 gpio_handler:  
-	ldr r1, [GPIO, #GPIO_IF]	//Take whatever is in IF
-	str r1, [GPIO, #GPIO_IFC]	//And put it into IFC
+	ldr r1, [GPIO, #GPIO_IF]	// Reads which port has flagged interrupt
+	str r1, [GPIO, #GPIO_IFC]	// Clears interrupt
 	
 	// Write button input to leds
 	lsl r1, r1, #8
 	mvn r1, r1
+
 	str r1, [GPIO_LED, #GPIO_DOUT]
+
+	
 	
 	bx lr
 
+	
 
   /////////////////////////////////////////////////////////////////////////////
   
