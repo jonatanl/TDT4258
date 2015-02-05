@@ -44,6 +44,8 @@
   
         CMU_BASE = 0x400c8000
 
+	CMU_HFCORECLKDIV = 0x004	//HF Core clk division	
+	CMU_HFROCTRL =0x00C		
         CMU_HFPERCLKDIV = 0x008
         CMU_HFPERCLKEN0 = 0x044
 
@@ -72,7 +74,7 @@
         // EMU
 
         EMU_BASE = 0x400c6000
-
+	EMU_MEM_CTRL = 0x004
         EMU_CTRL = 0x000
 
         //////////////////////////////////////////////////////////////////////

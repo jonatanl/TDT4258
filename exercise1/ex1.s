@@ -82,64 +82,91 @@
         .type   _reset, %function
         .thumb_func
 _reset: 
-      	// load CMU base address
-      	ldr r1, =CMU_BASE
-      
-      	// load current value of HFPERCLK_ENABLE
-      	ldr r2, [r1, #CMU_HFPERCLKEN0]
-      
-      	// set bit for GPIO clk
-      	mov r3, #1
-      	lsl r3, r3, #CMU_HFPERCLKEN0_GPIO
-      	orr r2, r2, r3
-      
-      	//store new value
-      	str r2, [r1, #CMU_HFPERCLKEN0]
+	//Adding some aliases, assume _BASE if no other ID
+	CMU .req R4
+	GPIO_LED .req R5
+	GPIO_btn .req R6
+	GPIO .req R7
+	EMU .req R8
+	LED .req R9
+	
+	
+	ldr GPIO_LED, =GPIO_PA_BASE
+	ldr GPIO_btn, =GPIO_PC_BASE
+	ldr CMU, =CMU_BASE
+	ldr EMU, =EMU_BASE
+	ldr GPIO, =GPIO_BASE
+	mov LED, #0x0
 
+	
+      	// set bit for GPIO clk
+      	mov r2, #1
+      	lsl r2, r2, #CMU_HFPERCLKEN0_GPIO
+      	orr r1, r1, r2
+      	str r1, [CMU, #CMU_HFPERCLKEN0]	
+	
         // set drive strength to high (0x2)
-        ldr r1, =GPIO_PA_BASE + GPIO_CTRL
-        mov r2, #0x2
-      	str r2, [r1]
+        mov r1, #0x2
+      	str r1, [GPIO_LED, #GPIO_CTRL]
         
         // Set pin 8-15 output
-        ldr r1, =GPIO_PA_BASE + GPIO_MODEH
-        mov r2, #0x55
-        orr r2, r2, r2, lsl #8
-        orr r2, r2, r2, lsl #16
-        str r2, [r1]
+        mov r1, #0x55
+        orr r1, r1, r1, lsl #8
+        orr r1, r1, r1, lsl #16
+        str r1, [GPIO_LED, #GPIO_MODEH]
 
         // Set 8-15 high
-        ldr r1, =GPIO_PA_BASE + GPIO_DOUT
-        mov r2, #0x1
-        lsl r2, r2, #8
-        str r2, [r1]
+        mov r1, #0x1
+        lsl r1, r2, #8
+        str r1, [GPIO_LED, #GPIO_DOUT]
 
 	// Set pins 0-7 to input
-        ldr r1, =GPIO_PC_BASE + GPIO_MODEL
-        mov r2, #0x33
-        orr r2, r2, r2, lsl #8
-        orr r2, r2, r2, lsl #16
-        str r2, [r1]
+        mov r1, #0x33
+        orr r1, r1, r1, lsl #8
+        orr r1, r1, r1, lsl #16
+        str r1, [GPIO_btn, #GPIO_MODEL]
 
 	// Enable pull-up
-        ldr r1, =GPIO_PC_BASE + GPIO_DOUT
-        mov r2, #0xff
-        str r2, [r1]
+        mov r1, #0xff
+        str r1, [GPIO_btn, #GPIO_DOUT]
 
+	// Disable SRAM
+	// We get the contents of the address we want to write to and XOR it.
+	add r1, EMU, #EMU_MEM_CTRL
+	ldr r1, [r1]
+	eor r2, r1, #0x7
+	str r2, [EMU, #EMU_MEM_CTRL]
+					
+	// TODO reduce HFRCO oscillator to 1 MHz:
+	// Set HRFCO frequency
+	//add r1, CMU, #CMU_HFROCTRL
+	//mov r2, #0
+	//str r2, [r1]
+	
+	//mov r1, #0
+	//str r1, [CMU, #CMU_HRFCOCTRL]
+	
+	// reduce HF clock speed:
+	//mov r2, #9
+	//str r2, [r1, #CMU_HFCORECLKDIV]
+	
+	// reduce HF peripheral speed
+	//mov r2, #9
+	//str r2, [r1, #CMU_HFPERCLKDIV]
+	
 enable_interrupt:
-	ldr r1, =GPIO_BASE
-	ldr r2, =0x22222222
-	str r2, [r1, #GPIO_EXTIPSELL]
+	ldr r1, =0x22222222
+	str r1, [GPIO, #GPIO_EXTIPSELL]
 
 	// Set interrupt on 1->0
-	ldr r2, =0x0ff
-	str r2, [r1, #GPIO_EXTIFALL]
+	ldr r1, =0x0ff
+	str r1, [GPIO, #GPIO_EXTIFALL]
 
 	// Set interrupt on 0->1
-	str r2, [r1, #GPIO_EXTIRISE]
+	str r1, [GPIO, #GPIO_EXTIRISE]
 
 	// Enable interrupt generation
-	str r2, [r1, #GPIO_IEN]
+	str r1, [GPIO, #GPIO_IEN]
 	
 	// Enable interrupt handling
 	ldr r1, =ISER0
@@ -165,17 +192,16 @@ program_loop:
   
         .thumb_func
 gpio_handler:  
-        ldr r1, =GPIO_BASE
-	ldr r2, [r1, #GPIO_IF]
-	str r2, [r1, #GPIO_IFC]
+	ldr r1, [GPIO, #GPIO_IF]	//Take whatever is in IF
+	str r1, [GPIO, #GPIO_IFC]	//And put it into IFC
 	
 	// Write button input to leds
-	ldr r3, =GPIO_PA_BASE + GPIO_DOUT
-	lsl r2, r2, #8
-	mvn r2, r2
-	str r2, [r3]
+	lsl r1, r1, #8
+	mvn r1, r1
+	str r1, [GPIO_LED, #GPIO_DOUT]
 	
 	bx lr
+
 
   /////////////////////////////////////////////////////////////////////////////
   

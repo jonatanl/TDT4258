@@ -1,0 +1,11 @@
+# Compiler generated files
+*.bin
+*.elf
+*.o
+
+# Latex generated files
+*.aux
+*.pdf
+*.bbl
+*.blg
+*.log
