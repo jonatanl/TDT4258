@@ -5,10 +5,11 @@
 
 
 % TODO: Kanskje ha en generell introduksjon til selve kortet?
+\section{ARM Cortex-M3}
+As a part of the EFM32GG-DK3750, the ARM Cortex-M3 is a 32-bit RISC processor combining high performance and excellent response time with low cost and power consumption. Among its notable features is a Harvard Architecture, the Thumb-2 instruction set, and efficient 32-bit multiplication and division.
 
-\section{Interrupts}
-
-The EFM32GG comes with an NVIC, a Nested Vectored Interrupt Controller, which allows us to execute code whenever an interrupt is registered. When an interrupt is registered the NVIC will jump to a memory address specified in its interrupt vector table (TODO: Link to fig vectors) which holds the address of an interrupt handler that should be run when the interrupt is triggered.
+\subsection{NVIC}
+The Cortex-M3 comes with an NVIC, a Nested Vectored Interrupt Controller, which allows us to execute code whenever an interrupt is registered. When an interrupt is registered the NVIC will jump to a memory address specified in its interrupt vector table (TODO: Link to fig vectors) which holds the address of an interrupt handler that should be run when the interrupt is triggered.\cite{compendium}
 
 \section{On-board components and peripherals}
 
@@ -21,10 +22,10 @@ The GPIO pins is what makes it possible to connect external peripherals to the E
 The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper which allows us to toggle whether the amperage consumed by the LEDs will be measured.
 
 \subsection{Clock Management Unit}
-The CMU controls on-board oscillators and clocks. These components consume a significant amount of power, as a clock signal needs to be generated for all active on-board peripherals. The CMU provides a high level of configurability, allowing the clocks to be turned on and off on an individual basis. By default, the clocks for all components are turned off, and need to be manually enabled for the components that will be used.
+The CMU controls on-board oscillators and clocks. These components consume a significant amount of power, as a clock signal needs to be generated for all active on-board peripherals. The CMU provides a high level of configurability, allowing the clocks to be turned on and off on an individual basis. By default, the clocks for all components are turned off, and need to be manually enabled for the components that will be used.\cite{EFM32GG-RM}
 
 \subsection{Energy Management Unit}
-The EMU manages the different low energy modes in the EFM32GG. Being a microcontroller with focus on energy efficiency, the EFM32GG has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in \ref{fig:map}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks. (TODO: link to EFM32GG RM ch. 10)
+The EMU manages the different low energy modes in the EFM32GG. Being a microcontroller with focus on energy efficiency, the EFM32GG has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in \ref{fig:map}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{EFM32GG-RM}
 
 
 \section{Energy consumption}
@@ -37,34 +38,29 @@ In this task the main challenge is to reduce both static and dynamic power consu
 
 
 
-
-
 \section{Memory}
 
 \subsection{Memory-mapped I/O}
-The EFM32GG uses memory-mapped I/O. With memory-mapped I/O, a range of memory addresses is mapped onto device registers. This means that the registers can be read and written using ordinary load/store instructions. All configuration of the EFM32GG is done by writing to memory-mapped registers. 
+The EFM32GG uses memory-mapped I/O. With memory-mapped I/O, a range of memory addresses is mapped onto device registers. This means that the registers can be read and written using ordinary load/store instructions. All configuration of the EFM32GG is done by writing to memory-mapped registers.\cite{EFM32GG-RM}
 
 In order to control the gamepad and the board components, we use memory-mapped I/O to read and write different registers. For instance the GPIO pins are configured with the addresses starting at 0x40006000, and the CMU is configured with the addresses starting at 0x400c8000.
 
-\subsection{Accessing device registers}
-Some device registers are only one byte long, but there is no instruction that writes a single byte to memory. When writing to such registers, we need to take special care so that the correct byte is written to, and so that unrelated bytes are not overwritten. For instance when we configure the LEDs we need to shift the input bits one byte to the left, and when disabling SRAM we need to use XOR to not overwrite the rest of the register.
+% TODO: See if this section should be used
+% \subsection{Accessing device registers}
+% Some device registers are only one byte long, but there is no instruction that writes a single byte to memory. When writing to such registers, we need to take special care so that the correct byte is written to, and so that unrelated bytes are not overwritten. For instance when we configure the LEDs we need to shift the input bits one byte to the left, and when disabling SRAM we need to use XOR to not overwrite the rest of the register.
 
 \subsection{Register addressing}
 We specify registers with their base address followed by their offsets. The base address marks the start of a memory segment dedicated to a certain functionality. In the text we will refer directly to the memory address of a functionality using its symbolic name as specified in the reference manual. For instance, EMU\_MEM\_CTRL refers to the 32 bits that control memory handling in various energy modes. However in the code we will have to compute the memory addresses by adding an offset to the base address of a functionality.
 
 
 
-
-
-
-
 \section{Tools}
 
 \subsection{GNU toolchain}
-The GNU toolchain is a collection of programming tools used for software development. The GNU toolchain is produced by the GNU project and is free software. The components of the GNU toolchain used in this course are make (build-automation tool), ld (linker), as (assembler), and the GNU debugger (https://gnu.org/).
+The GNU toolchain is a collection of programming tools used for software development. The GNU toolchain is produced by the GNU project and is free software. The components of the GNU toolchain used in this course are make (build-automation tool), ld (linker), as (assembler), and the GNU debugger.\cite{gnu.org}
 % TODO (optional): Skrive litt om de forskjellige verktøyene
 
-TODO: Flytte disse avsnittene inn et sted hvor de passer
+% TODO: Flytte de to neste avsnittene inn et sted hvor de passer
 Instruction fetching
 What is an instruction set? How does the microprocessor fetch instructions?
 
