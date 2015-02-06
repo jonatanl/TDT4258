@@ -11,11 +11,22 @@ As a part of the EFM32GG-DK3750, the ARM Cortex-M3 is a 32-bit RISC processor co
 \subsection{Processor mode and privilege levels}
 The Cortex-M3 can run software at two privilege levels: privileged and unprivileged. The privilege levels are used by the processor hardware to restrict running software to certain resources only. This is necessary in order to provide memory protection, for instance. In privileged mode, running software has access to all instructions and resources, while in unprivileged mode access is restricted. The software privilege level depends on wether the processor is running in \emph{thread mode} or \emph{handler mode}. In thread mode the software runs at either privileged or unprivileged level depending on the CONTROL register, while in handler mode the software always runs at the privileged level.
 
-The processor will switch from thread mode to handler mode on any exception. This allows the interrupt handlers to use all instructions and access all memory. In an operating system, kernel code would run in handler mode and user space programs would run in thread mode. 
+The processor will switch from thread mode to handler mode on any exception. This allows the interrupt handlers to use all instructions and access all memory. In an operating system, kernel code would run in handler mode and user space programs would run in thread mode.\cite{CortexM3-RM}
+
+\subsection{Registers}
+The Cortex-M3 makes several registers visible to the programmer. These include the general-purpose registers R0 through R12, the Stack Pointer (SP/R13), the Link Register (LR/R14), the Program Counter (PC/R15), and the Program Status Register (PSR). 
+
+\subsubsection{General-purpose registers}
+\subsubsection{Stack Pointer}
+\subsubsection{Link Register}
+\subsubsection{Program Counter}
+\subsubsection{Program Status Register}
 
 
 \subsection{NVIC}
 The Cortex-M3 comes with an NVIC, a Nested Vectored Interrupt Controller, which allows us to execute code whenever an interrupt is registered. When an interrupt is registered the NVIC will jump to a memory address specified in its interrupt vector table (TODO: Link to fig vectors) which holds the address of an interrupt handler that should be run when the interrupt is triggered.\cite{compendium}
+
+Upon a reset, the processor will start executing the reset handler in handler mode. When the reset handler returns, it will return to thread mode.
 
 \section{On-board components and peripherals}
 
