@@ -5,11 +5,11 @@
 
 
 % TODO: Kanskje ha en generell introduksjon til selve kortet?
-\section{Board Overview}
+\section{ARM Cortex-M3}
+As a part of the EFM32GG-DK3750, the ARM Cortex-M3 is a 32-bit RISC processor combining high performance and excellent response time with low cost and power consumption. Among its notable features is a Harvard Architecture, the Thumb-2 instruction set, and efficient 32-bit multiplication and division.
 
-\section{Interrupts}
-
-The EFM32GG comes with an NVIC, a Nested Vectored Interrupt Controller, which allows us to execute code whenever an interrupt is registered. When an interrupt is registered the NVIC will jump to a memory address specified in its interrupt vector table (TODO: Link to fig vectors) which holds the address of an interrupt handler that should be run when the interrupt is triggered.\cite{compendium}
+\subsection{NVIC}
+The Cortex-M3 comes with an NVIC, a Nested Vectored Interrupt Controller, which allows us to execute code whenever an interrupt is registered. When an interrupt is registered the NVIC will jump to a memory address specified in its interrupt vector table (TODO: Link to fig vectors) which holds the address of an interrupt handler that should be run when the interrupt is triggered.\cite{compendium}
 
 \section{On-board components and peripherals}
 
