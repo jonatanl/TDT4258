@@ -135,7 +135,7 @@ _reset:
 
 	// Disabling LFACLK and LFBCLK
 	mov r1, #0x0
-	//str r1, [CMU, #CMU_LFCLKSEL]
+	str r1, [CMU, #CMU_LFCLKSEL]
 
 	
 enable_interrupt:
