@@ -88,7 +88,6 @@ _reset:
 	GPIO_btn .req R6
 	GPIO .req R7
 	EMU .req R8
-	LED .req R9
 	
 	
 	ldr GPIO_LED, =GPIO_PA_BASE
@@ -99,35 +98,35 @@ _reset:
 	mov LED, #0x0
 
 	// set bit for GPIO clk
-      	mov r2, #1
-      	lsl r2, r2, #CMU_HFPERCLKEN0_GPIO
-      	orr r1, r1, r2
-      	str r1, [CMU, #CMU_HFPERCLKEN0]	
+  mov r2, #1
+  lsl r2, r2, #CMU_HFPERCLKEN0_GPIO
+  orr r1, r1, r2
+  str r1, [CMU, #CMU_HFPERCLKEN0]	
 	
-        // set drive strength to high (0x2)
-        mov r1, #0x2
-      	str r1, [GPIO_LED, #GPIO_CTRL]
+  // set drive strength to high (0x2)
+  mov r1, #0x2
+  str r1, [GPIO_LED, #GPIO_CTRL]
         
-        // Set pin 8-15 output
-        mov r1, #0x55
-        orr r1, r1, r1, lsl #8
-        orr r1, r1, r1, lsl #16
-        str r1, [GPIO_LED, #GPIO_MODEH]
+  // Set pin 8-15 output
+  mov r1, #0x55
+  orr r1, r1, r1, lsl #8
+  orr r1, r1, r1, lsl #16
+  str r1, [GPIO_LED, #GPIO_MODEH]
 
-        // Set 8-15 high
-        mov r1, #0x1
-        lsl r1, r2, #8
-        str r1, [GPIO_LED, #GPIO_DOUT]
+  // Set 8-15 high
+  mov r1, #0x1
+  lsl r1, r2, #8
+  str r1, [GPIO_LED, #GPIO_DOUT]
 
 	// Set pins 0-7 to input
-        mov r1, #0x33
-        orr r1, r1, r1, lsl #8
-        orr r1, r1, r1, lsl #16
-        str r1, [GPIO_btn, #GPIO_MODEL]
+  mov r1, #0x33
+  orr r1, r1, r1, lsl #8
+  orr r1, r1, r1, lsl #16
+  str r1, [GPIO_btn, #GPIO_MODEL]
 
 	// Enable pull-up
-        mov r1, #0xff
-        str r1, [GPIO_btn, #GPIO_DOUT]
+  mov r1, #0xff
+  str r1, [GPIO_btn, #GPIO_DOUT]
 
 	// Disable SRAM
 	mov r1, #0x7
@@ -167,6 +166,7 @@ program_loop:
 	// Go to sleep
  	wfi
 	b program_loop  
+  
   /////////////////////////////////////////////////////////////////////////////
   //
   // GPIO handler
@@ -184,8 +184,6 @@ gpio_handler:
 	mvn r1, r1
 
 	str r1, [GPIO_LED, #GPIO_DOUT]
-
-	
 	
 	bx lr
 
