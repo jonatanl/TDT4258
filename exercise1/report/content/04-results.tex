@@ -4,6 +4,6 @@
 
 With our polling implementation as a baseline we measured ??ampere, regardless of button input. As expected, the polling method consumes a lot of energy since it constantly runs instructions whether they are needed or not. (fig)
 
-Our interrupt based program fared much better, averaging around 1.5µA (fig), and expending about 83µA when a button was held down. (fig)
+Our interrupt based program fared much better, averaging around 1.5$\mu$ A (fig), and expending about 83$\mu$ A when a button was held down. (fig)
 
-In search of further improvement we powered down idle SRAM blocks to save more power, resulting in around 1µA(fig), a pretty substantial improvement from the simple interrupt based program. With a button held down however the difference was negligible.(fig)
+In search of further improvement we powered down idle SRAM blocks to save more power, resulting in around 1$\mu$ A(fig), a pretty substantial improvement from the simple interrupt based program. With a button held down however the difference was negligible.(fig)
