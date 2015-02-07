@@ -34,7 +34,7 @@ LR is register R14 and is used to store information about subrutines, function c
 PC is register R15. PC holds address for the current program. Since instructions has to be halfword aligned the first bit is allways 0. When the processor is reset, the PC loads the default value from the reset vector. 
 
 \subsubsection{Program Status Register (PSR)}
-The PSR is used to stored states after an instruction. E.g. the add instruction may produce overflow and bit[28] indicates if the operation resulted in overflow. PSR's bitmap can bee seen in the apendix \ref{fig:psrMap}.
+The PSR is used to stored states after an instruction. E.g. the add instruction may produce overflow and bit[28] indicates if the operation resulted in overflow. PSR's bit assigments can bee seen in the figures chapter \ref{fig:PSRMap}.
 
 \subsection{NVIC}
 The Cortex-M3 comes with an NVIC, a Nested Vectored Interrupt Controller, which allows us to execute code whenever an interrupt is registered. When an interrupt is registered the NVIC will jump to a memory address specified in its interrupt vector table (TODO: Link to fig vectors) which holds the address of an interrupt handler that should be run when the interrupt is triggered.\cite{compendium}
@@ -43,7 +43,7 @@ Upon a reset, the processor will start executing the reset handler in handler mo
 
 \section{On-board components and peripherals}
 
-Through the exercises in this course we will work with the  Silicon labs EFM32GG-DK3750 prototyping board \ref{fig:EFM}. There are several on-board components and peripherals of special interest, including the General-Purpose Input/Output pins (GPIO pins) controlling external peripheral devices, the gamepad prototype, the Clock Management Unit (CMU), the Energy Management Unit (EMU), the LCD screen outputting current amperage, and the wires connecting the board to the development PC. These components however are just a small subset of the peripherals offered, so we have provided a map of the full set of peripherals \ref{fig:map}.
+Through the exercises in this course we will work with the  Silicon labs EFM32GG-DK3750 prototyping board \ref{fig:EFMBoard}. There are several on-board components and peripherals of special interest, including the General-Purpose Input/Output pins (GPIO pins) controlling external peripheral devices, the gamepad prototype, the Clock Management Unit (CMU), the Energy Management Unit (EMU), the LCD screen outputting current amperage, and the wires connecting the board to the development PC. These components however are just a small subset of the peripherals offered, so we have provided a map of the full set of peripherals \ref{fig:GiantGeckoMap}.
 
 \subsection{General-Purpose Input/Output pins}
 The GPIO pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
@@ -55,7 +55,7 @@ The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-s
 The CMU controls on-board oscillators and clocks. These components consume a significant amount of power, as a clock signal needs to be generated for all active on-board peripherals. The CMU provides a high level of configurability, allowing the clocks to be turned on and off on an individual basis. By default, the clocks for all components are turned off, and need to be manually enabled for the components that will be used.\cite{EFM32GG-RM}
 
 \subsection{Energy Management Unit}
-The EMU manages the different low energy modes in the EFM32GG. Being a microcontroller with focus on energy efficiency, the EFM32GG has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in \ref{fig:map}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{EFM32GG-RM}
+The EMU manages the different low energy modes in the EFM32GG. Being a microcontroller with focus on energy efficiency, the EFM32GG has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in \ref{fig:GiantGeckoMap}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{EFM32GG-RM}
 
 
 \section{Energy consumption}
