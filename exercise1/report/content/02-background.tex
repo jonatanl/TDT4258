@@ -41,6 +41,13 @@ The Cortex-M3 comes with an NVIC, a Nested Vectored Interrupt Controller, which 
 
 Upon a reset, the processor will start executing the reset handler in handler mode. When the reset handler returns, it will return to thread mode.
 
+
+\subsection{Instruction set}
+The Cortex-M3 implements the Thumb-2 instruction set, a 32-bit instruction set commonly used for ARM microprocessors. It is an extension of the older 16-bit Thumb instruction set, and contains a mix of both 16-bit and 32-bit instructions. The additional 32-bit instructions allow it to cover the functionality of newer ARM microprocessors.\cite{CortexA8-RM}
+
+% TODO (optional): Write a subsection about instruction fetching in Cortex-M3
+
+
 \section{On-board components and peripherals}
 
 Through the exercises in this course we will work with the  Silicon labs EFM32GG-DK3750 prototyping board \ref{fig:EFM}. There are several on-board components and peripherals of special interest, including the General-Purpose Input/Output pins (GPIO pins) controlling external peripheral devices, the gamepad prototype, the Clock Management Unit (CMU), the Energy Management Unit (EMU), the LCD screen outputting current amperage, and the wires connecting the board to the development PC. These components however are just a small subset of the peripherals offered, so we have provided a map of the full set of peripherals \ref{fig:map}.
@@ -90,9 +97,3 @@ We specify registers with their base address followed by their offsets. The base
 The GNU toolchain is a collection of programming tools used for software development. The GNU toolchain is produced by the GNU project and is free software. The components of the GNU toolchain used in this course are make (build-automation tool), ld (linker), as (assembler), and the GNU debugger.\cite{gnu.org}
 % TODO (optional): Skrive litt om de forskjellige verktøyene
 
-% TODO: Flytte de to neste avsnittene inn et sted hvor de passer
-Instruction fetching
-What is an instruction set? How does the microprocessor fetch instructions?
-
-Thumb-2 instruction set
-The Thumb-2 instruction set is a 32-bit instruction set used for ARM microprocessors. It is an extension of the older 16-bit Thumb instruction set, and contains a mix of both 16-bit and 32-bit instructions. The additional 32-bit instructions allow it to cover the functionality of newer ARM microprocessors, (http://infocenter.arm.com/help/index.jsp section 2.2).
