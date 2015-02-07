@@ -20,7 +20,7 @@ The Cortex-M3 makes several registers visible to the programmer. These include t
 ARM Cortex-M3 contians 13, 32-bit general purpose registers, labled R0-R12. When an exception occurs the CPU automatically pushes the registers R0-R3 to the stack. Registers R4-R12 have to be handled manually.
 
 \subsubsection{Stack Pointer (SP)}
-Register R13 is reserved for the stack pointer. SP is used to point to the last stacked item in the stack memory. The processor contains two stacks, the main stack and the process stack. In Thread mode the control registers second bit indicates which stack pointer to use.
+Register R13 is reserved for the stack pointer. SP is used to point to the last stacked item in the stack memory. The processor contains two stacks, the \emph{main stack} and the \emph{process stack}. In Thread mode the control registers second bit indicates which stack pointer to use.
 
 \begin{itemize}
 \item 0 = Main Stack Pointer
@@ -31,10 +31,10 @@ Register R13 is reserved for the stack pointer. SP is used to point to the last 
 LR is register R14 and is used to store information about subrutines, function calls and excepitons.
 
 \subsubsection{Program Counter (PC)}
-PC is register R15.
+PC is register R15. PC holds address for the current program. Since instructions has to be halfword aligned the first bit is allways 0. When the processor is reset, the PC loads the default value from the reset vector. 
 
 \subsubsection{Program Status Register (PSR)}
-
+The PSR is used to stored states after an instruction. E.g. the add instruction may produce overflow and bit[28] indicates if the operation resulted in overflow. PSR's bitmap can bee seen in the apendix \ref{fig:psrMap}.
 
 \subsection{NVIC}
 The Cortex-M3 comes with an NVIC, a Nested Vectored Interrupt Controller, which allows us to execute code whenever an interrupt is registered. When an interrupt is registered the NVIC will jump to a memory address specified in its interrupt vector table (TODO: Link to fig vectors) which holds the address of an interrupt handler that should be run when the interrupt is triggered.\cite{compendium}
