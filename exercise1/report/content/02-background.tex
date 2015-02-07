@@ -64,6 +64,14 @@ The CMU controls on-board oscillators and clocks. These components consume a sig
 \subsection{Energy Management Unit (EMU)}
 The EMU manages the different low energy modes in the EFM32GG. Being a microcontroller with focus on energy efficiency, the EFM32GG has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in \ref{fig:GiantGeckoMap}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{EFM32GG-RM}
 
+\subsection{DMA Controller}
+The Direct Memory Access (DMA) controller is a hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or enter low energy modes.
+
+\subsection{Peripheral Reflex System (PRS)}
+The PRS is a network connecting the different peripheral modules together, allowing them to communicate directly without involving the CPU. The peripheral modules send each other \emph{reflex signals} routed by the PRS. On receiving such a signal, a peripheral module may perform some specific action depending on the signal received. By relieving the CPU of work, the PRS system can be used to improve energy efficiency. In addition, it is suited for time-critical operations as it involves no variable-time software overhead.
+
+% TODO (optional): Write about LEUART and SRAM
+
 
 \section{Energy consumption}
 
