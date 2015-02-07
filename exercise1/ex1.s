@@ -95,7 +95,6 @@ _reset:
 	ldr CMU, =CMU_BASE
 	ldr EMU, =EMU_BASE
 	ldr GPIO, =GPIO_BASE
-	mov LED, #0x0
 
 	// set bit for GPIO clk
   mov r2, #1
@@ -135,7 +134,11 @@ _reset:
 	// Disabling LFACLK and LFBCLK
 	mov r1, #0x0
 	str r1, [CMU, #CMU_LFCLKSEL]
-
+	
+	// Initially turn off all LEDs
+	mov r1, #0xFF
+	lsl r1, #8
+	str r1, [GPIO_LED, #GPIO_DOUT]
 	
 enable_interrupt:
 	ldr r1, =0x22222222
@@ -179,8 +182,15 @@ gpio_handler:
 	ldr r1, [GPIO, #GPIO_IF]	// Reads which port has flagged interrupt
 	str r1, [GPIO, #GPIO_IFC]	// Clears interrupt
 	
-	// Write button input to leds
+	// Fetch current light and button values
+	ldr r2, [GPIO_LED, GPIO_DOUT]
+	ldr r1, [GPIO_btn, GPIO_DIN]
+	
+	// Align button input and LED output
 	lsl r1, r1, #8
+	// XOR input and output to toggle leds
+	eor r1, r1, r2
+	// Invert all values because we have active low
 	mvn r1, r1
 
 	str r1, [GPIO_LED, #GPIO_DOUT]
