@@ -1,12 +1,14 @@
-\chapter{Background and Theory}
 % This chapter should describe the theoretical background needed to understand and solve the problem. 
 % For instance, a description of the hardware platform or specific components involved in this assignment, definition of concepts that are important to understand the solution should be summarized here.
-% Add citations to show sources whenever appropriate, LaTeX and bibliography managers make this easy. For instance, ``I always thought something was fundamentally wrong with the universe'' \cite{adams1995hitchhiker}.
 
+\chapter{Background and Theory}
+This section gives a brief introduction to the EFM32GG-DK3750 and various components that were involved in the exercise. In addition, it will also introduce underlying theory and concepts.
 
-% TODO: Kanskje ha en generell introduksjon til selve kortet?
-\section{ARM Cortex-M3}
-As a part of the EFM32GG-DK3750, the ARM Cortex-M3 is a 32-bit RISC processor combining high performance and excellent response time with low cost and power consumption. Among its notable features is a Harvard Architecture, the Thumb-2 instruction set, and efficient 32-bit multiplication and division.
+\section{The EFM32GG-DK3750}
+The EFM32 Giant Gecko Development Kit (EFM32GG-DK3750) is a development platform for prototyping and developing embedded applications. The attached microcontroller Unit (MCU) is an ARM Cortex-M3 CPU core, built for demanding environments where cost, power consumption and performance are central issues. The peripherals provided with the EFM32GG-DK3750 are all built with energy efficiency as a main focus. The board also features an on-board debugger, making it easy to both download programs and even debug them at run-time.
+
+\section{The Cortex-M3}
+The microprocessor of the EFM32GG-DK3750 is an ARM Cortex-M3. The Cortex-M3 is a 32-bit RISC processor combining high performance and excellent response time with low cost and power consumption. Among its notable features is a Harvard Architecture, the Thumb-2 instruction set, and efficient 32-bit multiplication and division.
 
 \subsection{Processor mode and privilege levels}
 The Cortex-M3 can run software at two privilege levels: privileged and unprivileged. The privilege levels are used by the processor hardware to restrict running software to certain resources only. This is necessary in order to provide memory protection, for instance. In privileged mode, running software has access to all instructions and resources, while in unprivileged mode access is restricted. The software privilege level depends on wether the processor is running in \emph{thread mode} or \emph{handler mode}. In thread mode the software runs at either privileged or unprivileged level depending on the CONTROL register, while in handler mode the software always runs at the privileged level.
