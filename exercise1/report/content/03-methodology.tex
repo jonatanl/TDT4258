@@ -69,6 +69,8 @@ The reference manual describes the difference between EM2 and EM3 as having the 
 
 Having gotten a fairly efficient button to LED mapping we next implemented a simple clock. In order for a clock to work in EM3 the only time availible was the LETIMER which could run from the ultra low frequency crystal oscilliator (ULFRCO). While the LETIMER offers some advanced functionality we settled on simply counting down from a set value and triggering an interrupt on overflow, and making the interrupt handler decrement the LED bits once.
 
+After setting the LETIMER to generate interrupts we also had to enable interrupt handling for LETIMER interrupts by writing to ISER0, like we did with the GPIO interrupts. 
+
 Setting the count down value very low, i.e making the clock tick very fast also gave us a nice source of steady interrupts we could use to gague energy consumption.
 
-In order to test how interrupts impacted performance we set the countdown value to one, generating an interrupt for every LFRCO oscillation. Next we tried duplicationg the instructions for the handler, trying with the normal execution, then adding redundant executions, trying three, five and seven executions, as well as doing nothing but clearing the interrupt flag. This would help us gauge how code optimization could effect efficiency for frequent interrupts. 
+In order to test how interrupts impacted performance we set the countdown value to one, generating an interrupt for every LFRCO oscillation. Next we tried duplicationg the instructions for the handler, trying with the normal execution, then adding redundant executions, trying three, five and seven executions, as well as doing nothing but clearing the interrupt flag. This would help us gauge how code optimization could effect efficiency for frequent interrupts.
