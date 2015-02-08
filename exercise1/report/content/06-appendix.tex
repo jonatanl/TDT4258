@@ -151,9 +151,68 @@ MEMORY
 }
 \end{lstlisting}
 
-To disable the low frequency peripheral clocks LFACLK and LFBCLK we write 0x0 to CMU\_LFCLKSEL
+To disable the low frequency peripheral clock LFBCLK, and set LFBCLK to use ULFRCO we write to CMU\_LFCLKSEL
 
 \begin{lstlisting}
-	mov r1, #0x0
+	mov r1, #0x1
+	lsl r1, #0x10
 	str r1, [CMU, #CMU_LFCLKSEL]
+\end{lstlisting}
+
+To set up LETIMER we first need to change the value we wrote to ISER0 to also set bit 26 to 1 in addition to odd and even interrupts.
+
+\begin{lstlisting}
+   	mov r2, #1
+	lsl r2, #26
+	ldr r3, =0x802
+	orr r2, r2, r3
+	ldr r1, =ISER0
+	str r2, [r1]
+\end{lstlisting}
+
+Then we set up the LE interface clock so we could configure LETIMER
+
+\begin{lstlisting}
+	mov r1, #0x10
+	str r1, [CMU, #CMU_HFCORECLKEN0]
+\end{lstlisting}
+
+We set up LETIMER
+
+\begin{lstlisting}
+	// Setting comp0 value, i.e which val we want to count down from
+	ldr r1, =0x100
+	str r1, [LETIMER, #LETIMER_COMP0]
+
+	// We set the comp0 to be top val
+	mov r1, #1
+	lsl r1, #9
+	str r1, [LETIMER, #LETIMER_CTRL]
+
+	// We set the LETIMER to interrupt on underflow
+	mov r1, #4
+	str r1, [LETIMER, #LETIMER_IEN]
+	// str r1, [LETIMER, #LETIMER_IFS]
+
+	// We start LETIMER
+	mov r1, #1
+	str r1, [LETIMER, #LETIMER_CMD]
+\end{lstlisting}
+
+
+We handle the interrupts that will now be generated
+
+\begin{lstlisting}
+	.thumb_func
+letimer0_handler:
+	ldr r1, [LETIMER, #LETIMER_IF] 
+	str r1, [LETIMER, #LETIMER_IFC]
+	// Count down
+	ldr r1, [GPIO_LED, #GPIO_DOUT]
+	lsr r1, #8
+	sub r1, #1
+	lsl r1, #8
+	str r1, [GPIO_LED, #GPIO_DOUT]
+
+	bx lr
 \end{lstlisting}
