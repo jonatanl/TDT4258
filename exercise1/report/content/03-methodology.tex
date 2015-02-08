@@ -4,13 +4,11 @@ In this chapter we give an informal description of our working process, with lin
 
 %\section{Set up}
 %
-%Toolchain, editors, flashing etc
+%Tool chain, editors, flashing etc.
 
 \section{Performance measurement}
 
-Since energy efficiency was the focal point of the exercise measuring energy expenditure from our programs was necessary. For simple measurements we could utilize the LCD screen on the development board \ref{fig:EFMBoard}, however for more useful analysis we utilized the eAProfiler program that was installed on the lab computers. 
-
-For our analysis we used the jumper on the gamepad to stop energy consumption from the LEDs effecting the energy consumption readout. 
+Since energy efficiency was the focal point of the exercise measuring energy expenditure from our programs was necessary. For simple measurements we could utilize the LCD screen on the development board shown in figure \ref{fig:EFMBoard}, however for a more useful analysis we utilized the eAProfiler program that was installed on the lab computers. For our analysis we used the jumper on the gamepad to stop energy consumption from the LEDs effecting the energy consumption readout. 
 
 On very low amperage, around 1 micro-ampere the signal was affected by noise, enough to make readouts unreliable, but not enough to hide efficiency gains at the micro ampere level.
 
@@ -18,41 +16,37 @@ In order to reduce randomness all measurements were taken after running the EFM3
 
 \subsection{A simple program}
 
-No group members had any prior experience with programming micro-controllers, so we decided on an incremental approach, focusing first on the basics, getting a simple program to run. The bare essentials for a program is simply a reset handler, a small piece of code that will be exFecuted as soon as a reset is triggered. To do this we simply added the address for our code at the reset location specified in the NVIC vector diagram. Making the program to compile and run was also a good test run of the toolchain, making sure we had all the required pieces to get code from our development PC to runnable code on the EFM. 
+No group members had any prior experience with programming microcontrollers, so we decided on an incremental approach, focusing first on the basics, getting a simple program to run. The bare essentials for a program is simply a reset handler, a small piece of code that will be executed as soon as a reset is triggered. To do this we simply added the address for our code at the reset location specified in the NVIC vector diagram. Making the program to compile and run was also a good test run of the tool chain, making sure we had all the required pieces to get code from our development PC to runnable code on the MCU. 
 
 \subsection{A simple LED write}
 
-Our basic program didn’t do anything other than starting up, so in order to make sure we had code that was running as it was supposed to, and to do the first step on mapping buttons to LEDs we started on code to activate the LEDs. 
+Our basic program did not do anything more than starting up, so in order to make sure we had code that was running as it was supposed to, and to do the first step on mapping buttons to LEDs we started to write code to activate the LEDs. 
 
-In order to interface with the GPIO peripherals we first had to 
-Our first step was to activate the peripheral clock for GPIO by setting bit 13 of the HFPERCLKEN0, which we did by loading left shifting a register holding the value 1 13 times.
+Our first step was to activate the peripheral clock for GPIO by setting bit 13 of the HFPERCLKEN0, which we did by loading it with a value of 1 left shifted 13 times.
 
-In order to activate the LEDs we had to set drive strength to high and set pins 8-15 of port A to output. With the LEDs activated we could control them by writing to GPIO\_PA\_DOUT. Being low active, simply writing 0x0 to GPIO\_PA\_DOUT caused every light to light up. 
+In order to activate the LEDs we had to set drive strength to high and set pins 8-15 of port A to output. With the LEDs activated we could control them by writing to GPIO\_PA\_DOUT. Being active low, simply writing 0x0 to GPIO\_PA\_DOUT caused every light to light up. 
 
 \subsection{Activating the buttons}
 
-In order to do more serious testing with the LEDs, we activated the buttons on the gamepad.
-First we had to activate pins 0 to 7 of port C, then enable internal pin-up. Now we could read the bits from GPIO\_PC\_DIN to determine which buttons were pressed.
+In order to do more serious testing with the LEDs, we activated the buttons on the gamepad. First we had to activate pins 0 to 7 of port C, and then enable internal pin-up. Now we could read the bits from GPIO\_PC\_DIN to determine which buttons were pressed.
 
 \subsection{A simple polling loop}
 
-While the goal was to write an energy efficient program to handle button inputs we started off with the simplest approach, building a solution iteratively. In addition, implementing the program in the most naive way we could think off would serve as a very useful baseline to gauge effectiveness of the improvements we would do to efficiency in later iterations.
-Our first working program was therefore a simple loop continuously copying the contents of the button register and writing it to the LED register. This gave us the adequate functionality, but the processor did a lot of wasteful reads and writes giving a rather lackluster efficiency performance. 
+While the goal was to write an energy efficient program to handle button inputs we started off with the simplest approach, building a solution iteratively. In addition, implementing the program in the most naive way we could think off would serve as a very useful baseline to gauge effectiveness of the improvements we would do to efficiency in later iterations. Our first working program was therefore a simple loop continuously copying the contents of the button register and writing it to the LED register. This gave us the adequate functionality, but the processor did a lot of wasteful reads and writes giving a rather lacklustre efficiency performance. 
 
 \section{Interrupts}
 
-In order to stop the processor from wastefully reading or writing every cycle we started implementing an interrupt based approach. In order to generate interrupts for the NVIC to handle we first had to set port C as interrupt source by writing to GPIO\_EXTIPSELL,
-then we had to set interrupt generation for pushing and releasing by writing to GPIO\_EXTIPFALL and GPIO\_EXTIPRISE. Finally after setting up how GPIO interrupts would be done we activated interrupt generation by writing to GPIO\_IEN.
+In order to stop the processor from wastefully reading or writing every cycle we started implementing an interrupt based approach. In order to generate interrupts for the NVIC to handle we first had to set port C as interrupt source by writing to GPIO\_EXTIPSELL, then we had to set interrupt generation for pushing and releasing by writing to GPIO\_EXTIPFALL and GPIO\_EXTIPRISE. Finally after setting up how GPIO interrupts would be done we activated interrupt generation by writing to GPIO\_IEN.
 
-With Interrupts enabled, whenever an interrupt is triggered the NVIC will cause the processor to jump to the GPIO handler addresses where it will be directed to our interrupt handler subroutine.
+With interrupts enabled, whenever an interrupt is triggered the NVIC will cause the processor to jump to the GPIO handler specified by the address in the IVT, as mentioned in chapter two.
 
 \subsection{Handling interrupts}
 
-Our interrupt handler is set up to do two things when called, first it reads which button has flagged the interrupt from GPIO\_IF and writes it to the LED register, then it writes to GPIO\_IFC to clear the interrupt. Still, simply implementing interrupts did not make the program more efficient as it was still looping waiting for interrupts.
+Our interrupt handler is set up to do two things when called. First it reads which button has flagged the interrupt from GPIO\_IF and writes it to the LED register, then it writes to GPIO\_IFC to clear the interrupt. Still, simply implementing interrupts did not make the program more efficient as it was still looping waiting for interrupts.
 
 \subsection{Efficient interrupts}
 
-In order to achieve efficiency we utilized the energy modes of the EFM32GG in order to turn off unnecessary processor use when waiting for a button to be pushed. In order to be able to react to input even when the processor is turned off the EFM32GG relies on interrupts which return the EFM32GG to energy mode 0. This meant we could put the processor to deep sleep, only running after a button push to change the LED. In order to put the processor back to sleep after handling an interrupt we simply set the processor to sleep on exiting interrupt handler mode by writing to SCR.
+In order to achieve efficiency we utilized the energy modes of the EFM32GG, turning off unnecessary processor use when waiting for a button to be pushed. In order to be able to react to input even when the processor is turned off, the EFM32GG relies on interrupts which restore the EFM32GG to EM0. This meant we could put the processor to deep sleep, only running after a button push to change the LED. In order to put the processor back to sleep after handling an interrupt we simply set the processor to sleep on exiting interrupt handler mode by writing to SCR.
 
 
 \section{Further improvements}
@@ -67,10 +61,10 @@ The reference manual describes the difference between EM2 and EM3 as having the 
 
 \section{Implementing a clock}
 
-Having gotten a fairly efficient button to LED mapping we next implemented a simple clock. In order for a clock to work in EM3 the only time availible was the LETIMER which could run from the ultra low frequency crystal oscilliator (ULFRCO). While the LETIMER offers some advanced functionality we settled on simply counting down from a set value and triggering an interrupt on overflow, and making the interrupt handler decrement the LED bits once.
+Having gotten a fairly efficient button to LED mapping we next implemented a simple clock. In order for a clock to work in EM3 the only time available was the LETIMER which could run from the ultra low frequency crystal oscillator (ULFRCO). While the LETIMER offers some advanced functionality we settled on simply counting down from a set value and triggering an interrupt on overflow, and making the interrupt handler decrement the LED bits once.
 
 After setting the LETIMER to generate interrupts we also had to enable interrupt handling for LETIMER interrupts by writing to ISER0, like we did with the GPIO interrupts. 
 
-Setting the count down value very low, i.e making the clock tick very fast also gave us a nice source of steady interrupts we could use to gague energy consumption.
+Setting the count down value very low and making the clock tick very fast also gave us a nice source of steady interrupts we could use to gauge energy consumption.
 
-In order to test how interrupts impacted performance we set the countdown value to one, generating an interrupt for every LFRCO oscillation. Next we tried duplicationg the instructions for the handler, trying with the normal execution, then adding redundant executions, trying three, five and seven executions, as well as doing nothing but clearing the interrupt flag. This would help us gauge how code optimization could effect efficiency for frequent interrupts.
+In order to test how interrupts impacted performance we set the countdown value to one, generating an interrupt for every LFRCO oscillation. Next we tried duplicating the instructions for the handler, trying with the normal execution, then adding redundant executions, trying three, five and seven executions, as well as doing nothing but clearing the interrupt flag. This would help us gauge how code optimization could effect efficiency for frequent interrupts.
