@@ -13,18 +13,18 @@ The MCU of the EFM32GG-DK3750 is an ARM Cortex-M3. The Cortex-M3 is a 32-bit RIS
 % TODO (maybe): Write a section about what exceptions and interrupts are?
 
 \subsection{Nested Vectored Interrupt Controller (NVIC)}
-The Cortex-M3 comes with an NVIC, which is the hardware that handles interrupts. Interrupts are events that originate on peripheral devices or special software instructions, causing the normal flow of a program to change and some special code to be executed. This special code is refered to as an \emph{interrupt handler}, and performs some necessary action depending on the interrupt. The NVIC organizes several interrupt handlers in a table of addresses called the Interrupt Vector Table (IVT). When an interrupt is registered, the execution will jump to the handler specified by the corresponding entry in the vector table, as shown in figure \ref{fig:VectorTable}. Upon a reset, the processor will start executing the reset handler.
+The Cortex-M3 comes with an NVIC, which is the hardware that handles interrupts. Interrupts are events that originate on peripheral devices or special software instructions, causing the normal flow of a program to change and some special code to be executed. This special code is referred to as an \emph{interrupt handler}, and performs some necessary action depending on the interrupt. The NVIC organizes several interrupt handlers in a table of addresses called the Interrupt Vector Table (IVT). When an interrupt is registered, the execution will jump to the handler specified by the corresponding entry in the vector table, as shown in figure \ref{fig:VectorTable}. Upon a reset, the processor will start executing the reset handler.
 
 \subsection{Processor mode and privilege levels}
 The Cortex-M3 can run software at two privilege levels: \emph{privileged} and \emph{unprivileged}. The privilege levels are used by the processor hardware to restrict running software to certain resources only. This is necessary in order to provide memory protection, for instance. In privileged mode, running software has access to all instructions and resources, while in unprivileged mode access is restricted according to some board configuration registers.
 
-The software privilege level depends on wether the processor is running in \emph{thread mode} or \emph{handler mode}. In thread mode the software runs at either privileged or unprivileged level depending on the CONTROL register, while in handler mode the software always runs at the privileged level. The processor will switch from thread mode to handler mode on any exception or interrupt. This ensures that the interrupt handlers run in privileged mode with access to all instructions and memory. In an operating system, kernel code would typically run in handler mode and user space programs would run in thread mode.\cite{CortexM3-RM}
+The software privilege level depends on whether the processor is running in \emph{thread mode} or \emph{handler mode}. In thread mode the software runs at either privileged or unprivileged level depending on the CONTROL register, while in handler mode the software always runs at the privileged level. The processor will switch from thread mode to handler mode on any exception or interrupt. This ensures that the interrupt handlers run in privileged mode with access to all instructions and memory. In an operating system, kernel code would typically run in handler mode and user space programs would run in thread mode.\cite{CortexM3-RM}
 
 \subsection{Registers}
 The Cortex-M3 makes several registers visible to the programmer. These include the general-purpose registers R0 through R12, the Stack Pointer (SP/R13), the Link Register (LR/R14), the Program Counter (PC/R15), and the Program Status Register (PSR). 
 
 \subsubsection{General-purpose registers}
-ARM Cortex-M3 contains thirteen 32-bit general purpose registers, labled R0-R12. When an exception occurs the CPU automatically pushes the registers R0-R3 to the stack. Registers R4-R12 need to be handled manually.
+ARM Cortex-M3 contains thirteen 32-bit general purpose registers, labelled R0-R12. When an exception occurs the CPU automatically pushes the registers R0-R3 to the stack. Registers R4-R12 need to be handled manually.
 
 \subsubsection{Stack Pointer (SP)}
 Register R13 is reserved for the stack pointer. The stack pointer is used to point to the last stacked item in the stack memory. The processor contains two stacks: the \emph{main stack} and the \emph{process stack}. In thread mode the control register's second bit indicates which stack pointer to use.
@@ -38,20 +38,20 @@ Register R13 is reserved for the stack pointer. The stack pointer is used to poi
 LR is register R14 and is used to store information about subroutines, function calls and exceptions.
 
 \subsubsection{Program Counter (PC)}
-PC is register R15. PC holds address for the current program. Since instructions has to be halfword aligned the first bit is allways 0. When the processor is reset, the PC loads the default value from the reset vector. 
+PC is register R15. PC holds address for the current program. Since instructions has to be halfword aligned the first bit is always 0. When the processor is reset, the PC loads the default value from the reset vector. 
 
 \subsubsection{Program Status Register (PSR)}
-The PSR is used to stored states after an instruction. E.g. the add instruction may produce overflow and bit[28] indicates if the operation resulted in overflow. PSR's bit assigments can bee seen in the figures chapter \ref{fig:PSRMap}.
+The PSR is used to stored states after an instruction. For instance, if the add instruction produces an overflow this will be indicated by bit[28]. PSR's bit assignments can bee seen in figure \ref{fig:PSRMap}.
 
 \subsection{Instruction set}
-The Cortex-M3 implements the Thumb-2 instruction set, a 32-bit instruction set commonly used for ARM microprocessors. It is an extension of the older 16-bit Thumb instruction set, and contains a mix of both 16-bit and 32-bit instructions. The additional 32-bit instructions allow it to cover the functionality of newer ARM microprocessors.\cite{CortexA8-RM}
+The Cortex-M3 implements the Thumb-2 instruction set, a 32-bit instruction set commonly used for ARM processors. It is an extension of the older 16-bit Thumb instruction set, and contains a mix of both 16-bit and 32-bit instructions. The additional 32-bit instructions allow it to cover the functionality of newer ARM microprocessors.\cite{CortexA8-RM}
 
 % TODO (optional): Write a subsection about instruction fetching in Cortex-M3
 
 
 \section{On-board components and peripherals}
 
-Through the exercises in this course we will work with the  Silicon labs EFM32GG-DK3750 prototyping board \ref{fig:EFMBoard}. There are several on-board components and peripherals of special interest, including the General-Purpose Input/Output pins (GPIO pins) controlling external peripheral devices, the gamepad prototype, the Clock Management Unit (CMU), the Energy Management Unit (EMU), the LCD screen outputting current amperage, and the wires connecting the board to the development PC. These components however are just a small subset of the peripherals offered, so we have provided a map of the full set of peripherals \ref{fig:GiantGeckoMap}.
+Through the exercises in this course we will work with the Silicon labs EFM32GG-DK3750 prototyping board \ref{fig:EFMBoard}. There are several on-board components and peripherals of special interest, including the General-Purpose Input/Output pins (GPIO pins) controlling external peripheral devices, the gamepad prototype, the Clock Management Unit (CMU), and the Energy Management Unit (EMU). This section will give a brief introduction to those devices. For a map of the full set of peripherals, see figure \ref{fig:GiantGeckoMap}.
 
 \subsection{General-Purpose Input/Output pins (GPIO pins)}
 The GPIO pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
@@ -60,23 +60,23 @@ The GPIO pins is what makes it possible to connect external peripherals to the E
 The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper which allows us to toggle whether the amperage consumed by the LEDs will be measured.
 
 \subsection{Clock Management Unit (CMU)}
-The CMU controls on-board oscillators and clocks. These components consume a significant amount of power, as a clock signal needs to be generated for all active on-board peripherals. The CMU provides a high level of configurability, allowing the clocks to be turned on and off on an individual basis. By default, the clocks for all components are turned off, and need to be manually enabled for the components that will be used.\cite{EFM32GG-RM}
+The CMU controls on-board oscillators and clocks. These components consume a significant amount of power, as a clock signal needs to be generated for all active on-board peripherals. The CMU is highly configurable, allowing the clocks to be turned on and off on an individual basis. By default, the clocks for all components are turned off and need to be manually enabled for the components that will be used.\cite{EFM32GG-RM}
 
 \subsection{Energy Management Unit (EMU)}
-The EMU manages the different low energy modes in the EFM32GG. Being a microcontroller with focus on energy efficiency, the EFM32GG has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in \ref{fig:GiantGeckoMap}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{EFM32GG-RM}
+The EMU manages the different low energy modes in the EFM32GG. Being a MCU with focus on energy efficiency, the Cortex-M3 has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in figure \ref{fig:GiantGeckoMap}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{EFM32GG-RM}
 
 \subsection{DMA Controller}
-The Direct Memory Access (DMA) controller is a hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or enter low energy modes.
+The Direct Memory Access (DMA) controller is a hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or to enter low energy modes.
 
 \subsection{Peripheral Reflex System (PRS)}
-The PRS is a network connecting the different peripheral modules together, allowing them to communicate directly without involving the CPU. The peripheral modules send each other \emph{reflex signals} routed by the PRS. On receiving such a signal, a peripheral module may perform some specific action depending on the signal received. By relieving the CPU of work, the PRS system can be used to improve energy efficiency. In addition, it is suited for time-critical operations as it involves no variable-time software overhead.
+The PRS is a network connecting the different peripheral modules together, allowing them to communicate directly without involving the CPU. The peripheral modules send each other \emph{reflex signals} routed by the PRS. On receiving such a signal, a peripheral module may perform some specific action depending on the signal received. By relieving the CPU of work, the PRS system can be used to improve energy efficiency. It is also suited for time-critical operations as it involves no variable-time software overhead.
 
 % TODO (optional): Write about LEUART and SRAM
 
 
 \section{Energy consumption}
 
-When reasoning about the expenditure of a device it’s useful to break down energy consumption into static and dynamic consumption. Dynamic consumption is the power consumed as a function of clock rate. A processor running at a higher clock rate will in general expend more energy. The static consumption is the energy a device consumes regardless of clock frequency, for instance the small current that keeps SRAM from flipping over when not in use. 
+When reasoning about the expenditure of a device it is useful to break down energy consumption into static and dynamic consumption. Dynamic consumption is the power consumed as a function of the clock rate. A processor running at a higher clock rate will in general expend more energy. The static consumption is the energy a device consumes regardless of clock frequency, for instance the small current that keeps SRAM from flipping over when not in use. 
 
 In this task the main challenge is to reduce both static and dynamic power consumption to a bare minimum while still providing the necessary services for the buttons and LEDs to work.
 
@@ -100,7 +100,6 @@ We specify registers with their base address followed by their offsets. The base
 
 \section{Tools}
 
-\subsection{GNU toolchain}
-The GNU toolchain is a collection of programming tools used for software development. The GNU toolchain is produced by the GNU project and is free software. The components of the GNU toolchain used in this course are make (build-automation tool), ld (linker), as (assembler), and the GNU debugger.\cite{gnu.org}
-% TODO (optional): Skrive litt om de forskjellige verktøyene
+\subsection{GNU tool chain}
+The GNU tool chain is a collection of programming tools used for software development. The GNU tool chain is produced by the GNU project and is free software. The components of the GNU tool chain used in this course are make (build-automation tool), ld (linker), as (assembler), and the GNU debugger.\cite{gnu.org}
 
