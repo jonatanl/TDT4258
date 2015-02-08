@@ -24,10 +24,10 @@ The software privilege level depends on wether the processor is running in \emph
 The Cortex-M3 makes several registers visible to the programmer. These include the general-purpose registers R0 through R12, the Stack Pointer (SP/R13), the Link Register (LR/R14), the Program Counter (PC/R15), and the Program Status Register (PSR). 
 
 \subsubsection{General-purpose registers}
-ARM Cortex-M3 contians 13, 32-bit general purpose registers, labled R0-R12. When an exception occurs the CPU automatically pushes the registers R0-R3 to the stack. Registers R4-R12 have to be handled manually.
+ARM Cortex-M3 contains thirteen 32-bit general purpose registers, labled R0-R12. When an exception occurs the CPU automatically pushes the registers R0-R3 to the stack. Registers R4-R12 need to be handled manually.
 
 \subsubsection{Stack Pointer (SP)}
-Register R13 is reserved for the stack pointer. SP is used to point to the last stacked item in the stack memory. The processor contains two stacks, the \emph{main stack} and the \emph{process stack}. In Thread mode the control registers second bit indicates which stack pointer to use.
+Register R13 is reserved for the stack pointer. The stack pointer is used to point to the last stacked item in the stack memory. The processor contains two stacks: the \emph{main stack} and the \emph{process stack}. In thread mode the control register's second bit indicates which stack pointer to use.
 
 \begin{itemize}
 \item 0 = Main Stack Pointer
@@ -35,7 +35,7 @@ Register R13 is reserved for the stack pointer. SP is used to point to the last 
 \end{itemize}
 
 \subsubsection{Link Register (LR)}
-LR is register R14 and is used to store information about subrutines, function calls and excepitons.
+LR is register R14 and is used to store information about subroutines, function calls and exceptions.
 
 \subsubsection{Program Counter (PC)}
 PC is register R15. PC holds address for the current program. Since instructions has to be halfword aligned the first bit is allways 0. When the processor is reset, the PC loads the default value from the reset vector. 
