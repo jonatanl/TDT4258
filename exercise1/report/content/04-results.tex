@@ -3,24 +3,24 @@
 % These can be correctness results, i.e whether the implementation behaved as expected, or numerical results that express runtime or energy measurements.
 
 \section{Final program}
-Our final program works as LED toggler combined with a clock. Each button is mapped to a single LED. When a button is pushed the coresponding LED is toggled. In addition a clock steadily decrements the LED value.
+Our final program works as LED a toggler combined with a clock. Each button is mapped to a single LED. When a button is pushed the corresponding LED is toggled. In addition a clock steadily decrements the LED value.
 
 \section{Measurements}
 
 \subsection{Polling}
-With our polling implementation as a baseline we measured about 4.9mA, regardless of button input. As expected, the polling method consumes a lot of energy since it constantly runs instructions whether they are needed or not. The result can be seen in figure \ref{fig:PerformancePolling}
+With our polling implementation as a baseline we measured about 4.9mA, regardless of button input. As expected, the polling method consumes a lot of energy since it constantly runs instructions whether they are needed or not. The result are shown in figure \ref{fig:PerformancePolling}.
 
 \subsection{Interrupt}
-Our wake on interrupt based program fared much better, averaging around 1.5$\mu$ A, and expending about 83$\mu$ A when a button was held down as seen in figure \ref{fig:PerformanceInterrupts}
+Our wake on interrupt based program fared much better, averaging around 1.5$\mu$A, and expending about 83$\mu$A when a button was held down. This is shown in figure \ref{fig:PerformanceInterrupts}.
 
 \subsection{SRAM blocks}
-In search of further improvement we powered down idle SRAM blocks to save more power, resulting in around 1$\mu$ A, a pretty substantial improvement from the simple interrupt based program. With a button held down however the difference was negligible as seen in figure \ref{fig:PerformanceSRAM}
+In search of further improvement we powered down idle SRAM blocks to save more power, resulting in around 1$\mu$A, a pretty substantial improvement from the simple interrupt based program. However, with a button held down the difference was negligible as shown in figure \ref{fig:PerformanceSRAM}.
 
 \subsection{Energy mode 3}
 Turning off LFBCLK and setting LFACLK to use the ULFRCO set the device to energy mode 3, but we could measure no performance difference at all.
 
 \subsection{Interrupt efficiency}
-When duplicating the instruction for the handler, making it do redundant actions we recieved the readings in table \ref{tab:Handler}.
+When duplicating the instruction for the handler, making it do redundant actions we received the readings in table \ref{tab:Handler}.
 
 \begin{table}
 
@@ -39,12 +39,12 @@ Handler executions & cycles per interrupt & $\mu$A \\
 \caption{Energy cost with different handler executions}
 
 \end{table}
-We see a strong correlation between interrupt handler instruction size and efficiency, the amount of energy spent on executing instructions is much large than the energy spent generating interrupts and handling them.
+We see a strong correlation between interrupt handler instruction size and efficiency. The amount of energy spent on executing instructions is much larger than the energy spent generating interrupts and handling them.
 
 We would get better data if we could make an empty handler, but then there would be no way to clear the flags, making the processor unable to exit handler mode.
 
 \subsection{Noise}
-In figure 4.2 and 4.3 a lot of noise can be seen when the board is in deep sleep. We could not find any specification about the measurment range and precision. It is unclear if the noise was caused by to low precision on the sensor, or if the other components on the board affects the sensor.
+In figure \ref{fig:PerformanceInterrupts} and \ref{fig:PerformanceSRAM} a lot of noise can be seen when the board is in deep sleep. We could not find any specification about the measurement range and precision. It is unclear if the noise was caused by to low precision on the sensor, or if the other components on the board affects the sensor.
 
 \begin{figure}[ht]
  \centering
@@ -56,13 +56,13 @@ In figure 4.2 and 4.3 a lot of noise can be seen when the board is in deep sleep
 \begin{figure}[ht]
  \centering
  \includegraphics[width=\textwidth]{images/performance_with_interrputs.png}
- \caption{Energy consumption with interrputs}
+ \caption{Energy consumption with interrupts}
  \label{fig:PerformanceInterrupts}
 \end{figure}
 
 \begin{figure}[ht]
  \centering
  \includegraphics[width=\textwidth]{images/performance_interrupts_sram_idle.png}
- \caption{Energy consumption with interrputs, and SRAM blocks powered off}
+ \caption{Energy consumption with interrupts, and SRAM blocks powered off}
  \label{fig:PerformanceSRAM}
 \end{figure}
