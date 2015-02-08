@@ -71,4 +71,4 @@ Having gotten a fairly efficient button to LED mapping we next implemented a sim
 
 Setting the count down value very low, i.e making the clock tick very fast also gave us a nice source of steady interrupts we could use to gague energy consumption.
 
-In order to test how interrupts impacted performance we set the countdown value to one, generating an interrupt for every LFRCO oscillation. Next we tried duplicationg the interrupt handler, making it do 0, 1, 3, 5 and 7 executions per interrupt to see what effect interrupt code and interrupt generation had on energy consumption.
+In order to test how interrupts impacted performance we set the countdown value to one, generating an interrupt for every LFRCO oscillation. Next we tried duplicationg the instructions for the handler, trying with the normal execution, then adding redundant executions, trying three, five and seven executions, as well as doing nothing but clearing the interrupt flag. This would help us gauge how code optimization could effect efficiency for frequent interrupts. 

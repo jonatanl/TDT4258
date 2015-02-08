@@ -40,7 +40,8 @@ In search of further improvement we powered down idle SRAM blocks to save more p
 \subsection{Energy mode 3}
 Turning off LFBCLK and setting LFACLK to use the ULFRCO set the device to energy mode 3, but we could measure no performance difference at all.
 
-\subsection{}
+\subsection{Interrupt efficiency}
+With the normal interrupt handler for LETIMER interrupts we 
 
 \subsection{Noise}
 In figure 4.2 and 4.3 a lot of noise can be seen when the board is in deep sleep. We could not find any specification about the measurment range and precision. It is unclear if the noise is caused by to low precision on the sensor, or if the other components on the board affects the sensor.
