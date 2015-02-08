@@ -101,7 +101,7 @@ Activating interrupt generation by writing 0x6 to ISER0
 
 \section{Handling interrupts}
 
-To handle gpio interrupts the handler reads from GPIO\_IF interrupt flag register, and stores it in the GPIO\_IFC, interrupt flag cleared register.
+To handle GPIO interrupts the handler reads from GPIO\_IF interrupt flag register, and stores it in the GPIO\_IFC, interrupt flag cleared register.
 
 \begin{lstlisting}
 	ldr r1, [GPIO, #GPIO_IF]	
@@ -128,7 +128,7 @@ program_loop:
 	b program_loop  	
 \end{lstlisting}
 
-The loop isnt strictly necessary as the processor wont execute anything after hitting the wfi instruction.
+The loop is not strictly necessary as the processor will not execute anything after hitting the wfi instruction.
 
 \section{Further improvements}
 
