@@ -39,7 +39,7 @@ PC is register R15. PC holds address for the current program. Since instructions
 The PSR is used to stored states after an instruction. E.g. the add instruction may produce overflow and bit[28] indicates if the operation resulted in overflow. PSR's bit assigments can bee seen in the figures chapter \ref{fig:PSRMap}.
 
 \subsection{Nested Vectored Interrupt Controller (NVIC)}
-The Cortex-M3 comes with an NVIC, which allows us to execute code whenever an interrupt is registered. When an interrupt is registered the NVIC will jump to a memory address specified in its interrupt vector table (TODO: Link to fig vectors) which holds the address of an interrupt handler that should be run when the interrupt is triggered.\cite{compendium}
+The Cortex-M3 comes with an NVIC, which allows us to execute code whenever an interrupt is registered. When an interrupt is registered the NVIC will jump to a memory address specified in its interrupt vector table \ref{fig:VectorTable} which holds the address of an interrupt handler that should be run when the interrupt is triggered.
 
 Upon a reset, the processor will start executing the reset handler in handler mode. When the reset handler returns, it will return to thread mode.
 
@@ -57,7 +57,7 @@ Through the exercises in this course we will work with the  Silicon labs EFM32GG
 \subsection{General-Purpose Input/Output pins (GPIO pins)}
 The GPIO pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
 
-\subsection{The gamepad}
+\subsection{The Gamepad}
 The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper which allows us to toggle whether the amperage consumed by the LEDs will be measured.
 
 \subsection{Clock Management Unit (CMU)}
@@ -77,9 +77,7 @@ The PRS is a network connecting the different peripheral modules together, allow
 
 \section{Energy consumption}
 
-When reasoning about the expenditure of a device it’s useful to break down energy consumption into static and dynamic consumption. Dynamic consumption is the power consumed as a function of clock rate. A processor running at a higher clock rate will in general expend more energy. The static consumption is the energy a device consumes regardless of clock frequency, for instance the small current that keeps SRAM from flipping over when not in use.
-
-TODO: Here I want the picture from the energy optimization PDF when we migrate to tex.
+When reasoning about the expenditure of a device it’s useful to break down energy consumption into static and dynamic consumption. Dynamic consumption is the power consumed as a function of clock rate. A processor running at a higher clock rate will in general expend more energy. The static consumption is the energy a device consumes regardless of clock frequency, for instance the small current that keeps SRAM from flipping over when not in use. 
 
 In this task the main challenge is to reduce both static and dynamic power consumption to a bare minimum while still providing the necessary services for the buttons and LEDs to work.
 
