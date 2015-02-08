@@ -1,5 +1,14 @@
+\chapter{Discussion}
+We believe we have presented a pretty decent solution to handling LED and button mapping. Our program runs very efficiently, and while improvements are probably still possible the device uses so little power that the power source will probably fail before the energy is drained.
+
+We tried to implement DMA to read from memory and display on the LEDs using the LEUART and PRS, but in the end it proved too challenging since none of us had any prior experience. 
+
+We also considered using the PRS to map buttons to LEDs, but we dont know whether this would have been possible, and if it would have saved power.
+
 \chapter{Conclusion}
-This chapter should be a look back at the entire report and summarizing the problem, the solution and the obtained results.
+In this exercise we have gone from knowing almost nothing about micro-controllers and energy efficiency to implementing an energy efficient, although fairly primitive clock.
+
+We have shown how energy consumption of a device can vary a great deal based on how it is implemented, by several orders of magnitude. We have also gained a much deeper understanding about how  processor works very close to the metal, and how it interfaces with various peripherals.
 
 \section{Evaluation of the Assignment}
-You can include comments about the assignment itself here. While this part is not obligatory and not graded, it is valuable feedback to the course staff that can be used to improve the exercises in the future.
+This was a very useful exercise for us, and on the technical side everything worked out smoothly except for eACommander from time to time being unable to halt the processor to flash memory.
