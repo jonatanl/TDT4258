@@ -29,6 +29,23 @@ The Peripheral Reflex System (PRS) is a network connecting the different periphe
 \subsection{TIMER (Timer/Counter)}
 % TODO
 
+The TIMER module can be used to count events and trigger actions in other peripherals without involving the CPU. It can also be used to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the timer.
+
+\subsubsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at a frequency of 14MHz, but this can be prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
+
+\subsubsection{Operation}
+The timer can be started and stopped by writing to the bits START and STOP in the register TIMERn\_CMD. However, it is also possible to control the timer from other peripherals through the PRS.
+
+\subsubsection{Counter Modes}
+The timer has four different modes:
+\begin{enumerate}
+	\item Up-count: The timer starts at 0, counts upwards, and resets to 0 when reaching the value of TIMER\_n\_TOP.
+	\item Down-count: The timer starts at TIMER\_n\_TOP, counts downwards, and resets to the value of TIMER\_n\_TOP when reaching 0.
+
+	\item Up/Down-count: % TODO
+	\item Quadrature Decoder:
+\end{enumerate}
+
 
 \subsection{DAC (Digital-to-Analog Converter)}
 % TODO
