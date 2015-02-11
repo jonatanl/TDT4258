@@ -5,3 +5,38 @@
 % that are important to understand the solution should be summarized here. Add
 % citations to show sources whenever appropriate.
 
+
+\section{On-board components and peripherals}
+Through the exercises in this course we will work with the Silicon labs EFM32GG-DK3750 prototyping board \ref{fig:EFMBoard}. There are several on-board components and peripherals of special interest, including the General-Purpose Input/Output pins (GPIO pins) controlling external peripheral devices, the gamepad prototype, the Clock Management Unit (CMU), and the Energy Management Unit (EMU). This section will give a brief introduction to those devices. For a map of the full set of peripherals, see figure \ref{fig:GiantGeckoMap}.
+
+
+\subsection{Clock Management Unit}
+The Clock Management Unit (CMU) controls on-board oscillators and clocks. These components consume a significant amount of power, as a clock signal needs to be generated for all active on-board peripherals. The CMU is highly configurable, allowing the clocks to be turned on and off on an individual basis. By default, the clocks for all components are turned off and need to be manually enabled for the components that will be used.\cite{efm32gg-rm}
+
+
+\subsection{General-Purpose Input/Output pins}
+The General-Purpose Input/output (GPIO) pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
+
+
+\subsection{The Gamepad}
+The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper which allows us to toggle whether the amperage consumed by the LEDs will be measured.
+
+
+\subsection{Peripheral Reflex System}
+The Peripheral Reflex System (PRS) is a network connecting the different peripheral modules together, allowing them to communicate directly without involving the CPU. The peripheral modules send each other \emph{reflex signals} routed by the PRS. On receiving such a signal, a peripheral module may perform some specific action depending on the signal received. By relieving the CPU of work, the PRS system can be used to improve energy efficiency. It is also suited for time-critical operations as it involves no variable-time software overhead.
+
+
+\subsection{TIMER (Timer/Counter)}
+% TODO
+
+
+\subsection{DAC (Digital-to-Analog Converter)}
+% TODO
+
+
+\subsection{Direct Memory Access Controller}
+The Direct Memory Access (DMA) controller is a hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or to enter low energy modes.
+
+
+\subsection{Energy Management Unit (EMU)}
+The EMU manages the different low energy modes in the EFM32GG. Being a MCU with focus on energy efficiency, the Cortex-M3 has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in figure \ref{fig:GiantGeckoMap}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
