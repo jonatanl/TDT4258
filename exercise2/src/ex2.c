@@ -10,12 +10,13 @@
   registers are 16 bits.
 */
 /* The period between sound samples, in clock cycles */
-#define   SAMPLE_PERIOD   0
+#define   SAMPLE_PERIOD   13672
 
 /* Declaration of peripheral setup functions */
 void setupTimer(uint32_t period);
 void setupDAC();
 void setupNVIC();
+void setupGPIO();
 
 /* Your code will start executing here */
 int main(void) 
@@ -45,6 +46,9 @@ void setupNVIC()
      You will need TIMER1, GPIO odd and GPIO even interrupt handling for this
      assignment.
   */
+
+  // Enable timer interrupts
+  *ISER0 = (*ISER0) | (1 << 12);
 }
 
 /* if other interrupt handlers are needed, use the following names: 
