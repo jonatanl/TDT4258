@@ -10,8 +10,13 @@
 Through the exercises in this course we will work with the Silicon labs EFM32GG-DK3750 prototyping board \ref{fig:EFMBoard}. There are several on-board components and peripherals of special interest, including the General-Purpose Input/Output pins (GPIO pins) controlling external peripheral devices, the gamepad prototype, the Clock Management Unit (CMU), and the Energy Management Unit (EMU). This section will give a brief introduction to those devices. For a map of the full set of peripherals, see figure \ref{fig:GiantGeckoMap}.
 
 
-\subsection{Clock Management Unit}
-The Clock Management Unit (CMU) controls on-board oscillators and clocks. These components consume a significant amount of power, as a clock signal needs to be generated for all active on-board peripherals. The CMU is highly configurable, allowing the clocks to be turned on and off on an individual basis. By default, the clocks for all components are turned off and need to be manually enabled for the components that will be used.\cite{efm32gg-rm}
+\subsection{Clock Management Unit}\label{subsec:cmu}
+The Clock Management Unit (CMU) controls the on-board oscillators and clocks. A clock signal needs to be produced for each of the active peripherals, and this can consume a significant amount of power. The CMU is highly configurable and can enable clock signals for the peripherals on an individual basis.\cite{efm32gg-rm}
+
+\subsubsection{System clocks}
+The CMU manages several system clocks in order to provide different clock signals to the different modules. Notable system clocks include the High Frequency Clock (HFCLK), the High Frequency Core Clock (HFCORECLK), and the High Frequency Peripheral Clock (HFPERCLK). The two latter clocks are driven by HFCLK through separate prescalers, making it possible to configure their clock rates individually. The HFCLK itself can be driven either by one of the high-frequency oscillators (HFRCO and HFXO), or by one of the low-frequency oscillators (LFRCO and LFXO). 
+% TODO: Explain core and peripheral clock
+% TODO: Explain how to turn of the clock for core modules and peripherals
 
 
 \subsection{General-Purpose Input/Output pins}
@@ -55,5 +60,39 @@ The timer has four different modes:
 The Direct Memory Access (DMA) controller is a hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or to enter low energy modes.
 
 
-\subsection{Energy Management Unit (EMU)}
+\subsection{Energy Management Unit (EMU)}\label{subsec:emu}
 The EMU manages the different low energy modes in the EFM32GG. Being a MCU with focus on energy efficiency, the Cortex-M3 has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in figure \ref{fig:GiantGeckoMap}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
+% TODO: Explain how to disable RAM blocks
+
+
+\section{Energy consumption}
+
+\subsection{Static and dynamic power}
+The power used by a CMOS integrated circuit can be split into two main parts: \emph{static power} and \emph{dynamic power}. Static power is power used regardless of whether the circuit is changing states or not, for instance the small current that keeps SRAM from flipping over when not in use. Dynamic power is the additional power used when the circuit changes states. In clocked circuits the dynamic power used is proportional to the clock rate. As an example, a processor running at a higher clock rate will in general use more power per unit of time.\cite{efm32-energy-optimization}
+% Static power can be determined by the formula P_{static} = I_{static}V_{dd}
+
+\subsection{Power management strategies}
+In the course literature, two strategies for power management are described: \emph{dynamic} and \emph{static}. It is important to note that these bear no direct relation to static and dynamic power dissipation. 
+
+\subsection{Reducing power consumption in EFM32GG}
+This section gives a brief overview of several ways to reduce the static and dynamic power consumption in the EFM32GG.
+
+\subsubsection{Adjusting System Clocks}
+As mentioned above, the clock rate of a circuit is proportional to its dynamic power. But while it might be tempting to reduce the circuit clock rate, this is not always a good idea. For instance when increasing the clock rate of the CPU, the increase in dynamic power used per time unit will be matched by a similar decrease in the time the CPU needs to finish its current task, allowing the CPU to enter a low energy modes sooner. In fact, these two factors even each other out. And if we also consider that the total static power consumption will be decreased as the CPU spends less time in run mode, the result of increasing the CPU clock rate is positive. % TODO: However, there are sometimes factors that delay CPU execution.
+
+\subsubsection{Clock Gating}
+Clock gating is a technique that reduces dynamic power consumption by disconnecting the clock from unused circuits. The EFM32GG supports manual clock gating of both core modules and peripherals on an individual basis (see section \ref{subsec:cmu}).\cite{efm32-energy-optimization} 
+
+\subsubsection{Energy Modes}
+% TODO: Write about energy modes
+
+\subsubsection{Disabling RAM Blocks}
+In the EFM32GG there is a static power dissipation in the RAM blocks of approximately 170 nA per 32 KB block. This constitutes a considerable amount when the device is in EM2 or EM3 energy modes. The EFM32GG supports disabling individual 32 KB RAM blocks (see section \ref{subsec:emu}).\cite{efm32-energy-optimization}
+
+\subsubsection{Reducing Bias Current of Analog Peripherals}
+% TODO: See application note sec. 2.3, and EFM32GG-RM
+
+
+
+\ref{subsec:emu}
+
