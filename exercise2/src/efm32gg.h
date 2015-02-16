@@ -83,6 +83,17 @@
 #define IABR0 ((volatile uint32_t*)0xe000e300)
 #define IABR1 ((volatile uint32_t*)0xe000e304)
 
+#define IRQ_DMA			(1 << 0)
+#define IRQ_GPIO_EVEN		(1 << 1)
+#define IRQ_GPIO_ODD		(1 << 11)
+#define IRQ_DAC			(1 << 8)
+#define IRQ_TIMER1		(1 << 12)
+#define IRQ_LEUART0		(1 << 24)
+#define IRQ_LETIMER0		(1 << 26)
+
+#define CMU_HFCORECLKEN0_DMA (1 << 0)
+
+
 // IPR
 
 #define IPR_BASE  0xe000e400
@@ -91,6 +102,7 @@
 #define IPR1 ((volatile uint32_t*)(IPR_BASE + 0x04))
 #define IPR2 ((volatile uint32_t*)(IPR_BASE + 0x08))
 #define IPR3 ((volatile uint32_t*)(IPR_BASE + 0x0c))
+
 
 // EMU
 
