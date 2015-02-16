@@ -59,8 +59,15 @@ The timer has four different modes:
 \end{enumerate}
 
 
-\subsection{DAC (Digital-to-Analog Converter)}
+\subsection{Digital-to-Analog Converter}
 % TODO
+
+The Digital-to-Analog Converter (DAC) converts digital values to analog signals. The digital values are fed into the DAC through the two 12-bit input channels DACn\_CH0DATA and DACn\_CH1DATA, and is converted to output voltages on the two output channels. By feeding the output from the DAC through the on-board amplifier and into external speakers, the EFM32GG can be used to create sounds.
+
+\subsubsection{Generating Sounds}
+When interpreting a sound as a signal, we speak about properties of the sound such as frequency, period, and amplitude. Here frequency and period (the inverse frequency) describes the pitch of a sound, while amplitude describes the loudness. In a typical speaker, a voltage signal is converted directly into sound waves. Here the voltage signal is an accurate model of the sound wave and has the same frequency and amplitude. The range of sounds that can be perceived by a human being is from 20Hz to 20KHz.\cite{compendium}
+
+TODO % TODO 
 
 
 \subsection{Direct Memory Access Controller}
