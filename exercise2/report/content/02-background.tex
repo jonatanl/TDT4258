@@ -11,12 +11,20 @@ Through the exercises in this course we will work with the Silicon labs EFM32GG-
 
 
 \subsection{Clock Management Unit}\label{subsec:cmu}
-The Clock Management Unit (CMU) controls the on-board oscillators and clocks. A clock signal needs to be produced for each of the active peripherals, and this can consume a significant amount of power. The CMU is highly configurable and can enable clock signals for the peripherals on an individual basis.\cite{efm32gg-rm}
+The Clock Management Unit (CMU) controls the on-board oscillators and clocks, and produces clock signals that drives the core modules and all the peripherals. The CMU can enable or disable clock signals for the peripherals on an individual basis, and the power consumption is reduced significantly by only enabling the clock for the peripherals that will be used. By default, the clock for all peripherals is disabled. 
 
-\subsubsection{System clocks}
-The CMU manages several system clocks in order to provide different clock signals to the different modules. Notable system clocks include the High Frequency Clock (HFCLK), the High Frequency Core Clock (HFCORECLK), and the High Frequency Peripheral Clock (HFPERCLK). The two latter clocks are driven by HFCLK through separate prescalers, making it possible to configure their clock rates individually. The HFCLK itself can be driven either by one of the high-frequency oscillators (HFRCO and HFXO), or by one of the low-frequency oscillators (LFRCO and LFXO). 
-% TODO: Explain core and peripheral clock
-% TODO: Explain how to turn of the clock for core modules and peripherals
+The CMU manages several system clocks in order to provide different clock signals to the core modules and the peripherals. These system clocks include the High Frequency Clock (HFCLK), the High Frequency Core Clock (HFCORECLK), and the High Frequency Peripheral Clock (HFPERCLK).\cite{efm32gg-rm}
+
+\subsubsection{High Frequency Clock}
+HFCLK drives two prescalers that generate HFCORECLK and HFPERCLK, in addition to driving the CMU itself. With separate prescalers it is possible to configure the clock speeds of the core modules and the peripherals individually. The HFCLK itself can be driven either by one of the high-frequency oscillators (HFRCO and HFXO), or by one of the low-frequency oscillators (LFRCO and LFXO). 
+
+\subsubsection{High Frequency Core Clock}
+HFCORECLK is the clock that drives the core modules, which consists of the CPU and tightly coupled modules such as the DMA. The frequency of HFCORECLK can be changed dynamically by writing to CMU\_HFCORECLKDIV, and the clock can be disabled for individual modules by clearing bits in CMU\_HFCORECLKEN0. 
+
+\subsubsection{High Frequency Peripheral Clock}
+HFPERCLK is the clock that drives the high-frequency peripherals. The frequency of the HFPERCLK can be changed dynamically by writing to CMU\_HFPERCLKDIV, and the clock can be disabled for individual peripherals by clearing bits in CMU\_HFPERCLKEN0. 
+
+%TODO: Write about other clocks
 
 
 \subsection{General-Purpose Input/Output pins}
@@ -32,11 +40,10 @@ The Peripheral Reflex System (PRS) is a network connecting the different periphe
 
 
 \subsection{TIMER (Timer/Counter)}
-% TODO
-
 The TIMER module can be used to count events and trigger actions in other peripherals without involving the CPU. It can also be used to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the timer.
 
-\subsubsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at a frequency of 14MHz, but this can be prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
+\subsubsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at the prescaled frequency of the high frequency clock HFCLK (see section \ref{subsec:cmu}), and this can be further prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
+%TODO: Write about other source clocks for the timer
 
 \subsubsection{Operation}
 The timer can be started and stopped by writing to the bits START and STOP in the register TIMERn\_CMD. However, it is also possible to control the timer from other peripherals through the PRS.
@@ -47,8 +54,8 @@ The timer has four different modes:
 	\item Up-count: The timer starts at 0, counts upwards, and resets to 0 when reaching the value of TIMER\_n\_TOP.
 	\item Down-count: The timer starts at TIMER\_n\_TOP, counts downwards, and resets to the value of TIMER\_n\_TOP when reaching 0.
 
-	\item Up/Down-count: % TODO
-	\item Quadrature Decoder:
+	\item Up/Down-count: TODO % TODO
+	\item Quadrature Decoder: TODO % TODO
 \end{enumerate}
 
 
@@ -71,8 +78,10 @@ The EMU manages the different low energy modes in the EFM32GG. Being a MCU with 
 The power used by a CMOS integrated circuit can be split into two main parts: \emph{static power} and \emph{dynamic power}. Static power is power used regardless of whether the circuit is changing states or not, for instance the small current that keeps SRAM from flipping over when not in use. Dynamic power is the additional power used when the circuit changes states. In clocked circuits the dynamic power used is proportional to the clock rate. As an example, a processor running at a higher clock rate will in general use more power per unit of time.\cite{efm32-energy-optimization}
 % Static power can be determined by the formula P_{static} = I_{static}V_{dd}
 
-\subsection{Power management strategies}
-In the course literature, two strategies for power management are described: \emph{dynamic} and \emph{static}. It is important to note that these bear no direct relation to static and dynamic power dissipation. 
+% Probably will not be used
+%
+%\subsection{Power management strategies}
+%In the course literature, two strategies for power management are described: \emph{dynamic} and \emph{static}. It is important to note that these bear no direct relation to static and dynamic power dissipation. 
 
 \subsection{Reducing power consumption in EFM32GG}
 This section gives a brief overview of several ways to reduce the static and dynamic power consumption in the EFM32GG.
@@ -84,15 +93,11 @@ As mentioned above, the clock rate of a circuit is proportional to its dynamic p
 Clock gating is a technique that reduces dynamic power consumption by disconnecting the clock from unused circuits. The EFM32GG supports manual clock gating of both core modules and peripherals on an individual basis (see section \ref{subsec:cmu}).\cite{efm32-energy-optimization} 
 
 \subsubsection{Energy Modes}
-% TODO: Write about energy modes
+TODO % TODO: Write about energy modes
 
 \subsubsection{Disabling RAM Blocks}
 In the EFM32GG there is a static power dissipation in the RAM blocks of approximately 170 nA per 32 KB block. This constitutes a considerable amount when the device is in EM2 or EM3 energy modes. The EFM32GG supports disabling individual 32 KB RAM blocks (see section \ref{subsec:emu}).\cite{efm32-energy-optimization}
 
 \subsubsection{Reducing Bias Current of Analog Peripherals}
-% TODO: See application note sec. 2.3, and EFM32GG-RM
-
-
-
-\ref{subsec:emu}
+TODO % TODO: See application note sec. 2.3, and EFM32GG-RM
 
