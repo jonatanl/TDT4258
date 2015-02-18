@@ -64,9 +64,6 @@ The timer has four different modes:
 
 The Digital-to-Analog Converter (DAC) converts digital values to analog signals. The digital values are fed into the DAC through the two 12-bit input channels DACn\_CH0DATA and DACn\_CH1DATA, and is converted to output voltages on the two output channels. By feeding the output from the DAC through the on-board amplifier and into external speakers, the EFM32GG can be used to create sounds.
 
-\subsubsection{Generating Sounds}
-When interpreting a sound as a signal, we speak about properties of the sound such as frequency, period, and amplitude. Here frequency and period (the inverse frequency) describes the pitch of a sound, while amplitude describes the loudness. In a typical speaker, a voltage signal is converted directly into sound waves. Here the voltage signal is an accurate model of the sound wave and has the same frequency and amplitude. The range of sounds that can be perceived by a human being is from 20Hz to 20KHz.\cite{compendium}
-
 TODO % TODO 
 
 
@@ -94,7 +91,7 @@ The power used by a CMOS integrated circuit can be split into two main parts: \e
 This section gives a brief overview of several ways to reduce the static and dynamic power consumption in the EFM32GG.
 
 \subsubsection{Adjusting System Clocks}
-As mentioned above, the clock rate of a circuit is proportional to its dynamic power. But while it might be tempting to reduce the circuit clock rate, this is not always a good idea. For instance when increasing the clock rate of the CPU, the increase in dynamic power used per time unit will be matched by a similar decrease in the time the CPU needs to finish its current task, allowing the CPU to enter a low energy modes sooner. In fact, these two factors even each other out. And if we also consider that the total static power consumption will be decreased as the CPU spends less time in run mode, the result of increasing the CPU clock rate is positive. % TODO: However, there are sometimes factors that delay CPU execution.
+By adjusting the CPU clock in active mode (EM0), it is possible to reduce the static power consumption. Lets consider what happens when the CPU clock frequency is doubled. This will approximately double the dynamic power consumption, and at the same time it has the potential to halve the CPU processing time so that the CPU can enter a low energy mode sooner. As energy consumption is calculated as power consumption over time, the total energy consumed by dynamic power will be unaffected. However, halving the processing time will also halve the active mode static power consumption, thereby reducing the total static energy consumption. The conclusion is that computations in higher energy modes should be completed as fast as possible. The exception to this rule is when the CPU must wait for flash memory and flash wait-states are introduced.\cite{efm32-energy-optimization}
 
 \subsubsection{Clock Gating}
 Clock gating is a technique that reduces dynamic power consumption by disconnecting the clock from unused circuits. The EFM32GG supports manual clock gating of both core modules and peripherals on an individual basis (see section \ref{subsec:cmu}).\cite{efm32-energy-optimization} 
@@ -108,3 +105,17 @@ In the EFM32GG there is a static power dissipation in the RAM blocks of approxim
 \subsubsection{Reducing Bias Current of Analog Peripherals}
 TODO % TODO: See application note sec. 2.3, and EFM32GG-RM
 
+
+\section{Generating Sounds}
+When interpreting a sound as a signal, we speak about properties of the sound such as frequency, period, and amplitude. Here frequency and period (the inverse frequency) describes the pitch of a sound, while amplitude describes the loudness. In a typical speaker, a voltage signal is converted directly into sound waves. Here the voltage signal is an accurate model of the sound wave and has the same frequency and amplitude. The range of sounds that can be perceived by a human being is from 20Hz to 20KHz.\cite{compendium}
+
+In order to generate 
+
+According to the standard ISO 16, the frequency 
+
+% TODO: Write about how we generate the different tones
+
+\subsection{Music theory}
+
+\subsubsection{Diatonic Scale}
+In music theory, a diatonic scale is one composed of seven different pitch classes.
