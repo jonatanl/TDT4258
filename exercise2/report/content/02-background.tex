@@ -71,6 +71,27 @@ TODO % TODO
 \subsection{Direct Memory Access Controller}
 The Direct Memory Access (DMA) controller is a hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or to enter low energy modes. It is possible to run the DMA in EM2 by using the LEUART module (see section \ref{subsec:leuart}).
 
+The DMA controller has 12 independent \emph{channels}, each of which can be triggered from either peripherals or software. When a channel is triggered, the DMA controller will read a \emph{channel descriptor} from system memory corresponding to that channel, and perform a memory transfer as specified by a channel descriptor and the DMA configuration.
+
+\subsubsection{Channel Configuration}
+The channels are configured by writing to the channel control registers DMA\_CHx\_CTRL. These registers have two components: SOURCESEL, used to select which peripheral to listen to, and SIGSEL that selects the signals to listen to of that peripheral.
+
+\subsubsection{DMA Cycles}
+A DMA transfer is usually divided into several \emph{DMA cycles}. There are several different cycle types, and these are used to define the behaviour of the DMA controller when it receives a channel request. The cycle type for a DMA transfer is specified by the channel descriptor used (for that channel?).
+
+\subsubsection{Channel Descriptors}
+The channel descriptors are used to configure the behaviour of the DMA controller during a single DMA transfer cycle. The channel descriptors must be stored in a contiguous area of memory called the \emph{channel control data structure}. The channel controll data structure itself consists of a primary and an alternate data structure, and these are lists of channel descriptors. Software is responsible of allocating the data structures and writing the channel descriptors before enabling the DMA channels. In addition, the base address of the channel control data structure needs to be written to the register DMA\_CTRLBASE. Note that the memory area must be accessible to the DMA controller, and the base address needs to be an integer multiple of the X(TODO: either the size of the channel control data structure itself or by 256).
+
+A channel descriptor contains the following elements:
+\begin{itemize}
+	\item src\_data\_end\_ptr, a pointer to the ending address of the source data.
+	\item dst\_data\_end\_ptr, a pointer to the ending address of the destination data.
+	\item channel\_cfg, provides control information such as cycle type and R\_power.
+\end{itemize}
+At the start of a DMA cycle, the controller will read the channel\_cfg from memory. After completing the cycle, an updated channel\_cfg will be written back.
+
+
+
 \subsection{Low Energy Universal Asynchronous Receiver/Transmitter}\label{subsec:leuart}
 TODO % TODO
 
