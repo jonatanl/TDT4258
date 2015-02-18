@@ -26,6 +26,8 @@ HFPERCLK is the clock that drives the high-frequency peripherals. The frequency 
 
 %TODO: Write about other clocks
 
+\subsubsection{Oscilliators}
+TODO % TODO: Write about oscilliators
 
 \subsection{General-Purpose Input/Output pins}
 The General-Purpose Input/output (GPIO) pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
@@ -88,9 +90,10 @@ The power used by a CMOS integrated circuit can be split into two main parts: \e
 %In the course literature, two strategies for power management are described: \emph{dynamic} and \emph{static}. It is important to note that these bear no direct relation to static and dynamic power dissipation. 
 
 \subsection{Reducing power consumption in EFM32GG}
-This section gives a brief overview of several ways to reduce the static and dynamic power consumption in the EFM32GG.
+This section gives a brief overview of several ways to reduce the static and dynamic power consumption in the EFM32GG. The two main approaches is to limit the power spent at a given moment, and to reduce the time spent in high energy modes.
+% TODO: Read through chapter 3 in energy-optimization note and apply what's there to this section
 
-\subsubsection{Adjusting System Clocks}
+\subsubsection{Clock Optimization}
 By adjusting the CPU clock in active mode (EM0), it is possible to reduce the static power consumption. Lets consider what happens when the CPU clock frequency is doubled. This will approximately double the dynamic power consumption, and at the same time it has the potential to halve the CPU processing time so that the CPU can enter a low energy mode sooner. As energy consumption is calculated as power consumption over time, the total energy consumed by dynamic power will be unaffected. However, halving the processing time will also halve the active mode static power consumption, thereby reducing the total static energy consumption. The conclusion is that computations in higher energy modes should be completed as fast as possible. The exception to this rule is when the CPU must wait for flash memory and flash wait-states are introduced.\cite{efm32-energy-optimization}
 
 \subsubsection{Clock Gating}
@@ -103,7 +106,9 @@ TODO % TODO: Write about energy modes
 In the EFM32GG there is a static power dissipation in the RAM blocks of approximately 170 nA per 32 KB block. This constitutes a considerable amount when the device is in EM2 or EM3 energy modes. The EFM32GG supports disabling individual 32 KB RAM blocks (see section \ref{subsec:emu}).\cite{efm32-energy-optimization}
 
 \subsubsection{Reducing Bias Current of Analog Peripherals}
-TODO % TODO: See application note sec. 2.3, and EFM32GG-RM
+Most analog peripherals in the EFM32GG use something called a \emph{bias current}. It is possible to reduce this bias current to reduce power consumption, but this will affect the analog performance.\cite{efm32-energy-optimization}
+% TODO (maybe): Expand this section by explaining what a bias current is
+
 
 
 \section{Generating Sounds}
