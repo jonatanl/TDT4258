@@ -144,6 +144,10 @@
 #define DMA_IEN         ((volatile uint32_t*)(DMA_BASE + 0x100c))
 #define DMA_CH0_CTRL    ((volatile uint32_t*)(DMA_BASE + 0x1100))
 
+// a globally accessible channel descriptor
+extern volatile uint32_t* channel_descriptor;
+extern uint32_t value;
+
 // PRS
 
 #define PRS_BASE 0x400cc000

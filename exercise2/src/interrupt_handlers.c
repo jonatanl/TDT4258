@@ -3,11 +3,19 @@
 
 #include "efm32gg.h"
 
+volatile uint32_t *channel_descriptor;
+void setupDMA(volatile uint32_t *ch_desc);
+
 /* TIMER1 interrupt handler */
 void __attribute__ ((interrupt)) TIMER1_IRQHandler() 
 {  
   // Blink the leftmost LED
   *GPIO_PA_DOUT ^= 0x0100;
+
+  // Load channel descriptor
+  setupDMA(channel_descriptor);
+
+  //*GPIO_PA_DOUT = *(GPIO_PC_DIN) << 8;
 
   // clear the interrupt
   *TIMER1_IFC = 1;
@@ -16,8 +24,7 @@ void __attribute__ ((interrupt)) TIMER1_IRQHandler()
 /* GPIO even pin interrupt handler */
 void __attribute__ ((interrupt)) GPIO_EVEN_IRQHandler() 
 {
-  // Blink the second LED from the left
-  *GPIO_PA_DOUT ^= 0x0200;
+  // Do nothing
 
   // clear the interrupt
   *GPIO_IFC = 0xff;
@@ -26,8 +33,7 @@ void __attribute__ ((interrupt)) GPIO_EVEN_IRQHandler()
 /* GPIO odd pin interrupt handler */
 void __attribute__ ((interrupt)) GPIO_ODD_IRQHandler() 
 {
-  // Blink the third LED from the left
-  *GPIO_PA_DOUT ^= 0x0400;
+  // Do nothing
 
   // clear the interrupt
   *GPIO_IFC = 0xff;
