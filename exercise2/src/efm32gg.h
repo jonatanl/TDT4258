@@ -45,17 +45,19 @@
 
 // CMU
 
-#define CMU_BASE2 0x400c8000
+#define CMU_BASE 0x400c8000
 
-#define CMU_HFPERCLKDIV  ((volatile uint32_t*)(CMU_BASE2 + 0x008))
-#define CMU_HFCORECLKEN0 ((volatile uint32_t*)(CMU_BASE2 + 0x040))
-#define CMU_HFPERCLKEN0  ((volatile uint32_t*)(CMU_BASE2 + 0x044))
-#define CMU_CMD          ((volatile uint32_t*)(CMU_BASE2 + 0x024))
+#define CMU_HFPERCLKDIV  ((volatile uint32_t*)(CMU_BASE + 0x008))
+#define CMU_HFCORECLKEN0 ((volatile uint32_t*)(CMU_BASE + 0x040))
+#define CMU_HFPERCLKEN0  ((volatile uint32_t*)(CMU_BASE + 0x044))
+#define CMU_CMD          ((volatile uint32_t*)(CMU_BASE + 0x024))
 
-#define CMU2_HFPERCLKEN0_DAC0   (1 << 17)
-#define CMU2_HFPERCLKEN0_PRS    (1 << 15)
-#define CMU2_HFPERCLKEN0_GPIO   (1 << 13)
-#define CMU2_HFPERCLKEN0_TIMER1 (1 << 6)
+// CMU clock enable bits
+
+#define CMU_HFPERCLKEN0_DAC0   (1 << 17)
+#define CMU_HFPERCLKEN0_PRS    (1 << 15)
+#define CMU_HFPERCLKEN0_GPIO   (1 << 13)
+#define CMU_HFPERCLKEN0_TIMER1 (1 << 6)
 
 #define CMU_HFCORECLKEN0_DMA (1 << 0)
 

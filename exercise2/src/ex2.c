@@ -39,6 +39,10 @@ int main(void)
 
 void setupNVIC()
 {
+  //------------------------------------------------------
+  // Enable interrupt handling for the various components 
+  //------------------------------------------------------
+
   // Enable TIMER1 interrupt generation
   *ISER0 |= IRQ_TIMER1;
 

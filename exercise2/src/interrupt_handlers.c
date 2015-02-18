@@ -6,30 +6,29 @@
 /* TIMER1 interrupt handler */
 void __attribute__ ((interrupt)) TIMER1_IRQHandler() 
 {  
-  /*
-    TODO feed new samples to the DAC
-    remember to clear the pending interrupt by writing 1 to TIMER1_IFC
-  */  
+  // Blink the leftmost LED
+  *GPIO_PA_DOUT ^= 0x0100;
 
-  // Calculate the next LEDs that display time
-  int time = *GPIO_PA_DOUT >> 8;
-  time = ~time;
-  time = (time + 1) & 0xffff;
-  time = ~time;
-  *GPIO_PA_DOUT = time << 8;
-
-  // Clear the interrupt
+  // clear the interrupt
   *TIMER1_IFC = 1;
 }
 
 /* GPIO even pin interrupt handler */
 void __attribute__ ((interrupt)) GPIO_EVEN_IRQHandler() 
 {
-    /* TODO handle button pressed event, remember to clear pending interrupt */
+  // Blink the second LED from the left
+  *GPIO_PA_DOUT ^= 0x0200;
+
+  // clear the interrupt
+  *GPIO_IFC = 0xff;
 }
 
 /* GPIO odd pin interrupt handler */
 void __attribute__ ((interrupt)) GPIO_ODD_IRQHandler() 
 {
-    /* TODO handle button pressed event, remember to clear pending interrupt */
+  // Blink the third LED from the left
+  *GPIO_PA_DOUT ^= 0x0400;
+
+  // clear the interrupt
+  *GPIO_IFC = 0xff;
 }
