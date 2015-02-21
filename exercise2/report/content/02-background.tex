@@ -6,8 +6,14 @@
 % citations to show sources whenever appropriate.
 
 
-\section{Direct Memory Access Controller}
-The Direct Memory Access (DMA) controller is a hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or to enter low energy modes. It is possible to run the DMA in EM2 by using the LEUART module (see section \ref{subsec:leuart}).
+\section{Direct Memory Access}
+Direct Memory Access (DMA) is a technique in which I/O devices use the CPU bus to access the memory directly without involving the CPU. 
+
+% TODO: Possibly mention how CPU wants to do other things
+
+This is usually achieved by having a DMA controller, a specialized hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. The I/O devices will be unaware that the transfer is being done by the DMA controller and not the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or to enter low energy modes. It is possible to run the DMA in EM2 by using the LEUART module (see section \ref{subsec:leuart}).
+
+% TODO: Mention bus clogging and CPU idling
 
 The DMA controller has 12 independent \emph{channels}. These can be triggered from either peripherals or software to start a DMA cycle. During a cycle, the DMA controller will read a \emph{channel descriptor} from system memory corresponding to that channel(?), and perform one or more DMA transfers as specified by the channel descriptor (and the DMA configuration?).
 
@@ -95,14 +101,19 @@ TODO % TODO
 \subsection{Low Energy Universal Asynchronous Receiver/Transmitter}\label{subsec:leuart}
 TODO % TODO
 
-\subsection{Energy Management Unit (EMU)}\label{subsec:emu}
+\subsection{Energy Management Unit (EMU)}\label{sec:emu}
 The EMU manages the different low energy modes in the EFM32GG. Being a MCU with focus on energy efficiency, the Cortex-M3 has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in figure \ref{fig:GiantGeckoMap}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
-% TODO: Explain how to disable RAM blocks
+
+\subsubsection{Disabling RAM blocks}
+TODO % TODO: Explain how to disable RAM blocks
 
 
-\section{Energy consumption}
+\section{Energy Consumption}
+This section gives a brief overview of several ways to reduce the static and dynamic power consumption in the EFM32GG.
+% Use?: The two main approaches is to limit the power spent at a given moment, and to reduce the time spent in high energy modes.
 
 \subsection{Static and dynamic power}
+% TODO: Read through chapter 3 in energy-optimization note and apply what's there to this section
 The power used by a CMOS integrated circuit can be split into two main parts: \emph{static power} and \emph{dynamic power}. Static power is power used regardless of whether the circuit is changing states or not, for instance the small current that keeps SRAM from flipping over when not in use. Dynamic power is the additional power used when the circuit changes states. In clocked circuits the dynamic power used is proportional to the clock rate. As an example, a processor running at a higher clock rate will in general use more power per unit of time.\cite{efm32-energy-optimization}
 % Static power can be determined by the formula P_{static} = I_{static}V_{dd}
 
@@ -111,9 +122,11 @@ The power used by a CMOS integrated circuit can be split into two main parts: \e
 %\subsection{Power management strategies}
 %In the course literature, two strategies for power management are described: \emph{dynamic} and \emph{static}. It is important to note that these bear no direct relation to static and dynamic power dissipation. 
 
-\subsection{Reducing power consumption in EFM32GG}
-This section gives a brief overview of several ways to reduce the static and dynamic power consumption in the EFM32GG. The two main approaches is to limit the power spent at a given moment, and to reduce the time spent in high energy modes.
-% TODO: Read through chapter 3 in energy-optimization note and apply what's there to this section
+
+\subsection{Reducing energy consumption in the EFM32GG}
+
+\subsubsection{Disabling RAM Blocks}
+In the EFM32GG there is a static power dissipation in the RAM blocks of approximately 170 nA per 32 KB block. This constitutes a considerable amount when the device is in EM2 or EM3 energy modes. The RAM blocks can be disabled individually, and this is explained in section \ref{sec:emu}.\cite{efm32-energy-optimization}
 
 \subsubsection{Clock Optimization}
 By adjusting the CPU clock in active mode (EM0), it is possible to reduce the static power consumption. Lets consider what happens when the CPU clock frequency is doubled. This will approximately double the dynamic power consumption, and at the same time it has the potential to halve the CPU processing time so that the CPU can enter a low energy mode sooner. As energy consumption is calculated as power consumption over time, the total energy consumed by dynamic power will be unaffected. However, halving the processing time will also halve the active mode static power consumption, thereby reducing the total static energy consumption. The conclusion is that computations in higher energy modes should be completed as fast as possible. The exception to this rule is when the CPU must wait for flash memory and flash wait-states are introduced.\cite{efm32-energy-optimization}
@@ -124,12 +137,16 @@ Clock gating is a technique that reduces dynamic power consumption by disconnect
 \subsubsection{Energy Modes}
 TODO % TODO: Write about energy modes
 
-\subsubsection{Disabling RAM Blocks}
-In the EFM32GG there is a static power dissipation in the RAM blocks of approximately 170 nA per 32 KB block. This constitutes a considerable amount when the device is in EM2 or EM3 energy modes. The EFM32GG supports disabling individual 32 KB RAM blocks (see section \ref{subsec:emu}).\cite{efm32-energy-optimization}
-
 \subsubsection{Reducing Bias Current of Analog Peripherals}
 Most analog peripherals in the EFM32GG use something called a \emph{bias current}. It is possible to reduce this bias current to reduce power consumption, but this will affect the analog performance.\cite{efm32-energy-optimization}
 % TODO (maybe): Expand this section by explaining what a bias current is
+
+% A list of additional stuff that can be put into this section, mainly from
+% application note AN0027 on energy optimization:
+%
+% Static power:
+% - GPIO Leakage and schmitt triggering
+% - Analog Bias Setting
 
 
 
