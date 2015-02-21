@@ -39,7 +39,7 @@ At the start of a DMA cycle, the controller will read the channel\_cfg from memo
 Through the exercises in this course we will work with the Silicon labs EFM32GG-DK3750 prototyping board \ref{fig:EFMBoard}. There are several on-board components and peripherals of special interest, including the General-Purpose Input/Output pins (GPIO pins) controlling external peripheral devices, the gamepad prototype, the Clock Management Unit (CMU), and the Energy Management Unit (EMU). This section will give a brief introduction to those devices. For a map of the full set of peripherals, see figure \ref{fig:GiantGeckoMap}.
 
 
-\subsection{Clock Management Unit}\label{subsec:cmu}
+\subsection{Clock Management Unit}\label{sec:cmu}
 The Clock Management Unit (CMU) controls the on-board oscillators and clocks, and produces clock signals that drives the core modules and all the peripherals. The CMU can enable or disable clock signals for the peripherals on an individual basis, and the power consumption is reduced significantly by only enabling the clock for the peripherals that will be used. By default, the clock for all peripherals is disabled. 
 
 The CMU manages several system clocks in order to provide different clock signals to the core modules and the peripherals. These system clocks include the High Frequency Clock (HFCLK), the High Frequency Core Clock (HFCORECLK), and the High Frequency Peripheral Clock (HFPERCLK).\cite{efm32gg-rm}
@@ -73,7 +73,7 @@ The Peripheral Reflex System (PRS) is a network connecting the different periphe
 \subsection{TIMER (Timer/Counter)}
 The TIMER module can be used to count events and trigger actions in other peripherals without involving the CPU. It can also be used to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the timer.
 
-\subsubsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at the prescaled frequency of the high frequency clock HFCLK (see section \ref{subsec:cmu}), and this can be further prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
+\subsubsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at the prescaled frequency of the high frequency clock HFCLK (see section \ref{sec:cmu}), and this can be further prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
 %TODO: Write about other source clocks for the timer
 
 \subsubsection{Operation}
@@ -101,6 +101,7 @@ TODO % TODO
 \subsection{Low Energy Universal Asynchronous Receiver/Transmitter}\label{subsec:leuart}
 TODO % TODO
 
+
 \subsection{Energy Management Unit (EMU)}\label{sec:emu}
 The EMU manages the different low energy modes in the EFM32GG. Being a MCU with focus on energy efficiency, the Cortex-M3 has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in figure \ref{fig:GiantGeckoMap}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
 
@@ -108,58 +109,78 @@ The EMU manages the different low energy modes in the EFM32GG. Being a MCU with 
 TODO % TODO: Explain how to disable RAM blocks
 
 
+
 \section{Energy Consumption}
-This section gives a brief overview of several ways to reduce the static and dynamic power consumption in the EFM32GG.
-% Use?: The two main approaches is to limit the power spent at a given moment, and to reduce the time spent in high energy modes.
 
 \subsection{Static and dynamic power}
-% TODO: Read through chapter 3 in energy-optimization note and apply what's there to this section
-The power used by a CMOS integrated circuit can be split into two main parts: \emph{static power} and \emph{dynamic power}. Static power is power used regardless of whether the circuit is changing states or not, for instance the small current that keeps SRAM from flipping over when not in use. Dynamic power is the additional power used when the circuit changes states. In clocked circuits the dynamic power used is proportional to the clock rate. As an example, a processor running at a higher clock rate will in general use more power per unit of time.\cite{efm32-energy-optimization}
-% Static power can be determined by the formula P_{static} = I_{static}V_{dd}
+The power used by a CMOS integrated circuit can be split into two main parts: \emph{dynamic power} and \emph{static power}. 
 
-% Probably will not be used
-%
-%\subsection{Power management strategies}
-%In the course literature, two strategies for power management are described: \emph{dynamic} and \emph{static}. It is important to note that these bear no direct relation to static and dynamic power dissipation. 
+Dynamic power is the power needed to switch a circuit between two states. It depends on the clock frequency and activity level of a circuit, and is proportional to the square of the circuit voltage. In a clocked circuit it can be expressed as
+$$P_{dynamic} = \alpha CV_{DD}^{2}f$$
+where $\alpha$ is the activity level, $C$ is the capitance, $V_{DD}$ is the voltage, and $f$ is the clock frequency of the circuit.
+
+Static power is power that dissipates due to leakage in the transistors of a circuit. It is linearly proportional to the circuit voltage, but independent of frequency. Static power can be expressed as
+$$P_{static} = I_{leak}V_{DD}$$
+where $I_{leak}$ is the current leaking through the transistors.
+
+The total power used by the circuit is the sum of both dynamic and static power,
+$$P_{total} = P_{dynamic} + P_{static}\ .$$
+\cite{cmos-vlsi-design}
+
+
+\subsection{Energy Modes of the EFM32GG}
+TODO % TODO: Write about energy modes
 
 
 \subsection{Reducing energy consumption in the EFM32GG}
-
-\subsubsection{Disabling RAM Blocks}
-In the EFM32GG there is a static power dissipation in the RAM blocks of approximately 170 nA per 32 KB block. This constitutes a considerable amount when the device is in EM2 or EM3 energy modes. The RAM blocks can be disabled individually, and this is explained in section \ref{sec:emu}.\cite{efm32-energy-optimization}
-
-\subsubsection{Clock Optimization}
-By adjusting the CPU clock in active mode (EM0), it is possible to reduce the static power consumption. Lets consider what happens when the CPU clock frequency is doubled. This will approximately double the dynamic power consumption, and at the same time it has the potential to halve the CPU processing time so that the CPU can enter a low energy mode sooner. As energy consumption is calculated as power consumption over time, the total energy consumed by dynamic power will be unaffected. However, halving the processing time will also halve the active mode static power consumption, thereby reducing the total static energy consumption. The conclusion is that computations in higher energy modes should be completed as fast as possible. The exception to this rule is when the CPU must wait for flash memory and flash wait-states are introduced.\cite{efm32-energy-optimization}
+This section gives an overview of several ways to reduce the static and dynamic power consumption in the EFM32GG.
 
 \subsubsection{Clock Gating}
-Clock gating is a technique that reduces dynamic power consumption by disconnecting the clock from unused circuits. The EFM32GG supports manual clock gating of both core modules and peripherals on an individual basis (see section \ref{subsec:cmu}).\cite{efm32-energy-optimization} 
+Clock gating is a technique that reduces dynamic power consumption by disconnecting the clock from unused circuits. The EFM32GG uses automatic clock gating, and supports manual clock gating of both core modules and peripherals on an individual basis (see section \ref{sec:cmu}). Some energy can be saved by turning clocks on and off as the individual peripherals are needed.\cite{efm32-energy-optimization} 
 
-\subsubsection{Energy Modes}
-TODO % TODO: Write about energy modes
+
+\subsubsection{Disabling RAM blocks}
+In the EFM32GG there is a static power dissipation in the RAM blocks of approximately 170 nA per 32 KB block. This constitutes a considerable amount when the device is in EM2 or EM3 energy modes. The RAM blocks can be disabled individually, and this is explained in section \ref{sec:emu}.\cite{efm32-energy-optimization}
+
+
+\subsubsection{Increasing CPU frequency}
+By increasing the clock frequency of the CPU it is possible to reduce its overall static power consumption. An increased frequency usually means that the CPU will finish its computations sooner, allowing it to stay in low energy modes for a larger fraction of the time. Increasing the frequency will also cause an increase in dynamic power consumption, but this is cancelled out by the similar reduction in processing time. There are some exceptional cases where the CPU processing speed is limited by wait-states in bus protocols. In such a case, the frequency should be increased within the imposed bounds.\cite{efm32-energy-optimization}
+
+
+\subsubsection{Optimizing peripheral clocks}
+The EFM32GG has several clocks and oscilliators running at different frequencies. By using a slower clock for the peripherals, the associated dynamic power consumption is reduced. It is optimal to selecting the slowest clock that satisfies the application requirements. Clock prescalers in the CMU or the individual peripherals can be used to adjust the frequency further. Clocks and oscilliators are controlled by the Clock Management Unit, described in section \ref{sec:cmu}.\cite{efm32-energy-optimization} 
+% Relevant optimization techniques:
+%  - Changing prescalers on-the-go to run at the fastest possible speed without introducing wait-states
+
 
 \subsubsection{Reducing Bias Current of Analog Peripherals}
 Most analog peripherals in the EFM32GG use something called a \emph{bias current}. It is possible to reduce this bias current to reduce power consumption, but this will affect the analog performance.\cite{efm32-energy-optimization}
-% TODO (maybe): Expand this section by explaining what a bias current is
+% TODO(maybe): Expand this section by explaining what a bias current is
 
-% A list of additional stuff that can be put into this section, mainly from
-% application note AN0027 on energy optimization:
+
+\subsubsection{Cache Optimization}
+Several optimizations can be made by utilizing the caches of the EFM32GG. When a memory read or instruction fetch is satisfied from the cache, the processor avoids possible wait-states and memory reads and energy is saved. To optimize use of the 512 byte instruction cache of the EFM32GG, loops with a large number of instructions should be avoided. It is possible to measure cache misses and cache hits by reading performance counter registers.\cite{efm32-energy-optimization}
+% TODO(optional): Write more about data caches in the EFM32GG. Should possibly be in a different section.
+
+
+\subsubsection{Compiler optimizations}
+As a rule of thumb, using a higher compiler optimization-level will result in more energy-efficient code.
+% Relevant optimization techniques:
+%  - optimizing for smaller program size vs speed
+
+
+%--------------------------------------------------------------------
+% Other optimization techniques that might be put into this section: 
+% (from the Energy Optization Application Note)
 %
-% Static power:
-% - GPIO Leakage and schmitt triggering
-% - Analog Bias Setting
+%  - Use interrupts instead of busy wait
+%  - Use wait-for-event instead of interrupts
+%  - Use peripheral reflex system
+%  - Saving power with DMA
+%--------------------------------------------------------------------
 
 
 
 \section{Generating Sounds}
 When interpreting a sound as a signal, we speak about properties of the sound such as frequency, period, and amplitude. Here frequency and period (the inverse frequency) describes the pitch of a sound, while amplitude describes the loudness. In a typical speaker, a voltage signal is converted directly into sound waves. Here the voltage signal is an accurate model of the sound wave and has the same frequency and amplitude. The range of sounds that can be perceived by a human being is from 20Hz to 20KHz.\cite{compendium}
-
-In order to generate 
-
-According to the standard ISO 16, the frequency 
-
 % TODO: Write about how we generate the different tones
-
-\subsection{Music theory}
-
-\subsubsection{Diatonic Scale}
-In music theory, a diatonic scale is one composed of seven different pitch classes.
