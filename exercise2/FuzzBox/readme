@@ -1,0 +1,17 @@
+To compile: 
+
+gcc -std=c99 FuzzBox.c -o Fuzz -lm
+
+Writing sheet music:
+
+To write a C3 simply write C3, to accent simply add a # (no flats)
+
+Not yet implemented:
+
+A length prefix, for instance 4C3 should creat a 1/4th C3, up to 1C3 for a whole C3
+
+Slides and bends: for instance 4C3~D3 should be a 1/4th C3 slid up to a D3 (total duration would be a single 1/4th)
+
+Vibrato, suffixing a note with a v adds a vibrato effect, for instance v1A4 yields a whole A4 with light vibrato, vvv1A4 gives a lot.
+
+  
