@@ -37,6 +37,7 @@ void main(int argc, char** argv){
 	fprintf(stderr, "scanning %s\n", name);
 
 	int size = 0;
+	int total_size = 0;
 
 	// If this was to be de-uglified the song files would have to have some sort of header information.
 	// They dont.
@@ -52,12 +53,14 @@ void main(int argc, char** argv){
 		}
 		*(samples + counter) = generate_sample(note, &size);
 		*(sample_lengths + counter) = size;
+		total_size += size;
 		counter++;
 	}
 
 
 
-	printf("unsigned short %s[%d] = {", name, size);
+
+	printf("unsigned short %s[%d] = {", name, total_size+1);
 	
 	for(int i = 0; i < counter; i++){
 		unsigned short* current_sample = *(samples + i);
@@ -66,7 +69,7 @@ void main(int argc, char** argv){
 			printf("%hu, ", *(current_sample + j));
 		}
 	}
-	printf("}\n");
+	printf("0}\n");
 	return;
 	
 }
