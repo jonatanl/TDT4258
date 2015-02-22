@@ -1,0 +1,11 @@
+In file included from FuzzBox.c:5:0:
+FuzzBox.c: In function ‘generate_sample’:
+FuzzBox.c:63:15: warning: comparison between pointer and integer [enabled by default]
+   assert(*str != NULL);
+               ^
+FuzzBox.c:70:16: warning: comparison between pointer and integer [enabled by default]
+    assert(*str != NULL);
+                ^
+FuzzBox.c:77:19: warning: comparison between pointer and integer [enabled by default]
+  assert(*note_str != NULL);
+                   ^
