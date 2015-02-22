@@ -16,23 +16,33 @@ int MAX = 4095;
 unsigned short normalize(float sine, int MAX);
 float get_frequency(char* note);
 void generate_song(char* note);
-unsigned short* fill_sample_array(int tones, float* frequencies, int vibrato, int length);
+unsigned short* fill_sample_array(int tones, float* frequencies, int length);
 float intensity(int sample);
-float calculate_frequency_factor(int current, int length, float* frequencies);
+float calculate_frequency_factor(int current, int length);
+unsigned short* generate_sample(char* note_str, int* size);
 
 // Creates an array of values between 0 and MAX. 
 void main(int argc, char** argv){
 	time_t t;
 	srand((unsigned) time(&t));
 
+	char* name[16];
+
 	// This just needs to somewhat work, ugly code ahead
 	// TODO make pretty
 	int input = 1;
 	
-	char* name[16];
 	int in = scanf("%20s", name);
 
 	fprintf(stderr, "scanning %s\n", name);
+
+	long int size = 0;
+
+	// If this was to be de-uglified the song files would have to have some sort of header information.
+	// They dont.
+	unsigned short* samples[100];
+	int sample_lengths[100];
+	int counter = 0;
 
 	while(input != EOF){
 		char note [50];
@@ -40,11 +50,26 @@ void main(int argc, char** argv){
 		if(input == EOF){
 			break;
 		}
-		generate_sample(note);
+		*(samples + counter) = generate_sample(note, &size);
+		*(sample_lengths + counter) = size;
+		counter++;
 	}
-	return;
-}
 
+
+
+	printf("void main(){ unsigned short %s[%d] = {", name, size);
+	
+	for(int i = 0; i < counter; i++){
+		unsigned short* current_sample = *(samples + i);
+		int current_sample_len = *(sample_lengths + i);
+		for(int j = 0; j < current_sample_len; j++){
+			printf("%hu, ", *(current_sample + j));
+		}
+	}
+	printf("} }\n");
+	return;
+	
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,13 +86,14 @@ void main(int argc, char** argv){
 // Typical input:
 // 3E#4, vv3A4~A5
 // NYI: vibrato should be handled here
-void generate_sample(char* note_str){
+unsigned short* generate_sample(char* note_str, int* size){
 
 	// Vibrato
 	int vibrato = 0;
 	
 	// Length of the note
 	int length = RATE*(1.0/((float)(*note_str - '0')));
+	*size += length;
 
 	note_str++;
 
@@ -99,12 +125,14 @@ void generate_sample(char* note_str){
 		note_str++;
 	}
 	
-	unsigned short* sample = fill_sample_array(tones, frequencies, vibrato, length);
+	unsigned short* sample = fill_sample_array(tones, frequencies, length);
+	return sample;
 }
 
 
 // Takes in a decoded note, which is either a frequency or an array of frequencies.
-unsigned short* fill_sample_array(int tones, float* frequencies, int vibrato, int length){
+// Length is total amount of samples we want generated
+unsigned short* fill_sample_array(int tones, float* frequencies, int length){
 	float volume;
 	float frequency = *frequencies;
 	float increment = 0.0;
@@ -124,14 +152,14 @@ unsigned short* fill_sample_array(int tones, float* frequencies, int vibrato, in
 
 	// We break up the process when we have tremolo or bends. For a normal note the outer loop will be invoked only once
 	for(int i = 0; i < tones; i++){
-		for(int j = 0; j < RATE/tones; j++){
+		for(int j = 0; j < length; j++){
 
 			// Attack
 			volume = intensity((i+1)*j);
 			
 			// Bends/vibrato
-			if(vibrato){
-				factor = calculate_frequency_factor(i, RATE/tones, frequencies);
+			if(bend){
+				factor = calculate_frequency_factor(j, length/tones);
 				frequency = *(frequencies + i)*factor + *(frequencies + i + 1)*(1-factor);			
 			}
 
@@ -140,10 +168,11 @@ unsigned short* fill_sample_array(int tones, float* frequencies, int vibrato, in
 			step += increment;
 			
 			// Having gathered all the crap we create a sample
-			*(sample + i) = normalize(sin(step), MAX);
+			*(sample + (i+1)*j) = normalize(sin(step), MAX);
 
 			// Then we add the sample 
-			printf("[%hu]", *(sample + i*j));
+			// printf("%hu, ", *(sample + i*j));
+			// Never mind we do it in the main loop
 		}
 	}
 	return sample;
@@ -158,10 +187,14 @@ float intensity(int sample){
 }
 
 // When in between two notes we want a number between 0 and 1 to dictate the frequency weights
-float calculate_frequency_factor(int current, int length, float* frequencies){
-	float step = current/length;
-	float factor = 1.5 - 0.5*(1+2*cos(PI*step/2));
-	assert(factor >= 1.1);
+float calculate_frequency_factor(int current, int length){
+	float x = (current/length*PI)/2.0;
+	
+	float cosine = 2*pow(cos(x), 2);
+	
+	float factor = 1.5 - 0.5*(1+2*cosine);
+	assert(factor < 1.01);
+	return factor;
 }
 
 // Takes a sine and normalizes to 12 bit accuracy
