@@ -14,7 +14,7 @@ void setupTimer(uint16_t period)
 
   // Extra: Set prescaling factor for peripheral clock to 2^10
   // (Timer now runs 1024 times slower)
-  *TIMER1_CTRL = (*TIMER1_CTRL) | (10 << 24);
+  // *TIMER1_CTRL = (*TIMER1_CTRL) | (10 << 24);
 
   // 3. Enable interrupt generation
   *TIMER1_IEN = 1;
