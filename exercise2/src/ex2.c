@@ -17,10 +17,6 @@ void setupTimer(uint32_t period);
 void setupDAC();
 void setupNVIC();
 void setupGPIO();
-void setupDMA(volatile uint32_t *ch_desc);
-
-// Declaration of global channel descriptor
-volatile uint32_t *channel_descriptor;
 
 /* Your code will start executing here */
 int main(void) 
@@ -29,11 +25,6 @@ int main(void)
   setupGPIO();
   setupDAC();
   setupTimer(SAMPLE_PERIOD);
-
-  // Local memory for channel control structure
-  uintptr_t ch_control_mem[1024];  // TODO: Use a more realistic size
-  channel_descriptor = ((uintptr_t)ch_control_mem + 0xFF) & ~ (uintptr_t)0xFF;
-  setupDMA(channel_descriptor);
   
   /* Enable interrupt handling */
   setupNVIC();

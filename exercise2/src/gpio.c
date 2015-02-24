@@ -33,8 +33,8 @@ void setupGPIO()
   // Set interrupt on 1->0
   *GPIO_EXTIFALL = 0xff;
   
-  // Set interrupt on 0->1
-  *GPIO_EXTIRISE = 0xff;
+//  // Set interrupt on 0->1
+//  *GPIO_EXTIRISE = 0xff;
 
   // Enable interrupt generation
   *GPIO_IEN = 0xff;
