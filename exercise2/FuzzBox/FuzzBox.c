@@ -59,8 +59,8 @@ void main(int argc, char** argv){
 
 
 
-
-	printf("unsigned short %s[%d] = {", name, total_size+1);
+	printf("#include <stdint.h>\n");
+	printf("uint16_t %s[%d] = {", name, total_size+1);
 	
 	for(int i = 0; i < counter; i++){
 		unsigned short* current_sample = *(samples + i);
@@ -69,7 +69,9 @@ void main(int argc, char** argv){
 			printf("%hu, ", *(current_sample + j));
 		}
 	}
-	printf("0}\n");
+	
+	//printf("1,\n");
+	printf("0};\n");
 	return;
 	
 }
