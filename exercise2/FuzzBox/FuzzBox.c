@@ -10,6 +10,7 @@
 #define PI 3.1415
 #define Euler 2.7182
 
+// These define the sampling rate and maximum amplitude
 int RATE = 44100;
 int MAX = 4095;
 
@@ -21,15 +22,21 @@ float intensity(int sample);
 float calculate_frequency_factor(int current, int length);
 unsigned short* generate_sample(char* note_str, int* size);
 
-// Creates an array of values between 0 and MAX. 
+// Reads from a .song file (or any text file) and passes each note to generate sample
+// A note is the following: 
+// An integer specifying length (for instance, a for for a 1/4th)
+// A letter and int for octave and name  
+// Optional parameters like 'v' or ~ specifying note bending
+// Typical Notes are 4C4 (A quart fourth octave C)
+// 4C#4~D#4~C#4 (A fourth that bends from C# to D#)
+// vv4A4 (A fourth octave A with moderate vibrato)
 void main(int argc, char** argv){
 	time_t t;
 	srand((unsigned) time(&t));
 
+	// For processing the input file consisting of notes separated by whitespaces
 	char* name[16];
 
-	// This just needs to somewhat work, ugly code ahead
-	// TODO make pretty
 	int input = 1;
 	
 	int in = scanf("%20s", name);
@@ -39,12 +46,13 @@ void main(int argc, char** argv){
 	int size = 0;
 	int total_size = 0;
 
-	// If this was to be de-uglified the song files would have to have some sort of header information.
-	// They dont.
+	// With no song file header we need to do a few assumptions about input.
 	unsigned short* samples[100];
 	int sample_lengths[100];
 	int counter = 0;
 
+
+	// For every note string we extract we pass it to the sample generator
 	while(input != EOF){
 		char note [50];
 		input = scanf("%50s", note);
@@ -58,7 +66,8 @@ void main(int argc, char** argv){
 	}
 
 
-
+	// After generating the samples we fill the output file with the code nescessary 
+	// To compile a song
 	printf("#include <stdint.h>\n");
 	printf("uint16_t %s[%d] = {", name, total_size+1);
 	
@@ -90,7 +99,14 @@ void main(int argc, char** argv){
 // Takes in a string and decodes the Note. 
 // Typical input:
 // 3E#4, vv3A4~A5
+// The output is an array of target frequencies (single element for standard notes)
+// In addition outputs a length which denotes how long the output should be in samples
+
+// The decoding to frequency is done by calling get_frequency()
+// The generation of output is done by calling fill_sample_array()
+
 // NYI: vibrato should be handled here
+// TODO: maybe rename to decoder?
 unsigned short* generate_sample(char* note_str, int* size){
 
 	// Vibrato
@@ -105,10 +121,11 @@ unsigned short* generate_sample(char* note_str, int* size){
 	// For bends
 	int tones = 1;
 
-	// We duplicate the string so we can do another pass
+	// We duplicate the string pointer so we can do two passes
 	char* str = note_str;
 	
 	// Check out the note
+	// By counting '~' we know how many frequencies we need to hit
 	while(*str != '\0'){
 		assert(*str != NULL);
 		if(*str == '~'){
@@ -121,8 +138,8 @@ unsigned short* generate_sample(char* note_str, int* size){
 		str++;
 	}
 
-	// TODO: Implement vibrato. Currently I want to do fixed interval and let v decide how many notes we want to stretch to
-	
+	// Vibrato should be handled here.
+
 	// For bends we gather up the frequencies we need to hit
 	float* frequencies = malloc(sizeof(float)*tones);
 	for(int i = 0; i < tones; i++){
@@ -130,6 +147,7 @@ unsigned short* generate_sample(char* note_str, int* size){
 		note_str++;
 	}
 	
+	// Having decoded the note, we pass it to the 
 	unsigned short* sample = fill_sample_array(tones, frequencies, length);
 	return sample;
 }
@@ -138,6 +156,8 @@ unsigned short* generate_sample(char* note_str, int* size){
 // Takes in a decoded note, which is either a frequency or an array of frequencies.
 // Length is total amount of samples we want generated
 unsigned short* fill_sample_array(int tones, float* frequencies, int length){
+	
+	// A few useful variables inside the loop
 	float volume;
 	float frequency = *frequencies;
 	float increment = 0.0;
@@ -146,6 +166,7 @@ unsigned short* fill_sample_array(int tones, float* frequencies, int length){
 	bool bend = false;
 
 	// A little set up, we want the same amount of inner loops for 1 or 2 notes, but n-1 for any n > 2
+	// We simply set bend to false for standard notes
 	if(tones > 1){
 		bend = true;
 		fprintf(stderr, "vibrato on\n" );
@@ -157,9 +178,12 @@ unsigned short* fill_sample_array(int tones, float* frequencies, int length){
 
 	// We break up the process when we have tremolo or bends. For a normal note the outer loop will be invoked only once
 	for(int i = 0; i < tones; i++){
+		// To handle bending and other effects we change up the target frequency before 
+		// we increment the sine wave
 		for(int j = 0; j < length; j++){
 
-			// Attack
+			// We want the amplitude to decay like it would on a vibrating string
+			// For instance, attack and sustain on a guitar
 			volume = intensity((i+1)*j);
 			
 			// Bends/vibrato
@@ -172,7 +196,7 @@ unsigned short* fill_sample_array(int tones, float* frequencies, int length){
 			increment = frequency/RATE;
 			step += increment;
 			
-			// Having gathered all the crap we create a sample
+			// Having processed the current sine value we generate a sample
 			*(sample + (i+1)*j) = normalize(sin(step), MAX);
 
 			// Then we add the sample 
@@ -184,7 +208,7 @@ unsigned short* fill_sample_array(int tones, float* frequencies, int length){
 }
 
 // Takes a number between 1 and 0 and weights it after a formula (7.5t(e^-3t)) ( sorry :< ) 
-// Intended to emulate instrument sound, i.e attack of a guitar etc
+// Intended to emulate amplitude decay of a guitar
 float intensity(int sample){
 	float time = (float)sample/(float)RATE;
 	float intensity_r = (7.5*time*pow(Euler, -3*time));
@@ -192,6 +216,8 @@ float intensity(int sample){
 }
 
 // When in between two notes we want a number between 0 and 1 to dictate the frequency weights
+// The frequency should then be the weighted sum of the two frequencies following 
+// a sigmoid (S) function.
 float calculate_frequency_factor(int current, int length){
 	float x = (current/length*PI)/2.0;
 	
@@ -207,7 +233,8 @@ unsigned short normalize(float sine, int MAX){
 	return (unsigned short)floor(((sine+1)/2)*MAX);
 }
 
-// Takes in a note and returns the frequency. It also keeps trying until it gets a match
+// Takes in a note and returns an array of frequencies
+// It also keeps trying until it gets a match to remove left over characters (i.e '~')
 // Typical inputs:
 // E5, A#4, 
 // E4~A4~E4 (Will parse E4)
@@ -216,7 +243,7 @@ float get_frequency(char* note){
 
 	int tone = 0;
 
-	// Switch did not want to cooperate, I really cba figuring out why
+	// Switch did not want to cooperate, so a less elegant solution will have to do
 	if(*note == 'A'){ tone += 0; }
 	else if(*note == 'B'){ tone += 2; }
 	else if(*note == 'C'){ tone += 3; }
