@@ -16,37 +16,27 @@
 
 /* Declaration of peripheral setup functions */
 void setupTimer(uint32_t period);
+void setupPRS();
 void setupDAC();
-void setupNVIC();
 void setupGPIO();
-
-// extern variable
-struct sound_t test_sound;
+void setupNVIC();
 
 /* Your code will start executing here */
 int main(void) 
 {  
   /* Call the peripheral setup functions */
-  setupGPIO();
+  setupPRS();
   setupDAC();
+  setupGPIO();
   setupTimer(SAMPLE_PERIOD);
 
-  // Creating a random sound
-  const int n_notes = 100;
-  struct note_t notes[n_notes];
-  for(int i=0; i<n_notes; i++){
-    notes[i].note = (2*i*i - 5*i + 7) % 12;
-    notes[i].octave = (i*i + i - 2) % 3 + 3;
-    notes[i].amplitude = (2*i*i - i + 1) % 3 + 2;
-    notes[i].duration = 1;
-  }
 
-  test_sound.first = &notes[0];
-  test_sound.num_notes = n_notes;
+  // Slow down peripherals to generate different sound
+  //
+  // WARNING: Do not go above 9. This caused the board to lock itself up when testing.
+  // *CMU_HFPERCLKDIV |= 9;
 
-  set_sound(44100, 100, &test_sound);
 
-  
   /* Enable interrupt handling */
   setupNVIC();
   
@@ -64,23 +54,8 @@ void setupNVIC()
   // Enable interrupt handling for the various components 
   //------------------------------------------------------
 
-  // Enable TIMER1 interrupt generation
-  *ISER0 |= IRQ_TIMER1;
-
-  // Enable DMA interrupt generation
-  *ISER0 |= IRQ_DMA;
-
-  // Enable odd and even GPIO interrupt generation
-  *ISER0 |= (IRQ_GPIO_EVEN | IRQ_GPIO_ODD);
-
   // Enable DAC interrupt generation
   *ISER0 |= IRQ_DAC;
-
-  // Enable LEUART0 interrupt generation
-  *ISER0 |= IRQ_LEUART0;
-
-  // Enable LETIMER0 interrupt 
-  *ISER0 |= IRQ_LETIMER0;
 }
 
 /* if other interrupt handlers are needed, use the following names: 

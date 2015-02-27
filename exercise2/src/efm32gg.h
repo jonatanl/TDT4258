@@ -148,6 +148,7 @@
 #define DAC0_BASE2 0x40004000
 
 #define DAC0_CTRL     ((volatile uint32_t*)(DAC0_BASE2 + 0x000))
+#define DAC0_STATUS   ((volatile uint32_t*)(DAC0_BASE2 + 0x004))
 #define DAC0_CH0CTRL  ((volatile uint32_t*)(DAC0_BASE2 + 0x008))
 #define DAC0_CH1CTRL  ((volatile uint32_t*)(DAC0_BASE2 + 0x00c))
 #define DAC0_IEN      ((volatile uint32_t*)(DAC0_BASE2 + 0x010))
@@ -180,6 +181,7 @@
 #define PRS_BASE 0x400cc000
 
 #define PRS_CH0_CTRL ((volatile uint32_t*)(PRS_BASE + 0x010))
+
 
 // System Control Block
 
