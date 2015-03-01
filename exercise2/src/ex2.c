@@ -2,8 +2,9 @@
 #include <stdbool.h>
 
 #include "efm32gg.h"
-
 #include "sound.h"
+#include "tetrisTheme.h"
+
 
 /* 
   TODO calculate the appropriate sample period for the sound wave(s) 
@@ -20,7 +21,7 @@ void setupDAC();
 void setupNVIC();
 void setupGPIO();
 
-// extern variable
+// extern variables
 struct playback_t test_playback;
 
 /* Your code will start executing here */
@@ -33,18 +34,19 @@ int main(void)
 
   // Creating a random sound
   struct sound_t test_sound;
-  const int n_notes = 100;
-  struct note_t notes[n_notes];
-  for(int i=0; i<n_notes; i++){
-    notes[i].pitch = (2*i*i - 5*i + 7) % 12;
-    notes[i].octave = (i*i + i - 2) % 3 + 3;
-    notes[i].amplitude = (2*i*i - i + 1) % 3 + 2;
-    notes[i].duration = 1;
-  }
-  create_sound(&test_sound, &notes[0], n_notes);
+  const int n_notes = 35;
+
+//  struct note_t notes[n_notes];
+//  for(int i=0; i<n_notes; i++){
+//    notes[i].pitch = (2*i*i - 5*i + 7) % 12;
+//    notes[i].octave = (i*i + i - 2) % 3 + 3;
+//    notes[i].amplitude = (2*i*i - i + 1) % 3 + 2;
+//    notes[i].duration = 1;
+//  }
+  create_sound(&test_sound, (struct note_t*)&songArray, n_notes);
 
   // Put the sound into a playback
-  create_playback(&test_playback, &test_sound, 44100, 100, DAC0_CH0DATA);
+  create_playback(&test_playback, &test_sound, 44100, 125, DAC0_CH0DATA);
 
   /* Enable interrupt handling */
   setupNVIC();
