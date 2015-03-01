@@ -21,7 +21,7 @@ void setupNVIC();
 void setupGPIO();
 
 // extern variable
-struct sound_t test_sound;
+struct playback_t test_playback;
 
 /* Your code will start executing here */
 int main(void) 
@@ -32,21 +32,20 @@ int main(void)
   setupTimer(SAMPLE_PERIOD);
 
   // Creating a random sound
+  struct sound_t test_sound;
   const int n_notes = 100;
   struct note_t notes[n_notes];
   for(int i=0; i<n_notes; i++){
-    notes[i].note = (2*i*i - 5*i + 7) % 12;
+    notes[i].pitch = (2*i*i - 5*i + 7) % 12;
     notes[i].octave = (i*i + i - 2) % 3 + 3;
     notes[i].amplitude = (2*i*i - i + 1) % 3 + 2;
     notes[i].duration = 1;
   }
+  create_sound(&test_sound, &notes[0], n_notes);
 
-  test_sound.first = &notes[0];
-  test_sound.num_notes = n_notes;
+  // Put the sound into a playback
+  create_playback(&test_playback, &test_sound, 44100, 100, DAC0_CH0DATA);
 
-  set_sound(44100, 100, &test_sound);
-
-  
   /* Enable interrupt handling */
   setupNVIC();
   
