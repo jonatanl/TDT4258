@@ -89,6 +89,7 @@ void create_playback(
   playback->sampling_frequency = sampling_frequency;
   playback->duration_unit = duration_unit;
   playback->dac_channel = dac_channel;
+  playback->current_sound = sound;
 
   // Initially, the first note points to the note BEFORE the first note
   playback->current_note = sound->first - 1;
@@ -117,7 +118,7 @@ void next_note(struct playback_t * playback)
   // Update variables relating to the current note
   playback->note_frequency = get_frequency(playback->current_note);
   playback->samples_per_period = playback->sampling_frequency / playback->note_frequency;
-  playback->remaining_samples = (playback->sampling_frequency * playback->duration_unit) / (playback->note_frequency / 1000);
+  playback->remaining_samples = (playback->sampling_frequency * playback->duration_unit) / 1000;
 }
 
 
