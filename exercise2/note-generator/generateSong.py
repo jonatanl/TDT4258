@@ -43,9 +43,9 @@ def durationToBin(duration):
 	return binaryNumber
 
 def writeHexArrayToFile(hexArray):
-	file = open('tetrisTheme.c', 'w')
+	file = open('tetrisTheme.h', 'w')
 	file.write('#include <stdint.h> \n')
-	file.write('uint16_t songArray = {')
+	file.write('extern uint16_t songArray = {')
 
 	for hexNumber in hexArray:
 		file.write(hexNumber + ',')
