@@ -5,6 +5,7 @@
 % that are important to understand the solution should be summarized here. Add
 % citations to show sources whenever appropriate.
 
+This chapter gives a brief introduction to the EFM32GG-DK3750 and various hardware components that were involved in the exercise. In addition, it will also introduce some concepts and underlying theory.
 
 \section{Overview of EFM32GG-DK3750}
 Through the exercises in this course we will work with the Silicon labs EFM32GG-DK3750 prototyping board (figure \ref{fig:efm-board}), from here on referenced as EFM32GG. The EFM32GG have several hardware components and on-board peripherals that are of special interest for this exercise:
@@ -99,19 +100,12 @@ The timer has four different modes:
 
 
 \section{Digital-to-Analog Converter}
-% TODO
-
 The Digital-to-Analog Converter (DAC) converts digital values to analog signals. The digital values are fed into the DAC through the two 12-bit input channels DACn\_CH0DATA and DACn\_CH1DATA, and is converted to output voltages on the two output channels. By feeding the output from the DAC through the on-board amplifier and into external speakers, the EFM32GG can be used to create sounds.
 
-TODO % TODO 
 
-
-\section{Energy Management Unit (EMU)}\label{sec:emu}
-The EMU manages the different low energy modes in the EFM32GG. Being a MCU with focus on energy efficiency, the Cortex-M3 has five distinct energy modes, from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where the CPU and most peripherals are disabled. What components are active on different modes is detailed in figure \ref{fig:GiantGeckoMap}. In addition to handling the energy modes, the EMU can be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
-
-
-\subsection{Disabling RAM blocks}
-TODO % TODO: Explain how to disable RAM blocks
+\section{Energy Management Unit}\label{sec:emu}
+The Energy Management Unit (EMU) manages the different low energy modes in the EFM32GG. The EFM32GG has the capability to turn off power to board components at runtime by switching between five distinct energy modes. These modes range from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where almost everything is disabled. The hardware component map in figure \ref{fig:giant-gecko-map} shows what components are active in the different energy modes by showing them with separate colors. A darker color indicates a component that is available in a lower energy mode. In addition to handling the energy modes, the EMU can also be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
+% TODO(maybe): Explain how to disable RAM blocks
 
 
 \section{Other on-board components and peripherals}
