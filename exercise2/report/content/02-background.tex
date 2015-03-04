@@ -7,16 +7,28 @@
 
 
 \section{Overview of EFM32GG-DK3750}
-Through the exercises in this course we will work with the Silicon labs EFM32GG-DK3750 prototyping board \ref{fig:EFMBoard}, from here on referenced as EFM32GG. The EFM32GG have several on-board components and peripherals that are of special interest for this exercise:
+Through the exercises in this course we will work with the Silicon labs EFM32GG-DK3750 prototyping board (figure \ref{fig:efm-board}), from here on referenced as EFM32GG. The EFM32GG have several hardware components and on-board peripherals that are of special interest for this exercise:
 \begin{itemize}
 	\item General-Purpose Input/Output pins
 	\item Gamepad Prototype
 	\item Clock Management Unit
 	\item Energy Management Unit
 	\item Direct Memory Access controller
+  % TODO: Add the components used in exercise 2 to this list
 \end{itemize}
-This chapter will give an introduction to each of those devices, and will highlight the relevant features. For a map of the full set of peripherals, see figure \ref{fig:GiantGeckoMap}.
+This chapter will give an introduction to each of those devices, and will highlight the relevant features. For a map of the EFM32GG hardware components, see figure \ref{fig:giant-gecko-map}.
 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{images/efm_board.jpg}
+  \caption{The EFM32GG prototyping board}\label{fig:efm-board}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{images/giant_gecko_map.png}
+  \caption{Map of the EFM32GG hardware components}\label{fig:giant-gecko-map}
+\end{figure}
 
 \section{Direct Memory Access controller}
 Direct Memory Access (DMA) is a technique in which I/O devices use the CPU bus to access the memory directly without involving the CPU. 
