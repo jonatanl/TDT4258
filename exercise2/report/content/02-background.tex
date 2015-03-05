@@ -82,6 +82,11 @@ TODO % TODO: Write about oscilliators
 \section{TIMER (Timer/Counter)}
 The TIMER module can be used to count events and trigger actions in other peripherals without involving the CPU. It can also be used to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the timer.
 
+
+\section{Low Energy Timer}\label{sec:letimer}
+TODO % TODO: Write a brief section about the LETIMER. Mention EM2/EM3 capability.
+
+
 \subsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at the prescaled frequency of the high frequency clock HFCLK (see section \ref{sec:cmu}), and this can be further prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
 %TODO: Write about other source clocks for the timer
 
