@@ -10,11 +10,12 @@ void setupLETIMER(uint16_t period)
   // Set up the letimer
   //-----------------------------------
 
-  // Start LFRCO that drives LFACLK
-  *CMU_OSCENCMD |= (1 << 6);
+  // Start the Low Frequency Oscillator (LFXO)
+  *CMU_OSCENCMD |= (1 << 8);
 
-  // Select LFRCO to drive LFACLK
-  *CMU_LFCLKSEL |= (1 << 0);
+  // Select LFXO to drive LFACLK
+  *CMU_LFCLKSEL &= ~(0x3 << 0); // clear bits first
+  *CMU_LFCLKSEL |= (2 << 0);
 
   // Enable clock for LETIMER 
   *CMU_LFACLKEN0 |= (1 << 2);
