@@ -127,10 +127,8 @@ uint32_t next_sample(struct playback_t *playback)
 {
   // If there are no more samples, move on to the next note
   if((int32_t)(playback->remaining_samples) <= 0){
-    *GPIO_PA_DOUT ^= 0xff00;
     next_note(playback);
   }
-  *GPIO_PA_DOUT = playback->remaining_samples;
 
   // Compute and return the next sample of the current note
   uint32_t sample;
