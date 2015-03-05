@@ -4,14 +4,9 @@
 #include "efm32gg.h"
 
 //-----------------------------------------------------------------------------
-// This code demonstrates a possible defect in the efm32gg board labelled 119:
-//
-// When the module LETIMER0 is used to drive interrupts, and the MCU uses those
-// interrupts to drive an audible square waveform to the DAC, a slight
-// variation in pitch can be heard.
-//
-// This code was simplified as much as possible to avoid bugs. It based on the
-// exercise code framework, except it uses a single file for all code.
+// This code initially demonstrated a possible defect in the efm32gg board
+// labelled 119.  Now it shows the solution: LFRCO had variable frequency.
+// Using LFXO, these problems disappeared.
 //-----------------------------------------------------------------------------
 
 
@@ -29,7 +24,9 @@
 
 // CMU registers used to start LETIMER clock
 #define CMU_OSCENCMD     ((volatile uint32_t*)(CMU_BASE2 + 0x020))
+#define CMU_LFCLKSEL     ((volatile uint32_t*)(CMU_BASE2 + 0x028))
 #define CMU_LFACLKEN0    ((volatile uint32_t*)(CMU_BASE2 + 0x058))
+#define CMU_LFAPRESC0    ((volatile uint32_t*)(CMU_BASE2 + 0x068))
 
 // Interrupt bits in ISER0
 #define IRQ_DAC			    (1 << 8)
@@ -42,20 +39,36 @@ int main(void)
   // Set up the letimer
   //-----------------------------------
 
-  // Start LFRCO that drives LFACLK
-  *CMU_OSCENCMD |= (1 << 6);
+//  // Start LFRCO that drives LFACLK
+//  *CMU_OSCENCMD |= (1 << 6);
+  // Start the Low Frequency Oscillator (LFXO)
+  *CMU_OSCENCMD |= (1 << 8);
+
+//  // Select LFRCO to drive LFACLK
+//  *CMU_LFCLKSEL |= (1 << 0);
+  // Select LFXO to drive LFACLK
+  *CMU_LFCLKSEL &= ~(0x3 << 0);
+  *CMU_LFCLKSEL |= (2 << 0);
+
+
+  // Enable clock for LETIMER 
+  *CMU_LFACLKEN0 |= (1 << 2);
 
   // Enable clock for the Low Energy Peripheral Interface
   *CMU_HFCORECLKEN0 |= (1 << 4);
 
-  // Enable clock for LETIMER 
-  *CMU_LFACLKEN0 |= (1 << 2);
+
 
   // Enable LETIMER0_COMP0 as top register for LETIMER
   *LETIMER0_CTRL |= (1 << 9);
 
   // Set COMP0 to zero to get one underflow interrupt per LFACLK cycle
-  *LETIMER0_COMP0 = 0;
+  *LETIMER0_COMP0 = 0x0;
+
+  // Set LFACLK clock prescaler for LETIMER
+  *CMU_LFAPRESC0 |= (6 << 8);
+
+
 
   // Enable interrupts for LETIMER
   *LETIMER0_IEN |= (1 << 2);
@@ -100,16 +113,9 @@ int main(void)
 
 void __attribute__ ((interrupt)) LETIMER0_IRQHandler() 
 {  
-  // Generate a note with a frequency of
-  //    32768 / 64 = 512
-  // 
-  // and an amplitude of 128.
-  //
-  // This tone should be pure, without any variation in
-  // pitch. However, this is not the case on all boards.
   static int i=0;
-  i = (i+1) % 64;
-  if(i<32){
+  i = !i;
+  if(i){
     *DAC0_CH0DATA = 128;
   }else{
     *DAC0_CH0DATA = 0;
