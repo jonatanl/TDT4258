@@ -20,6 +20,7 @@ void setupTimer(uint32_t period);
 void setupDAC();
 void setupNVIC();
 void setupGPIO();
+void setupLETIMER(uint16_t period);
 
 // extern variables
 struct playback_t test_playback;
@@ -30,7 +31,8 @@ int main(void)
   /* Call the peripheral setup functions */
   setupGPIO();
   setupDAC();
-  setupTimer(SAMPLE_PERIOD);
+//  setupTimer(SAMPLE_PERIOD);
+  setupLETIMER(SAMPLE_PERIOD);
 
   // Creating a random sound
   struct sound_t test_sound;
@@ -44,7 +46,7 @@ int main(void)
     notes[i].duration = 1;
   }
   //create_sound(&test_sound, (struct note_t*)&songArray, n_notes);
-  create_sound(&test_sound, (struct note_t*)&notes, n_notes);
+  create_sound(&test_sound, (struct note_t*)&notes + 6, 1);
 
   // Put the sound into a playback
   create_playback(&test_playback, &test_sound, 44100, 700, DAC0_CH0DATA);

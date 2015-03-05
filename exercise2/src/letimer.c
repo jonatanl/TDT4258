@@ -6,7 +6,33 @@
 /* function to setup the LETIMER */
 void setupLETIMER(uint16_t period)
 {
-  // Nothing here yet
+  //-----------------------------------
+  // Set up the letimer
+  //-----------------------------------
+
+  // Start LFRCO that drives LFACLK
+  *CMU_OSCENCMD |= (1 << 6);
+
+  // Select LFRCO to drive LFACLK
+  *CMU_LFCLKSEL |= (1 << 0);
+
+  // Enable clock for LETIMER 
+  *CMU_LFACLKEN0 |= (1 << 2);
+
+  // Enable clock for the Low Energy Peripheral Interface
+  *CMU_HFCORECLKEN0 |= (1 << 4);
+
+  // Enable LETIMER0_COMP0 as top register for LETIMER
+  *LETIMER0_CTRL |= (1 << 9);
+
+  // Set COMP0 to zero to get one underflow interrupt per LFACLK cycle
+  *LETIMER0_COMP0 = 0x0;
+
+  // Start the LETIMER
+  *LETIMER0_CMD |= (1 << 0);
+
+  // Enable interrupts for LETIMER
+  *LETIMER0_IEN |= (1 << 2);
 }
 
 //-----------------------------------------
