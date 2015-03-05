@@ -14,9 +14,16 @@
 
 \section{Using a low frequency timer}
 % TODO: Put this section somewhere appropriate
-As a considerable energy reduction was achieved by entering by entering energy mode EM1 after writing samples to the DAC, it was natural to think that entering EM2 would lower the energy reduction even further. One issue that occurred while implementing this functionality, is that the TIMER used to generate interrupts for the microcontroller is only available in energy modes EM0 and EM1. Thus if the microcontroller is to enter EM2 or lower energy modes, a different source of interupts is needed.
+As a considerable energy reduction was achieved by entering by entering energy mode EM1 after writing samples to the DAC, it was natural to think that entering EM2 would lower the energy reduction even further. One issue that occurred while implementing this functionality, is that the TIMER used to generate interrupts for the microcontroller is only available in energy modes EM0 and EM1. Thus if the microcontroller is to enter EM2 or lower energy modes, a different source of interupts is needed. The EFM32GG implements this functionality with the LETIMER module introduced in section \ref{sec:letimer}. 
 
-The EFM32GG implements this functionality with the LETIMER module introduced in section \ref{sec:letimer}.
+In order to use the LETIMER, we configured the CMU through the following steps:
+\begin{itemize}
+  \item Starting the Low Frequency Oscillator LFXO by writing 1 to the LFXO bit in CMU\_OSCENCMD.
+  \item Setting LFXO as a clock source for the LFACLK clock by writing 0 to the LFA bits in CMU\_LFCLKSEL.
+  \item Enabling the LFACLK clock for the LETIMER by setting the LETIMER0 bit in CMU\_LFACLKEN0.
+  \item Enabling the clock for the low energy peripheral interface by setting the LE bit in CMU\_HFCORECLKEN0.
+\end{itemize}
+
 % TODO: Explain how we needed to configure the registers
 % TODO: Explain that we decided to use LFXO because the LFRCO was inaccurate
 
