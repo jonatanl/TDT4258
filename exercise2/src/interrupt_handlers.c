@@ -12,6 +12,7 @@ struct playback_t test_playback;
 /* TIMER1 interrupt handler */
 void __attribute__ ((interrupt)) TIMER1_IRQHandler() 
 {  
+//  *(test_playback.dac_channel) = next_sample(&test_playback);
   *(test_playback.dac_channel) = next_sample(&test_playback);
 
   // Clear the interrupt 

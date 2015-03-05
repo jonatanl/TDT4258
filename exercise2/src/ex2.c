@@ -34,19 +34,20 @@ int main(void)
 
   // Creating a random sound
   struct sound_t test_sound;
-  const int n_notes = 35;
+  const int n_notes = 12;
 
-//  struct note_t notes[n_notes];
-//  for(int i=0; i<n_notes; i++){
-//    notes[i].pitch = (2*i*i - 5*i + 7) % 12;
-//    notes[i].octave = (i*i + i - 2) % 3 + 3;
-//    notes[i].amplitude = (2*i*i - i + 1) % 3 + 2;
-//    notes[i].duration = 1;
-//  }
-  create_sound(&test_sound, (struct note_t*)&songArray, n_notes);
+  struct note_t notes[n_notes];
+  for(int i=0; i<12; i++){
+    notes[i].pitch = i % 12;
+    notes[i].octave = 4 + ((i == 12) ? 1 : 0);
+    notes[i].amplitude = (i / 2);
+    notes[i].duration = 1;
+  }
+  //create_sound(&test_sound, (struct note_t*)&songArray, n_notes);
+  create_sound(&test_sound, (struct note_t*)&notes, n_notes);
 
   // Put the sound into a playback
-  create_playback(&test_playback, &test_sound, 44100, 125, DAC0_CH0DATA);
+  create_playback(&test_playback, &test_sound, 44100, 700, DAC0_CH0DATA);
 
   /* Enable interrupt handling */
   setupNVIC();
