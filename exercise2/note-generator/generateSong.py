@@ -57,11 +57,12 @@ def main():
 	songeArray = []
 	for i in xrange(len(note)):
 		binaryNumber = ''
+		
 		# Append all bits
-		binaryNumber += noteToBin(note[i])
-		binaryNumber += octaveToBin(octave[i])
-		binaryNumber += amplitudeToBin(amplitude[i])
 		binaryNumber += durationToBin(duration[i])
+		binaryNumber += amplitudeToBin(amplitude[i])
+		binaryNumber += octaveToBin(octave[i])
+		binaryNumber += noteToBin(note[i])
 
 		# Convert to hex
 		hexNumber = binToHex(binaryNumber)
