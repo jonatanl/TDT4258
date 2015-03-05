@@ -19,7 +19,7 @@ extern struct playback_t playback;
 // This struct defines several bitfields that are useful to pack a note into 16
 // bits. This makes it possible to load several long sounds into the efm32gg.
 //-----------------------------------------------------------------------------
-struct note_t
+struct __attribute__ ((__packed__)) note_t
 {
     // Bitfield used to designate pitch of a note:
 	//   0 = A
