@@ -142,3 +142,19 @@ uint32_t next_sample(struct playback_t *playback)
   playback->remaining_samples--;
   return sample;
 }
+
+uint8_t get_pitch(uint16_t note) {
+  return note & 0xf000;
+}
+
+uint8_t get_octave(uint16_t note) {
+  return note & 0x0f00;
+}
+
+uint8_t get_amplitude(uint16_t note) {
+  return note & 0x00e0;
+}
+
+uint8_t get_duration(uint16_t note) {
+  return note & 0x001f;
+}
