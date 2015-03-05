@@ -7,6 +7,20 @@
 % source code here -- small code snippets are fine if you want to discuss
 % something specific.
 
+
+\section{Sleeping between interrupts}
+% TODO: Put this section somewhere appropriate
+% TODO: Write about how using interrupts to sleep between each sample written to the DAC saves energy
+
+\section{Using a low frequency timer}
+% TODO: Put this section somewhere appropriate
+As a considerable energy reduction was achieved by entering by entering energy mode EM1 after writing samples to the DAC, it was natural to think that entering EM2 would lower the energy reduction even further. One issue that occurred while implementing this functionality, is that the TIMER used to generate interrupts for the microcontroller is only available in energy modes EM0 and EM1. Thus if the microcontroller is to enter EM2 or lower energy modes, a different source of interupts is needed.
+
+The EFM32GG implements this functionality with the LETIMER module introduced in section \ref{sec:letimer}.
+% TODO: Explain how we needed to configure the registers
+% TODO: Explain that we decided to use LFXO because the LFRCO was inaccurate
+
+
 \section{Testing}
 % Add content in this section that describes how you tested and verified the
 % correctness of your implementation, with respect to the requirements of the
