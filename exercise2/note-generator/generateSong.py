@@ -44,10 +44,10 @@ def durationToBin(duration):
 	binaryNumber = fillBitsIfMissing(binaryNumber, 5)
 	return binaryNumber
 
-def writeHexArrayToFile(file, hexArray):
+def writeHexArrayToFile(file, hexArray, name):
 	size = len(hexArray)
 
-	file.write('uint16_t songArray[' + str(size) + '] = {')
+	file.write('uint16_t ' + name + '[' + str(size) + '] = {')
 
 	for hexNumber in hexArray:
 		file.write(hexNumber + ',')
@@ -57,17 +57,19 @@ def writeHexArrayToFile(file, hexArray):
 def writeSongToFile(part0, part1):
 	file = open('tetrisTheme.h', 'w')
 	file.write('#include <stdint.h> \n')
+	file.write('#include "synth.h" \n')
 
 	# Create array for channel 0
-	writeHexArrayToFile(file, part0)
+	writeHexArrayToFile(file, part0, 'notes_part0')
 	file.write('synth_part part0 = { .start = (synth_note*) &notes_part0[0], .n_notes =' + str(len(part0)) +', .channel = 0 }; \n')
 
 	file.write(' \n')
 	
 	# Create array for channel 1
-	writeHexArrayToFile(file, part1)
+	writeHexArrayToFile(file, part1, 'notes_part1')
 	file.write('synth_part part1 = { .start = (synth_note*) &notes_part1[0], .n_notes =' + str(len(part1)) +', .channel = 1 }; \n\n')
 	
+	file.write('extern synth_song tetrisSong; \n')
 	file.write('synth_song tetrisSong = { .part0 = &part0, .part1 = &part1, .default_duration_unit = 60 };')
 	file.close()
 
