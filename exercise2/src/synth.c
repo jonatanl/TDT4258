@@ -56,8 +56,8 @@ void reset_part(synth_part_playback *part_playback)
 // Resets the part playback, starting it over again.
 void restart_song(synth_song_playback *song_playback)
 {
+  reset_part(song_playback->part0_playback);
   reset_part(song_playback->part1_playback);
-  reset_part(song_playback->part2_playback);
 }
 
 
@@ -102,8 +102,8 @@ void synth_next_part_sample(synth_part_playback *part_playback)
 // Play the next samples of the specified song playback.
 void synth_next_song_sample(synth_song_playback *song_playback)
 {
+  synth_next_part_sample(song_playback->part0_playback);
   synth_next_part_sample(song_playback->part1_playback);
-  synth_next_part_sample(song_playback->part2_playback);
 }
 
 
@@ -138,13 +138,13 @@ void synth_create_part(
 
 // Create a song in the memory specified by 'song'.
 void synth_create_song(
+    synth_part *part0,
     synth_part *part1,
-    synth_part *part2,
     uint32_t duration_unit,
     synth_song *song /* output */ )
 {
+  song->part0 = part0;
   song->part1 = part1;
-  song->part2 = part2;
   song->default_duration_unit = duration_unit;
 }
 
@@ -177,22 +177,22 @@ void synth_create_part_playback(
 // Create a song playback in the memory specified by 'playback'.
 void synth_create_song_playback(
     synth_song *song,
+    synth_part_playback *part0_playback,
     synth_part_playback *part1_playback,
-    synth_part_playback *part2_playback,
     uint32_t sampling_rate,
     synth_song_playback *song_playback /* output */ )
 {
   song_playback->song = song;
 
   // Load pointers to allocated part playback memory
+  song_playback->part0_playback = part0_playback;
   song_playback->part1_playback = part1_playback;
-  song_playback->part2_playback = part2_playback;
 
   // Load default playback parameters of the song
   song_playback->duration_unit = song->default_duration_unit;
   song_playback->sampling_rate = sampling_rate;
 
   // Create and load part playbacks
+  synth_create_part_playback(song->part0, song_playback, song_playback->part0_playback);
   synth_create_part_playback(song->part1, song_playback, song_playback->part1_playback);
-  synth_create_part_playback(song->part2, song_playback, song_playback->part2_playback);
 }

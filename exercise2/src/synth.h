@@ -88,8 +88,8 @@ struct synth_part
 // A song has two parts.
 struct synth_song
 {
+  synth_part* part0;
   synth_part* part1;
-  synth_part* part2;
   uint32_t default_duration_unit;
 };
 
@@ -119,8 +119,8 @@ struct synth_song_playback
   uint32_t sampling_rate;
 
   // The two part playbacks of this song.
+  synth_part_playback *part0_playback;
   synth_part_playback *part1_playback;
-  synth_part_playback *part2_playback;
 };
 
 
@@ -143,8 +143,8 @@ void synth_create_part(
 
 // Create a song in the memory specified by 'song'.
 void synth_create_song(
+    synth_part *part0,
     synth_part *part1,
-    synth_part *part2,
     uint32_t duration_unit,
     synth_song *song /* output */ );
 
@@ -159,8 +159,8 @@ void synth_create_part_playback(
 // Create a playback in the memory specified by "*playback".
 void synth_create_song_playback(
     synth_song *song,
+    synth_part_playback *part0_playback,
     synth_part_playback *part1_playback,
-    synth_part_playback *part2_playback,
     uint32_t sampling_rate,
     synth_song_playback *song_playback  /* output */ );
 
