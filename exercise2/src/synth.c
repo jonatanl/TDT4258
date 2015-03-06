@@ -47,9 +47,17 @@ int get_remaining_samples(synth_note *note, synth_song_playback *song_playback)
 // Resets the part playback, starting it over again.
 void reset_part(synth_part_playback *part_playback)
 {
-  part_playback->remaining_notes = part_playback->part->n_notes;
+  part_playback->remaining_notes = part_playback->part->n_notes - 1;
   part_playback->note = part_playback->part->start;
   part_playback->remaining_samples = get_remaining_samples(part_playback->note, part_playback->song_playback);
+}
+
+
+// Resets the part playback, starting it over again.
+void restart_song(synth_song_playback *song_playback)
+{
+  reset_part(song_playback->part1_playback);
+  reset_part(song_playback->part2_playback);
 }
 
 
@@ -59,9 +67,11 @@ void next_note(synth_part_playback *part_playback)
   if(part_playback->remaining_notes > 0){
     part_playback->remaining_notes--;
     part_playback->note++;
-    //part_playback->remaining_samples = get_remaining_samples(part_playback->note, part_playback->song_playback);
+    part_playback->remaining_samples = get_remaining_samples(part_playback->note, part_playback->song_playback);
   }else{
-    reset_part(part_playback);
+
+    // Reset the song when one part runs out of samples
+    restart_song(part_playback->song_playback);
   } 
 }
 
@@ -69,11 +79,6 @@ void next_note(synth_part_playback *part_playback)
 // Get next sample of the current playback
 void synth_next_part_sample(synth_part_playback *part_playback)
 {
-  // If there are no more samples, move on to the next note
-  if(part_playback->remaining_samples == 0){
-    next_note(part_playback);
-  }
-
   // Compute and return the next sample of the current note
   uint32_t sample;
   uint32_t remaining_samples = part_playback->remaining_samples;
@@ -84,8 +89,13 @@ void synth_next_part_sample(synth_part_playback *part_playback)
   }else{
     sample = 0;
   }
-  part_playback->remaining_samples--;
   *(part_playback->dac_channel) = sample;
+
+  // If there are no more samples, move on to the next note
+  part_playback->remaining_samples--;
+  if(part_playback->remaining_samples == 0){
+    next_note(part_playback);
+  }
 }
 
 
@@ -148,7 +158,7 @@ void synth_create_part_playback(
   part_playback->song_playback = song_playback;
 
   part_playback->part = part;
-  part_playback->remaining_notes = part->n_notes;
+  reset_part(part_playback);
 
   // Set DAC channel where the part will be played
   switch(part->channel)
@@ -161,17 +171,22 @@ void synth_create_part_playback(
       break;
   }
 
-  reset_part(part_playback);
 }
 
     
 // Create a song playback in the memory specified by 'playback'.
 void synth_create_song_playback(
     synth_song *song,
+    synth_part_playback *part1_playback,
+    synth_part_playback *part2_playback,
     uint32_t sampling_rate,
     synth_song_playback *song_playback /* output */ )
 {
   song_playback->song = song;
+
+  // Load pointers to allocated part playback memory
+  song_playback->part1_playback = part1_playback;
+  song_playback->part2_playback = part2_playback;
 
   // Load default playback parameters of the song
   song_playback->duration_unit = song->default_duration_unit;

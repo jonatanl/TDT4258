@@ -30,8 +30,8 @@ void __attribute__ ((interrupt)) LETIMER0_IRQHandler()
 /* GPIO even pin interrupt handler */
 void __attribute__ ((interrupt)) GPIO_EVEN_IRQHandler() 
 {
-  // Blink the second LED from the left
-  *GPIO_PA_DOUT ^= 0x0200;
+//  // Blink the second LED from the left
+//  *GPIO_PA_DOUT ^= 0x0200;
 
   // clear the interrupt
   *GPIO_IFC = 0xff;
@@ -40,8 +40,8 @@ void __attribute__ ((interrupt)) GPIO_EVEN_IRQHandler()
 /* GPIO odd pin interrupt handler */
 void __attribute__ ((interrupt)) GPIO_ODD_IRQHandler() 
 {
-  // Blink the third LED from the left
-  *GPIO_PA_DOUT ^= 0x0400;
+//  // Blink the third LED from the left
+//  *GPIO_PA_DOUT ^= 0x0400;
 
   // clear the interrupt
   *GPIO_IFC = 0xff;
