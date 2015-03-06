@@ -2,18 +2,17 @@
 #include <stdbool.h>
 
 #include "efm32gg.h"
-#include "sound.h"
+#include "synth.h"
 
 
 // extern variable
-struct playback_t test_playback;
+synth_song_playback test_playback;
 
 
 /* TIMER1 interrupt handler */
 void __attribute__ ((interrupt)) TIMER1_IRQHandler() 
 {  
-//  *(test_playback.dac_channel) = next_sample(&test_playback);
-  *(test_playback.dac_channel) = next_sample(&test_playback);
+  // Do nothing
 
   // Clear the interrupt 
   *TIMER1_IFC = 1;
@@ -22,8 +21,7 @@ void __attribute__ ((interrupt)) TIMER1_IRQHandler()
 /* TIMER1 interrupt handler */
 void __attribute__ ((interrupt)) LETIMER0_IRQHandler() 
 {  
-//  *(test_playback.dac_channel) = next_sample(&test_playback);
-  *(test_playback.dac_channel) = next_sample(&test_playback);
+  synth_next_song_sample(&test_playback);
 
   // Clear the interrupt
   *LETIMER0_IFC |= (1 << 2);

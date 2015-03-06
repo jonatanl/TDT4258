@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 #include "efm32gg.h"
-#include "sound.h"
+#include "synth.h"
 #include "tetrisTheme.h"
 
 
@@ -13,7 +13,8 @@
   registers are 16 bits.
 */
 /* The period between sound samples, in clock cycles */
-#define   SAMPLE_PERIOD   333
+#define   SAMPLE_PERIOD   333 // Not used
+#define   SAMPLING_RATE   32768
 
 /* Declaration of peripheral setup functions */
 void setupTimer(uint32_t period);
@@ -23,7 +24,7 @@ void setupGPIO();
 void setupLETIMER(uint16_t period);
 
 // extern variables
-struct playback_t test_playback;
+synth_song_playback test_playback;
 
 /* Your code will start executing here */
 int main(void) 
@@ -34,11 +35,51 @@ int main(void)
 //  setupTimer(SAMPLE_PERIOD);
   setupLETIMER(SAMPLE_PERIOD);
 
-//  // Creating a random sound
-//  struct sound_t test_sound;
+
+  //-------------------------
+  // Creating a random sound
+  //-------------------------
+
+  // Create notes for channel 0
+  synth_note notes1[12];
+  for(int i=0; i<=12; i += 4){
+    int pitch  = i % 12;
+    int octave = 4 + (i / 12);
+    int amplitude = 3;
+    int duration = 1;
+    synth_create_note(pitch, octave, amplitude, duration, &notes1[i]);
+  }
+
+  // Create part for channel 0
+  synth_part part1;
+  synth_create_part(&notes1[0], 12, 0 /* channel */, &part1);
+
+  // Create notes for channel 1
+  synth_note notes2[12];
+  for(int i=12; i>=0; i -= 4){
+    int pitch  = i % 12;
+    int octave = 4 + (i / 12);
+    int amplitude = 3;
+    int duration = 1;
+    synth_create_note(pitch, octave, amplitude, duration, &notes1[i]);
+  }
+
+  // Create part for channel 1
+  synth_part part2;
+  synth_create_part(&notes2[0], 12, 1 /* channel */, &part2);
+
+  // Create a song
+  synth_song song;
+  synth_create_song(&part1, &part2, 1000, &song); 
+
+  // Create a song playback in extern variable
+  synth_create_song_playback(&song, SAMPLING_RATE, &test_playback);
+
+
+//  synth_part test_part;
 //  const int n_notes = 35;
 //
-//  struct note_t notes[n_notes];
+//  synth_note notes[n_notes];
 //  for(int i=0; i<12; i++){
 //    notes[i].pitch = i % 12;
 //    notes[i].octave = 4 + ((i == 12) ? 1 : 0);
@@ -46,14 +87,17 @@ int main(void)
 //    notes[i].duration = 1;
 //  }
   // Creating a random sound
-  struct sound_t test_sound;
-  const int n_notes = 35;
-  
-  //create_sound(&test_sound, (struct note_t*)&songArray, n_notes);
-  create_sound(&test_sound, (struct note_t*)&songArray, 35);
+//  const int n_notes = 35;
+//
+//  synth_song song;
 
-  // Put the sound into a playback
-  create_playback(&test_playback, &test_sound, 44100, 60, DAC0_CH0DATA);
+//  synth_part test_part;
+//
+//  //create_part(&test_part, (synth_note*)&songArray, n_notes);
+//  create_part(&test_part, (synth_note*)&songArray, 35);
+//
+//  // Put the part into a playback
+//  create_song_playback(&test_playback, &test_part, 44100, 60, DAC0_CH0DATA);
 
   /* Enable interrupt handling */
   setupNVIC();
