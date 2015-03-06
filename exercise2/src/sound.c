@@ -118,7 +118,7 @@ void next_note(struct playback_t * playback)
   // Update variables relating to the current note
   playback->note_frequency = get_frequency(playback->current_note);
   playback->samples_per_period = playback->sampling_frequency / playback->note_frequency;
-  playback->remaining_samples = (playback->sampling_frequency * playback->duration_unit) / 1000;
+  playback->remaining_samples = (playback->sampling_frequency * playback->current_note->duration * playback->duration_unit) / 1000;
 }
 
 
