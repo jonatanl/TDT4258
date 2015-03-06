@@ -41,66 +41,34 @@ int main(void)
   //-------------------------
 
   // Create notes for channel 0
-  synth_note notes1[12];
-  for(int i=0; i<=12; i += 4){
-    int pitch  = i % 12;
-    int octave = 4 + (i / 12);
-    int amplitude = 3;
-    int duration = 1;
-    synth_create_note(pitch, octave, amplitude, duration, &notes1[i]);
-  }
+  uint16_t notes1[3] = {0x1447,0x1442,0x1443};
 
   // Create part for channel 0
   synth_part part1;
-  synth_create_part(&notes1[0], 12, 0 /* channel */, &part1);
+  synth_create_part((synth_note*)&notes1[0], 3, 0 /* channel */, &part1);
 
   // Create notes for channel 1
-  synth_note notes2[12];
-  for(int i=12; i>=0; i -= 4){
-    int pitch  = i % 12;
-    int octave = 4 + (i / 12);
-    int amplitude = 3;
-    int duration = 1;
-    synth_create_note(pitch, octave, amplitude, duration, &notes1[i]);
-  }
+  uint16_t notes2[3] = {0x2446,0x1441,0x1442};
 
   // Create part for channel 1
   synth_part part2;
-  synth_create_part(&notes2[0], 12, 1 /* channel */, &part2);
+  synth_create_part((synth_note*)&notes2[0], 3, 1 /* channel */, &part2);
 
   // Create a song
   synth_song song;
-  synth_create_song(&part1, &part2, 1000, &song); 
+  synth_create_song(&part1, &part2, 125, &song); 
+
+  synth_part_playback part1_playback;
+  synth_part_playback part2_playback;
 
   // Create a song playback in extern variable
-  synth_create_song_playback(&song, SAMPLING_RATE, &test_playback);
+  synth_create_song_playback(&song, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback);
 
 
-//  synth_part test_part;
-//  const int n_notes = 35;
-//
-//  synth_note notes[n_notes];
-//  for(int i=0; i<12; i++){
-//    notes[i].pitch = i % 12;
-//    notes[i].octave = 4 + ((i == 12) ? 1 : 0);
-//    notes[i].amplitude = (i / 2);
-//    notes[i].duration = 1;
-//  }
-  // Creating a random sound
-//  const int n_notes = 35;
-//
-//  synth_song song;
-
-//  synth_part test_part;
-//
-//  //create_part(&test_part, (synth_note*)&songArray, n_notes);
-//  create_part(&test_part, (synth_note*)&songArray, 35);
-//
-//  // Put the part into a playback
-//  create_song_playback(&test_playback, &test_part, 44100, 60, DAC0_CH0DATA);
 
   /* Enable interrupt handling */
   setupNVIC();
+
   
   /* TODO for higher energy efficiency, sleep while waiting for interrupts
      instead of infinite loop for busy-waiting

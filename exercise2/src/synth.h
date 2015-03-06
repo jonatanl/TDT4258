@@ -159,6 +159,8 @@ void synth_create_part_playback(
 // Create a playback in the memory specified by "*playback".
 void synth_create_song_playback(
     synth_song *song,
+    synth_part_playback *part1_playback,
+    synth_part_playback *part2_playback,
     uint32_t sampling_rate,
     synth_song_playback *song_playback  /* output */ );
 
