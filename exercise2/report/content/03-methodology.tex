@@ -27,6 +27,32 @@ In order to use the LETIMER, we configured the CMU through the following steps:
 % TODO: Explain how we needed to configure the registers
 % TODO: Explain that we decided to use LFXO because the LFRCO was inaccurate
 
+\section{Saveing song in memory}
+Our first thougt was to save all the samples of a song. A normal song is sampled at 44100 Hz and each sample is n. One second of a normal song takes about 86 KB. However, the EFM32 board has a limited amount of memory. We could have managed to represent a few seconds of high quality sound at most. 
+
+In our solution we chose to represent a song as an array of 16 bit int values. Each value represent pitch, octave, amplitude and duration. In table \ref{tab:bitFields} the bit partitions are described. \\
+
+\begin{table}[ht]
+	\begin{center}
+	\begin{tabular}{ |c|c|c|c| }
+	  \hline
+	  Pitch & Octave & Amplitude & Duration \\
+	  \hline
+	  4 & 4 & 3 & 5 \\
+	  \hline
+
+	\end{tabular}
+	\caption{Bit partitioning}
+	\label{tab:bitFields}
+	\end{center}
+\end{table}
+
+Each pitch value is represented by a value from 0 to 11. The Octave can take the values 0-10. Note A with octave 0 is lowest possible at 27.5 Hz, and note A with octave 10 the highest at 28160 Hz. DAC's lowest values is to low hear, beacuse of this we calculated the amplitude with the equation \ref{eq:amplitudCalculation}. In addition we only had 3 bit to store the amplitude values. Duration takes values between 0-32. 
+
+\begin{equation}
+  x = 2^{amplitude + 5}
+  \label{eq:amplitudCalculation}
+\end{equation}
 
 \section{Testing}
 % Add content in this section that describes how you tested and verified the
