@@ -53,7 +53,7 @@ int main(void)
   create_sound(&test_sound, (struct note_t*)&songArray, 35);
 
   // Put the sound into a playback
-  create_playback(&test_playback, &test_sound, 44100, 125, DAC0_CH0DATA);
+  create_playback(&test_playback, &test_sound, 44100, 60, DAC0_CH0DATA);
 
   /* Enable interrupt handling */
   setupNVIC();
