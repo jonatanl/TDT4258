@@ -14,11 +14,18 @@ LINKERSCRIPT=../lib/efm32gg.ld
 ex2.bin : ex2.elf
 	${OBJCOPY} -O binary $< $@
 
-ex2.elf : ex2.o timer.o dac.o gpio.o interrupt_handlers.o synth.o letimer.o tetrisTheme.h
+ex2.elf : ex2.o timer.o dac.o gpio.o interrupt_handlers.o synth.o letimer.o synthSongs.o
 	${LD} -T ${LINKERSCRIPT} $^ -o $@ ${LDFLAGS} 
 
 %.o : %.c
 	${CC} ${CFLAGS} -c $< -o $@
+
+synthSongs.c : noteGenerator/tetris.json
+	python noteGenerator/generateSong.py noteGenerator/tetris.json
+
+.PHONY : songs
+songs :
+	python noteGenerator/generateSong.py noteGenerator/tetris.json
 
 .PHONY : upload
 upload :

@@ -57,16 +57,13 @@ def writeHexArrayToFile(outfile, hexArray, partName):
 	
 	outfile.write('}; \n')
 
-def writePartToFile(songName, part, partNumber, outfile):
-	partName = songName + '_part' + str(partNumber)
-
+def writePartToFile(songName, partName, partNumber, part, outfile):
 	writeHexArrayToFile(outfile, part, partName)
-	outfile.write('synth_part ' + partName + ';\n')
-	outfile.write(partName + '.start = (synth_note*) &' + partName + '_notes[0];\n')
-	outfile.write(partName + '.n_notes = ' + str(len(part)) + ';\n')
-	outfile.write(partName + '.channel = ' + str(partNumber) + ';\n')
+	outfile.write('synth_part ' + partName + ' = { ')
+	outfile.write('.start = (synth_note*) &' + partName + '_notes[0], ')
+	outfile.write('.n_notes = ' + str(len(part)) + ', ')
+	outfile.write('.channel = ' + str(partNumber) + ' };\n')
 
-	outfile.write(songName + '.part' + str(partNumber) + ' = &' + partName + ';\n')
 
 def writeSongToFile(songName, durationUnit, part0, part1, outfile):
 	
@@ -75,18 +72,20 @@ def writeSongToFile(songName, durationUnit, part0, part1, outfile):
 	outfile.write('// ' + songName + '\n')
 	outfile.write('//-------------------------------\n')
 
-	# Write declarations to make song globally available
-	outfile.write('extern synth_song ' + songName + '; \n')
-	outfile.write('synth_song ' + songName + ';\n')
-	outfile.write(songName + '.default_duration_unit = ' + str(durationUnit) + ';\n')
-	outfile.write('\n')
-
 	# Write code declaring part 0
-	writePartToFile(songName, part0, 0, outfile) 
+	writePartToFile(songName, songName + '_part0', 0, part0, outfile) 
 	outfile.write('\n')
 	
 	# Write code declaring part 1
-	writePartToFile(songName, part1, 1, outfile) 
+	writePartToFile(songName, songName + '_part1', 1, part1, outfile) 
+	outfile.write('\n')
+
+	# Write declarations to make song globally available
+	outfile.write('extern synth_song ' + songName + '; \n')
+	outfile.write('synth_song ' + songName + ' = { ')
+	outfile.write('.default_duration_unit = ' + str(durationUnit) + ', ')
+	outfile.write('.part0 = &' + songName + '_part0, ')
+	outfile.write('.part1 = &' + songName + '_part1 };\n')
 	outfile.write('\n')
 
 def createHexArray(note, octave, amplitude, duration):
@@ -119,7 +118,7 @@ def jsonPartToHexArray(part):
 def main():
 	
 	# Write include statements to output header
-	outfile = open('synthSongs.h', 'w')
+	outfile = open('synthSongs.c', 'w')
 	outfile.write('#include <stdint.h> \n')
 	outfile.write('#include "synth.h" \n')
 	outfile.write('\n')
