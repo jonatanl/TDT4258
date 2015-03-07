@@ -1,22 +1,26 @@
 \chapter{Methodology}
-% This chapter should discuss the details of your implementation for the
-% assignment. Everything related to how things were done should go here.
-% Remember to avoid going into too much details, summarize appropriately and
-% try to use figures/charts. Make sure you refer to the figures (such as Figure
-% \ref{fig:universe}) and charts you add in the text. Avoid putting lots of
-% source code here -- small code snippets are fine if you want to discuss
-% something specific.
 
+For this assignment we decided to explore different methods to create sound with the DAC for the EFM32GG in order to have a solid basis of comparison for both energy efficiency and overall sound-quality. The two different approaches we settled on were sample playback using samples synthesized before runtime. The other approach was using an on board synthesizer creating square waves on the go. Before detailing the different approaches we will describe the necessary setup for both approaches.
 
-\section{Sleeping between interrupts}
-While a song is playing the board recieves 32.768 interrupts each second. In the time between interrupts we can place the board in sleep mode.
-% TODO: Put this section somewhere appropriate
-% TODO: Write about how using interrupts to sleep between each sample written to the DAC saves energy
+\section{A simple sound generator}
+In order to get an introduction to programming the DAC we created a program intended to play a static sound. This would be an easy introduction to C programming, and would give us a good performance baseline with regards energy expenditure.
 
-\section{Using a low frequency timer}
-% TODO: Put this section somewhere appropriate
-As a considerable energy reduction was achieved by entering by entering energy mode EM1 after writing samples to the DAC, it was natural to think that entering EM2 would lower the energy reduction even further. One issue that occurred while implementing this functionality, is that the TIMER used to generate interrupts for the microcontroller is only available in energy modes EM0 and EM1. Thus if the microcontroller is to enter EM2 or lower energy modes, a different source of interupts is needed. The EFM32GG implements this functionality with the LETIMER module introduced in section \ref{sec:letimer}. 
+\subsection{Setting up GPIO and clocks} 
+The first step was porting the assembly code we had previosuly written to control LEDs and clocks over to C. Having set up the LEDs and buttons would also make it easier to debug the code by writing values to the LEDs to discern the current program state. Rather than starting with a simple polling loop we felt confident enough to go straight to interrupts for the LEDs and buttons, letting the program idle in a loop between interrupts. In addition to GPIO we also activated the timer module TIMER1 so we could produce steady interrupts in order to generate sound.
 
+##Some code for the handlers maybe##
+
+\subsection{Setting up the DAC}
+In order to generate a tone setting up the DAC was necessary. For the first program the configurations suggested by the compendium were used
+
+##Some code for setting up DAC##
+
+Having set up the DAC writing a value represented by 12 bits would change the voltage of the DAC. In order to generate sound we needed to oscillate the DAC which we did with the timer interrupt we had set up. Using a simple conditional statement we oscillated the DAC voltage between 0 and 1000. Our first attempt was outside of the audible frequency range, but by adjusting the timer we could reduce the amount of interrupts to control the frequency.
+
+\section{Efficient interrupts}
+After setting up everything we needed to generate a simple tone we decided on some preliminary optimizations to our program. Rather than using the TIMER1 module we used the LETIMER with a max speed of 32678 hz, more than ample for our needs. Going away from using the regular TIMER also allowed us to go as deep as energy mode 2, turning off the HF clock between samples.
+
+\subsection{Setting up the LETIMER}
 In order to use the LETIMER, we configured the CMU through the following steps:
 \begin{itemize}
   \item Starting the Low Frequency Oscillator LFXO by writing 1 to the LFXO bit in CMU\_OSCENCMD.
@@ -27,7 +31,12 @@ In order to use the LETIMER, we configured the CMU through the following steps:
 
 % TODO: Explain how we needed to configure the registers
 \subsection{Clock accuracy}
-We first used the LFRCO clock as a timer. With LFRCO we often recieved impure sounds. This was most likely due inaccuracy. It seems that we had no guarantee that the frequency was excactly 32.768 Hz. As a result we changed to LFXO, which gave much better sounds.
+We first used settled on the LFRCO clock as a timer, hpwever we experienced weird sound artifacts. This was most likely due inaccuracy in the LFRCO itself. It seems that we had no guarantee that the frequency was excactly 32.768 Hz, and as a result we changed to LFXO, which gave a stable sound.
+
+
+\section{An on board synthesizer}
+
+% Detail the synth approach
 
 \section{Saving song in memory}
 Our first thougt was to save all the samples of a song. A normal song is sampled at 44100 Hz and each sample is n. One second of a normal song takes about 86 KB. However, the EFM32 board has a limited amount of memory. We could have managed to represent a few seconds of high quality sound with optimizations. 
@@ -56,6 +65,11 @@ Each pitch value is represented by a value from 0 to 11. The Octave can take the
   \label{eq:amplitudCalculation}
 \end{equation}
 
+
+\section{A sample based music player}
+
+An issue with the synth is that in order to generate more advanced waveforms a program must utilize expensive trigonometric calculations to express them. Although the EFM32GG does have the capability to generate a sine wave on the DAC, in order to play actual music a more advance approach is required. To achieve this we decided to do the expensive calculations on a personal computer, using a synthesizer to sample a sine wave and output an array that could be compiled. 
+
 \section{Testing}
 % Add content in this section that describes how you tested and verified the
 % correctness of your implementation, with respect to the requirements of the
@@ -63,3 +77,10 @@ Each pitch value is represented by a value from 0 to 11. The Octave can take the
 
 \section{Optimization}
 
+% stuff
+As a considerable energy reduction was achieved by entering by entering energy mode EM1 after writing samples to the DAC, it was natural to think that entering EM2 would lower the energy reduction even further. One issue that occurred while implementing this functionality, is that the TIMER used to generate interrupts for the microcontroller is only available in energy modes EM0 and EM1. Thus if the microcontroller is to enter EM2 or lower energy modes, a different source of interupts is needed. The EFM32GG implements this functionality with the LETIMER module introduced in section \ref{sec:letimer}.
+
+% TODO: Put this section somewhere appropriate
+% TODO: Write about how using interrupts to sleep between each sample written to the DAC saves energy
+\section{Sleeping between interrupts}
+While a song is playing the board recieves 32.768 interrupts each second. In the time between interrupts we can place the board in sleep mode.
