@@ -25,12 +25,13 @@ In order to use the LETIMER, we configured the CMU through the following steps:
 \end{itemize}
 
 % TODO: Explain how we needed to configure the registers
-% TODO: Explain that we decided to use LFXO because the LFRCO was inaccurate
+\subsection{Clock accuracy}
+We first used the LFRCO clock as a timer. With LFRCO we often recieved impure sounds. This was most likely due inaccuracy. It seems that we had no guarantee that the frequency was excactly 32.768 Hz. As a result we changed to LFXO, which gave much better sounds.
 
-\section{Saveing song in memory}
+\section{Saving song in memory}
 Our first thougt was to save all the samples of a song. A normal song is sampled at 44100 Hz and each sample is n. One second of a normal song takes about 86 KB. However, the EFM32 board has a limited amount of memory. We could have managed to represent a few seconds of high quality sound at most. 
 
-In our solution we chose to represent a song as an array of 16 bit int values. Each value represent pitch, octave, amplitude and duration. In table \ref{tab:bitFields} the bit partitions are described. \\
+In our solution we chose to represent a song as an array of 16 bit int values. Inside these 16 bits we store information about pitch, octave, amplitude and duration. In table \ref{tab:bitFields} the bit partitions are described. \\
 
 \begin{table}[ht]
 	\begin{center}
@@ -47,7 +48,7 @@ In our solution we chose to represent a song as an array of 16 bit int values. E
 	\end{center}
 \end{table}
 
-Each pitch value is represented by a value from 0 to 11. The Octave can take the values 0-10. Note A with octave 0 is lowest possible at 27.5 Hz, and note A with octave 10 the highest at 28160 Hz. DAC's lowest values is to low hear, beacuse of this we calculated the amplitude with the equation \ref{eq:amplitudCalculation}. In addition we only had 3 bit to store the amplitude values. Duration takes values between 0-32. 
+Each pitch value is represented by a value from 0 to 11. The Octave can take the values 0-10. Note A with octave 0 is lowest possible at 27.5 Hz, and note A with octave 10 the highest at 28160 Hz. DAC's lowest values is to low hear, beacuse of this we calculated the amplitude with the equation \ref{eq:amplitudCalculation}. In addition we only had 3 bit to store the amplitude values, and as a result we calculated the exponentially. Duration takes values between 0-32. In our program we define the duration of the shortest note. The duration value is multiplied with the defined duration value and returns each notes duration given in milliseconds. By changing the defined duration value we can increase or decrease the song's speed.
 
 \begin{equation}
   x = 2^{amplitude + 5}
@@ -58,4 +59,6 @@ Each pitch value is represented by a value from 0 to 11. The Octave can take the
 % Add content in this section that describes how you tested and verified the
 % correctness of your implementation, with respect to the requirements of the
 % assignment.
+
+\section{Optimization}
 
