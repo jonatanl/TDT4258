@@ -1,6 +1,24 @@
 \chapter{Results}
+TODO
 % In this chapter, you should discuss the results you have obtained from your
 % implementation. These can be correctness results, i.e whether the
 % implementation behaved as expected, or numerical results that express runtime
 % or energy measurements.
 
+\section{Energy modes}
+In the time between each interrupt we placed the board in sleep mode. We measured energy consumption in EM0, EM1 and EM2. The results can be seen in table \ref{tab:benchmarkEnergyModes}. In our case EM1 gave best results and not EM2 as first expected.
+
+\begin{table}[ht]
+	\begin{center}
+	\begin{tabular}{ |c|c|c| }
+	  \hline
+	  EM0 & EM1 & EM2 \\
+	  \hline
+	  4.85 mA & 4.02 mA & 4.51 mA \\
+	  \hline
+
+	\end{tabular}
+	\caption{Energy consumption with different energy modes}
+	\label{tab:benchmarkEnergyModes}
+	\end{center}
+\end{table}

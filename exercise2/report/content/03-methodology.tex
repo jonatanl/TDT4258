@@ -9,6 +9,7 @@
 
 
 \section{Sleeping between interrupts}
+While a song is playing the board recieves 32.768 interrupts each second. In the time between interrupts we can place the board in sleep mode.
 % TODO: Put this section somewhere appropriate
 % TODO: Write about how using interrupts to sleep between each sample written to the DAC saves energy
 
@@ -29,7 +30,7 @@ In order to use the LETIMER, we configured the CMU through the following steps:
 We first used the LFRCO clock as a timer. With LFRCO we often recieved impure sounds. This was most likely due inaccuracy. It seems that we had no guarantee that the frequency was excactly 32.768 Hz. As a result we changed to LFXO, which gave much better sounds.
 
 \section{Saving song in memory}
-Our first thougt was to save all the samples of a song. A normal song is sampled at 44100 Hz and each sample is n. One second of a normal song takes about 86 KB. However, the EFM32 board has a limited amount of memory. We could have managed to represent a few seconds of high quality sound at most. 
+Our first thougt was to save all the samples of a song. A normal song is sampled at 44100 Hz and each sample is n. One second of a normal song takes about 86 KB. However, the EFM32 board has a limited amount of memory. We could have managed to represent a few seconds of high quality sound with optimizations. 
 
 In our solution we chose to represent a song as an array of 16 bit int values. Inside these 16 bits we store information about pitch, octave, amplitude and duration. In table \ref{tab:bitFields} the bit partitions are described. \\
 
