@@ -3,7 +3,7 @@
 
 #include "efm32gg.h"
 #include "synth.h"
-#include "tetrisTheme.h"
+#include "synthSongs.h"
 
 
 /* 
