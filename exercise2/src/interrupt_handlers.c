@@ -23,7 +23,7 @@ void __attribute__ ((interrupt)) TIMER1_IRQHandler()
 void __attribute__ ((interrupt)) LETIMER0_IRQHandler() 
 {  
   synth_next_song_sample(&test_playback);
-  letimerUpdate();
+//  letimerUpdate();
 
   // Clear the interrupt
   *LETIMER0_IFC |= (1 << 2);

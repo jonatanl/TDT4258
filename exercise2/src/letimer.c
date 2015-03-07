@@ -34,14 +34,21 @@ void letimerSetPeriod(uint16_t timerPeriod)
   tickOffset = 0;
 
   // Calculate upper and lower bounds on the timer period.
-  upper_bound = 1;
-  while(upper_bound <= period){
-    upper_bound *= 2;
+  int n = 1;
+  int i1 = 2 * period - 32768;
+  int i2 = 4 * period - 32768;
+  int i3 = 2 * period;
+  while(i1 < 32768){
+    i1 += i2;
+    i2 += i3;
+    n++;
   }
-  lower_bound = upper_bound / 2;
+  *GPIO_PA_DOUT = n << 8;
+  upper_bound = 32768 / n;
+  lower_bound = 32768 / (n + 1);
 
   // Set COMP0 to zero initially
-  *LETIMER0_COMP0 = 0x0;
+  *LETIMER0_COMP0 = 0x3;
 
   letimerUpdate();
 }

@@ -14,7 +14,7 @@
 */
 /* The period between sound samples, in clock cycles */
 #define   SAMPLE_PERIOD   333 // Not used
-#define   SAMPLING_RATE   (32768 - 32768/4)
+#define   SAMPLING_RATE   32768 / 4
 
 /* Declaration of peripheral setup functions */
 void setupTimer(uint32_t period);
