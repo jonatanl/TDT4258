@@ -99,12 +99,12 @@
 
 // LETIMER bits
 
-#define LETIMER0_CMD_START  = (1 << 0)
-#define LETIMER0_CMD_STOP   = (1 << 1)
-#define LETIMER0_CMD_CLEAR  = (1 << 2)
+#define LETIMER0_CMD_START  (1 << 0)
+#define LETIMER0_CMD_STOP   (1 << 1)
+#define LETIMER0_CMD_CLEAR  (1 << 2)
 
-#define LETIMER0_CTRL_BUFTOP    = (1 << 8)
-#define LETIMER0_CTRL_COMP0TOP  = (1 << 9)
+#define LETIMER0_CTRL_BUFTOP    (1 << 8)
+#define LETIMER0_CTRL_COMP0TOP  (1 << 9)
 
 
 // NVIC
