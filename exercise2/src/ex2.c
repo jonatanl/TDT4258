@@ -19,6 +19,7 @@
 /* Declaration of peripheral setup functions */
 void setupTimer(uint32_t period);
 void setupDAC();
+void setupSleepMode();
 void setupNVIC();
 void setupGPIO();
 void setupLETIMER(uint16_t period);
@@ -44,40 +45,9 @@ int main(void)
   // Create a song playback in extern variable
   synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback);
 
-
-//  //-------------------------
-//  // Creating a random sound
-//  //-------------------------
-//
-//  // Create notes for channel 0
-//  uint16_t notes1[3] = {0x1447,0x1442,0x1443};
-//
-//  // Create part for channel 0
-//  synth_part part1;
-//  synth_create_part((synth_note*)&notes1[0], 3, 0 /* channel */, &part1);
-//
-//  // Create notes for channel 1
-//  uint16_t notes2[3] = {0x2446,0x1441,0x1442};
-//
-//  // Create part for channel 1
-//  synth_part part2;
-//  synth_create_part((synth_note*)&notes2[0], 3, 1 /* channel */, &part2);
-//
-//  // Create a song
-//  synth_song song;
-//  synth_create_song(&part1, &part2, 125, &song); 
-//
-//  synth_part_playback part1_playback;
-//  synth_part_playback part2_playback;
-//
-//  // Create a song playback in extern variable
-//  synth_create_song_playback(&song, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback);
-
-
-
   /* Enable interrupt handling */
   setupNVIC();
-
+  setupSleepMode();
   
   /* TODO for higher energy efficiency, sleep while waiting for interrupts
      instead of infinite loop for busy-waiting
@@ -85,6 +55,20 @@ int main(void)
   while(1);
 
   return 0;
+}
+
+//-------------------------------------------------------------------
+// Go to sleep and wait for interrupt. After an interrupt is handled 
+// the board is put back to sleep.
+//-------------------------------------------------------------------
+void setupSleepMode() 
+{
+  // Set control bits in EMU
+  *EMU_CTRL |= 0x0c;
+
+  // Enable deep sleep on processor and go to sleep when interrupt is done
+  *SCR |= 0x06;
+
 }
 
 void setupNVIC()
