@@ -47,11 +47,10 @@ int main(void)
 
   /* Enable interrupt handling */
   setupNVIC();
+
+  // Enable sleep mode when not handling interrupts
   setupSleepMode();
   
-  /* TODO for higher energy efficiency, sleep while waiting for interrupts
-     instead of infinite loop for busy-waiting
-  */
   while(1);
 
   return 0;
@@ -66,9 +65,8 @@ void setupSleepMode()
   // Set control bits in EMU
   *EMU_CTRL |= 0x0c;
 
-  // Enable deep sleep on processor and go to sleep when interrupt is done
-  *SCR |= 0x06;
-
+  // Enable sleep on processor and go to sleep when interrupt is done
+  *SCR |= 0x02; // Set this value to 0x06 to enable EM2
 }
 
 void setupNVIC()
