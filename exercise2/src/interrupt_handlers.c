@@ -3,6 +3,7 @@
 
 #include "efm32gg.h"
 #include "synth.h"
+#include "letimer.h"
 
 
 // extern variable
@@ -22,6 +23,7 @@ void __attribute__ ((interrupt)) TIMER1_IRQHandler()
 void __attribute__ ((interrupt)) LETIMER0_IRQHandler() 
 {  
   synth_next_song_sample(&test_playback);
+  letimerUpdate();
 
   // Clear the interrupt
   *LETIMER0_IFC |= (1 << 2);

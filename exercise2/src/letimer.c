@@ -3,6 +3,49 @@
 
 #include "efm32gg.h"
 
+// Global variables
+uint16_t period;
+uint16_t lower_bound;
+uint16_t upper_bound;
+int32_t tickOffset;
+
+
+// Update the timer and set COMP1
+void letimerUpdate()
+{
+  // Calculate tick increment
+  uint16_t tickIncrement = (tickOffset <= 0)
+      ? lower_bound
+      : upper_bound;
+
+  // Increase current tick and offset
+  tickOffset += period - tickIncrement;
+
+  // Set the next timer increment
+  *LETIMER0_COMP1 = tickIncrement;
+}
+
+
+void letimerSetPeriod(uint16_t timerPeriod)
+{
+  period = timerPeriod;
+
+  // Reset tick offset
+  tickOffset = 0;
+
+  // Calculate upper and lower bounds on the timer period.
+  upper_bound = 1;
+  while(upper_bound <= period){
+    upper_bound *= 2;
+  }
+  lower_bound = upper_bound / 2;
+
+  // Set COMP0 to zero initially
+  *LETIMER0_COMP0 = 0x0;
+
+  letimerUpdate();
+}
+
 /* function to setup the LETIMER */
 void setupLETIMER(uint16_t period)
 {
@@ -24,10 +67,14 @@ void setupLETIMER(uint16_t period)
   *CMU_HFCORECLKEN0 |= (1 << 4);
 
   // Enable LETIMER0_COMP0 as top register for LETIMER
-  *LETIMER0_CTRL |= (1 << 9);
+  *LETIMER0_CTRL |= LETIMER0_CTRL_COMP0TOP;
 
-  // Set COMP0 to zero to get one underflow interrupt per LFACLK cycle
-  *LETIMER0_COMP0 = 0x0;
+  // Use LETIMER0_COMP1 as a buffer LETIMER0_COMP0. Values will be loaded from
+  // COMP1 to COMP0 on underflow.
+  *LETIMER0_CTRL |= LETIMER0_CTRL_BUFTOP;
+
+  // Intialize timer period
+  letimerSetPeriod(period);
 
   // Start the LETIMER
   *LETIMER0_CMD |= (1 << 0);
@@ -35,6 +82,7 @@ void setupLETIMER(uint16_t period)
   // Enable interrupts for LETIMER
   *LETIMER0_IEN |= (1 << 2);
 }
+
 
 //-----------------------------------------
 // Some example uses of the LETIMER module

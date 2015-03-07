@@ -14,7 +14,7 @@
 */
 /* The period between sound samples, in clock cycles */
 #define   SAMPLE_PERIOD   333 // Not used
-#define   SAMPLING_RATE   32768
+#define   SAMPLING_RATE   (32768 - 32768/4)
 
 /* Declaration of peripheral setup functions */
 void setupTimer(uint32_t period);
@@ -34,8 +34,7 @@ int main(void)
   /* Call the peripheral setup functions */
   setupGPIO();
   setupDAC();
-//  setupTimer(SAMPLE_PERIOD);
-  setupLETIMER(SAMPLE_PERIOD);
+  setupLETIMER(SAMPLING_RATE);
 
 
   synth_part_playback part1_playback;
