@@ -1,72 +1,41 @@
 #include <stdint.h>
 #include <stdbool.h>
-
 #include "efm32gg.h"
 #include "synth.h"
 #include "synthSongs.h"
+#include "sleepControl.h"
 
-
-/* 
-  TODO calculate the appropriate sample period for the sound wave(s) 
-  you want to generate. The core clock (which the timer clock is derived
-  from) runs at 14 MHz by default. Also remember that the timer counter
-  registers are 16 bits.
-*/
-/* The period between sound samples, in clock cycles */
-#define   SAMPLE_PERIOD   333 // Not used
 #define   SAMPLING_RATE   32768
 
-/* Declaration of peripheral setup functions */
-void setupTimer(uint32_t period);
-void setupDAC();
-void setupSleepMode();
+// Declaration of peripheral setup functions
+void enable_sample_DAC();
+void enable_synth_DAC();
 void setupNVIC();
 void setupGPIO();
-void setupLETIMER(uint16_t period);
+void enableLETIMER(uint16_t period);
 
-// extern variables
 synth_song_playback test_playback;
-
 synth_song tetrisSong;
 
-/* Your code will start executing here */
 int main(void) 
 {  
-  /* Call the peripheral setup functions */
+  // Initial setup
+  
   setupGPIO();
-  setupDAC();
-//  setupTimer(SAMPLE_PERIOD);
-  setupLETIMER(SAMPLE_PERIOD);
-
+  enable_sample_DAC();
+  enableLETIMER(0);
+  //goToSleep();
 
   synth_part_playback part1_playback;
   synth_part_playback part2_playback;
-
-  // Create a song playback in extern variable
+  
   synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback);
 
-  /* Enable interrupt handling */
   setupNVIC();
 
-  // Enable sleep mode when not handling interrupts
-  setupSleepMode();
-  
   while(1);
-
+  
   return 0;
-}
-
-//-------------------------------------------------------------------
-// Go to sleep and wait for interrupt. After an interrupt is handled 
-// the board is put back to sleep.
-//-------------------------------------------------------------------
-void setupSleepMode() 
-{
-  // Set control bits in EMU
-  *EMU_CTRL |= 0x0c;
-
-  // Enable sleep on processor and go to sleep when interrupt is done
-  *SCR |= 0x02; // Set this value to 0x06 to enable EM2
 }
 
 void setupNVIC()

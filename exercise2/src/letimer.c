@@ -1,10 +1,11 @@
 #include <stdint.h>
 #include <stdbool.h>
-
 #include "efm32gg.h"
 
-/* function to setup the LETIMER */
-void setupLETIMER(uint16_t period)
+
+// function to setup and start the LETIMER
+// might lose period variable
+void enableLETIMER(uint16_t period)
 {
   //-----------------------------------
   // Set up the letimer
@@ -35,6 +36,15 @@ void setupLETIMER(uint16_t period)
   // Enable interrupts for LETIMER
   *LETIMER0_IEN |= (1 << 2);
 }
+
+// Disable the clock, effectively turning off LETIMER
+// This should only be done when we know we dont need the clock
+void disableLETIMER()
+{
+  *LETIMER0_CMD &= ~(1 << 1);
+  // *CMU_LFACLKEN0 &= ~(1 << 2);
+}
+
 
 //-----------------------------------------
 // Some example uses of the LETIMER module
