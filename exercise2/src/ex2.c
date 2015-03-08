@@ -3,6 +3,7 @@
 #include "efm32gg.h"
 #include "synth.h"
 #include "synthSongs.h"
+#include "sleepControl.h"
 
 #define   SAMPLING_RATE   32768
 
@@ -12,7 +13,6 @@ void enable_synth_DAC();
 void setupNVIC();
 void setupGPIO();
 void enableLETIMER(uint16_t period);
-void setupSleepMode(void);
 
 synth_song_playback test_playback;
 synth_song tetrisSong;
@@ -24,6 +24,7 @@ int main(void)
   setupGPIO();
   enable_sample_DAC();
   enableLETIMER(0);
+  //goToSleep();
 
   synth_part_playback part1_playback;
   synth_part_playback part2_playback;
@@ -31,23 +32,11 @@ int main(void)
   synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback);
 
   setupNVIC();
-  
-  
-  setupSleepMode();
+
   while(1);
   
   return 0;
 }
-
-void setupSleepMode() 
-{
-  // Set control bits in EMU
-  *EMU_CTRL |= 0x0c;
-
-  // Enable sleep on processor and go to sleep when interrupt is done
-  *SCR |= 0x02; // Set this value to 0x06 to enable EM2
-}
-
 
 void setupNVIC()
 {

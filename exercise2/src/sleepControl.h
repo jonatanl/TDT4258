@@ -1,0 +1,2 @@
+void goToSleep();
+void goToDeepSleep();
