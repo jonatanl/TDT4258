@@ -5,6 +5,8 @@
 #include "dac.h"
 #include "synth.h"
 
+uint8_t button_mapper(void);
+
 synth_song_playback test_playback;
 
 void handle_gpio(void);
@@ -33,49 +35,90 @@ void __attribute__ ((interrupt)) GPIO_ODD_IRQHandler()
   *GPIO_IFC = 0xff;
 }
 
+
 /* Maps a buttonpress to a song or effect  */
 void handle_gpio(void){
- 
- // Sanitize input
-  static int last_input;
-  int input= *GPIO_PC_DIN;
-  int pressed = input ^ last_input;
-  pressed = pressed & input;
+int input = button_mapper();
   
-  *GPIO_PA_DOUT = pressed;
-  play_init(0);
-
-  // Map to effects
-  switch(pressed){
-  case ~0b1:
-    // btn 0
-    play_init(0);
+  // play_init(0);
+  
+  if(input == 0){return;}
+    switch(input){
+  case 1:
+    play_init(0);	// btn 1
     break;
-  case ~0b10:
-    // btn 1
-    play_init(1);
+  case 2:		// btn 2
     break;
-  case ~0b100:
-    // btn 2
-    play_init(2);
+  case 3:		// btn 3
     break;
-  case ~0b1000:
-    // btn 3
-    play_init(3);
+  case 4:		// btn 4
     break;
-  case ~0b10000:
-    // btn 4
+  case 5:		// btn 5
     break;
-  case ~0b100000:
-    // btn 5
+  case 6:		// btn 6
     break;
-  case ~0b1000000:
-    // btn 6
+  case 7:		// btn 7
     break;
-  case ~0b10000000:
-    // btn 7
+  case 8:		// btn 8
+    break;
   default:
     break;
   }
+  return;
 }
+
+
+uint8_t button_mapper(void){
+  uint8_t input= ~(*GPIO_PC_DIN);
+  *GPIO_PA_DOUT = input << 8;
+    switch(input){
+  case 0x1:
+    return 1;
+  case 0x2:
+    return 2;
+  case 0x4:
+    return 3;
+  case 0x8:
+    return 4;
+  case 0x10:
+    return 5;
+  case 0x20:
+    return 6;
+  case 0x40:
+    return 7;
+  case 0x80:
+    return 8;
+  default:
+    break;
+  }
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
