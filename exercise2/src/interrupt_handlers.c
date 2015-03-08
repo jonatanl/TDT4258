@@ -6,6 +6,7 @@
 #include "sleepControl.h"
 #include "letimer.h"
 #include "synth.h"
+#include "effects.h"
 
 uint8_t button_mapper(void);
 void silence(void);
@@ -31,6 +32,12 @@ void __attribute__ ((interrupt)) LETIMER0_IRQHandler()
     break;
   case 2:    
     synth_next_song_sample(&marioPlayback);
+    break;
+  case 3:    
+    effects_play1();
+    break;
+  case 4:    
+    effects_play2();
     break;
   default:
     break;
@@ -77,8 +84,15 @@ int input = button_mapper();
     start_synth();
     break;
   case 4:		// btn 4
+    mode = 3;
+    dac_enable();
+    letimer_enable();
     break;
   case 5:		// btn 5
+    mode = 4;
+    dac_enable();
+    letimer_enable();
+    break;
     break;
   case 6:		// btn 6
     break;
