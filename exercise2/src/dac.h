@@ -1,3 +1,3 @@
-void enable_sample_DAC(void);
-void enable_synth_DAC(void);
-void disableDAC(void);
+void setupDAC(void);
+void dac_enable(void);
+void dac_disable(void);
