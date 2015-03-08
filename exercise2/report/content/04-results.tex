@@ -5,7 +5,7 @@ TODO
 % implementation behaved as expected, or numerical results that express runtime
 % or energy measurements.
 
-\section{Energy modes}
+\section{Energy Modes}
 \label{sec:energyModeResults}
 While a song is playing the board consumes a significant amount of power. To decrease the consupmtion, we tried different energy modes between interrupts. We measured energy consumption in EM0, EM1 and EM2. The results can be seen in table \ref{tab:benchmarkEnergyModes}. In our case EM1 gave best results and not EM2 as first expected.
 
@@ -24,5 +24,5 @@ While a song is playing the board consumes a significant amount of power. To dec
 	\end{center}
 \end{table}
 
-\section{Song size}
+\section{Song Size}
 Our Tetris theme song contains to arrays of integer. The arrays contains 38 and 64 integers. Each integer is uint16 and needs 2 bytes. The total size of the song is then 204 bytes. With this implementation we can fit multiple songs without using too much space.
