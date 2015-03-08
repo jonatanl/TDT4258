@@ -38,7 +38,7 @@ We first used settled on the LFRCO clock as a timer, hpwever we experienced weir
 
 % Detail the synth approach
 
-\section{Song Representation}
+\subsection{Song Representation}
 Our first thougt was to save all the samples of a song. A normal song is sampled at 44100 Hz and each sample is n. One second of a normal song takes about 86 KB. However, the EFM32 board has a limited amount of memory. We could have managed to represent a few seconds of high quality sound with optimizations. 
 
 In our solution we chose to represent a song as an array of 16 bit int values. Inside these 16 bits we store information about pitch, octave, amplitude and duration. In table \ref{tab:bitFields} the bit partitions are described.
@@ -71,16 +71,71 @@ An issue with the synth is that in order to generate more advanced waveforms a p
 \subsection{Representing a song in memory}
 In order to play back sound at a given sample S with B bits accuracy the required data is S*B per second. for 12 bits accuracy at a 32768 samples per second that equates 48kB for a second of music, unfeasible for the 128kB of SRAM the EFM32GG has. Additionally, in order to simplify access to sample the 12 bit values would be loaded into 2 bytes, effectively making each 12 bit sample take 16 bits of storage. In order to save space we therefore decided to create samples of the frequencies we needed into short segments that could be repeated as long as we wanted the sound to play. To implement this idea we created an array with 100 sample pointers as a lookup table for notes, where every note was assigned its own number, initializing only the pointers that pointed to a note that would be played. A song could then be encoded as an array of instructions to access various notes and repeat the sample for a set duration.
 
-## Figure explaining the structure ##
+
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{images/sample_array_layout.png}
+  \caption{A map of the memory layout for the sample based approach}\label{fig:array_layout}
+\end{figure}
+
+\begin{minipage}{\textwidth}
+\begin{lstlisting}
+typedef struct Player
+{
+	uint16_t song;			// Number of current song
+	uint16_t song_len;		// Total notes for current song
+	uint16_t notes_played;	// Keeps track of notes
+	uint16_t sample_total;	// Times current sample should play	
+	uint16_t sample;		// Times current sample has played
+	uint16_t sample_i;		// Position in current sample 
+	uint16_t note_len;		// Length of current sample
+	uint16_t* note;			// Location of current sample
+	uint16_t LED;			// Current LED configuration
+} Player;
+\end{lstlisting}
+\end{minipage}
 
 \subsection{Playing a song}
+In order to play a song we bundled the necessary attributes to keep track of what notes to play and their tempo together in a Play struct. To initialize a song play\_init() is called with the song to be played as the argument. This sets up a playback. After initializing calling the play() function will output the next sample to the DAC.
+The play() function keeps track on the current position of a playback, reading from an array of triplets to load the next note whenever the current one has been finished. \\
 
-## ##
+\begin{minipage}{\textwidth}
+\begin{lstlisting}
+void play(void){
+	// Load the next sample
+	if(player.sample_i < player.note_len-1){			
+		player.sample_i++;								
+	}
+	else{								
+		player.sample_i = 0;
+		if(player.sample < player.sample_total){
+   			player.sample++;				
+		}
+		else{							
+			player.sample = 0;
+			if(player.notes_played < player.song_len){
+				next_note();
+				(*GPIO_PA_DOUT) =  player.note_len << 8 ;		
+			}			 
+			else{
+			  disableLETIMER();
+			  disableDAC();
+			  //__asm("wfi");
+			}
+		}
+	}
+	// Write the sample to the DAC
+	*DAC0_CH0DATA = player.note[player.sample_i];
+	*DAC0_CH1DATA = player.note[player.sample_i];
+}
+\end{lstlisting}
+\end{minipage}
+
+%% code from Play function %%
 
 \section{Testing}
-% Add content in this section that describes how you tested and verified the
-% correctness of your implementation, with respect to the requirements of the
-% assignment.
+In order to test the functionality of our program we relied on visual and aural feedback rather than software approaches such as GDB. By using the LEDs we could write values directly to the LEDs, and with the earphones we could hear whether the sound was playing correctly or not. In order to measure energy consumption we used the onboard LCD screen for quick estimates. For more quality measurements we used eAProfiler on a PC to read energy consumption on the board via the USB connection. In order to get quality measurements we performed them all in succsession on a board that had been in use for several hours to minimize measurement variance. 
 
 \section{Optimization}
 
