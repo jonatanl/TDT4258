@@ -2,6 +2,7 @@
 #include "efm32gg.h"
 #include "letimer.h"
 #include "dac.h"
+#include "sleepControl.h"
 // #include "songs.h" 
 
 //-----------------------------------------------------------------------------
@@ -12,8 +13,6 @@
 
 void init(void);
 void next_note(void);
-
-static short int online = 1;
 
 uint16_t* note_array[100];
 uint16_t note_lens[100];
@@ -58,8 +57,6 @@ void play_init(uint16_t new_song){
 }
 
 void play(void){
-	
-	
 	if(player.sample_i < player.note_len-1){			// SLEN: SAMPLE LENGTH
 		player.sample_i++;					// Player is in the middle of a sample
 	}
@@ -75,9 +72,7 @@ void play(void){
 				(*GPIO_PA_DOUT) =  player.note_len << 8 ;		// Player loads the next node
 			}			 
 			else{
-			  disableLETIMER();
-			  disableDAC();
-			  //__asm("wfi");
+			  silence();
 			}
 		}
 	}

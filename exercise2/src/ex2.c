@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include "efm32gg.h"
 #include "synth.h"
-#include "synthSongs.h"
 #include "sleepControl.h"
 
 #define   SAMPLING_RATE   32768
@@ -12,29 +11,27 @@ void enable_sample_DAC();
 void enable_synth_DAC();
 void setupNVIC();
 void setupGPIO();
-void enableLETIMER(uint16_t period);
+void setupLETIMER(uint16_t period);
 
 synth_song_playback test_playback;
 synth_song tetrisSong;
 
+// Allocate memory for synth playbacks
+synth_part_playback part1_playback;
+synth_part_playback part2_playback;
+
 int main(void) 
 {  
-  // Initial setup
+  synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback);
+  
+  *CMU_CTRL &= ~(3 << 18);	// Sets wake up time of LFXO clock for quick wakeup
   
   setupGPIO();
-  enable_sample_DAC();
-  enableLETIMER(0);
-  //goToSleep();
-
-  synth_part_playback part1_playback;
-  synth_part_playback part2_playback;
-  
-  synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback);
-
+  setupLETIMER(0);
   setupNVIC();
+  //start_synth();
 
-  while(1);
-  
+  toggle_sleep();
   return 0;
 }
 
