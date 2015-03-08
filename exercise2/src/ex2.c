@@ -18,13 +18,15 @@ synth_song marioSong;
 synth_song_playback tetrisPlayback;
 synth_song_playback marioPlayback;
 
-// Allocate memory for synth playbacks
-synth_part_playback part1_playback;
-synth_part_playback part2_playback;
+synth_part_playback tetris_part1;
+synth_part_playback tetris_part2;
+synth_part_playback mario_part1;
+synth_part_playback mario_part2;
 
 int main(void) 
 {  
-  synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &tetrisPlayback); 
+  synth_create_song_playback(&tetrisSong, &tetris_part1, &tetris_part2, SAMPLING_RATE, &tetrisPlayback); 
+  synth_create_song_playback(&marioSong, &mario_part1, &mario_part2, SAMPLING_RATE, &marioPlayback); 
   
   setupGPIO();
   setupDAC();
