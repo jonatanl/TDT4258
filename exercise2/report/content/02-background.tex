@@ -15,6 +15,7 @@ Through the exercises in this course we will work with the Silicon labs EFM32GG-
 	\item Clock Management Unit
 	\item Energy Management Unit
 	\item Direct Memory Access controller
+	\item Digital to Analog Converter
   % TODO: Add the components used in exercise 2 to this list
 \end{itemize}
 This chapter will give an introduction to each of those devices, and will highlight the relevant features. For a map of the EFM32GG hardware components, see figure \ref{fig:giant-gecko-map}.
@@ -111,9 +112,11 @@ The Digital-to-Analog Converter (DAC) converts digital values to analog signals.
 \section{Energy Management Unit}\label{sec:emu}
 The Energy Management Unit (EMU) manages the different low energy modes in the EFM32GG. The EFM32GG has the capability to turn off power to board components at runtime by switching between five distinct energy modes. These modes range from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where almost everything is disabled. The hardware component map in figure \ref{fig:giant-gecko-map} shows what components are active in the different energy modes by showing them with separate colors. A darker color indicates a component that is available in a lower energy mode. In addition to handling the energy modes, the EMU can also be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
 % TODO(maybe): Explain how to disable RAM blocks
+% TODO(maybe): Write more about the different energy modes
 
 
 \section{Other on-board components and peripherals}
+TODO % Introduce this section
 
 \subsection{General-Purpose Input/Output pins}
 The General-Purpose Input/output (GPIO) pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
@@ -141,6 +144,7 @@ TODO % TODO
 
 
 \section{Energy Consumption}
+TODO % Introduce this section
 
 \subsection{Static and dynamic power}
 The power used by a CMOS integrated circuit can be split into two main parts: \emph{dynamic power} and \emph{static power}. 
@@ -156,10 +160,6 @@ where $I_{leak}$ is the current leaking through the transistors.
 The total power used by the circuit is the sum of both dynamic and static power,
 $$P_{total} = P_{dynamic} + P_{static}\ .$$
 \cite{cmos-vlsi-design}
-
-
-\subsection{Energy Modes of the EFM32GG}
-TODO % TODO: Write about energy modes
 
 
 \subsection{Reducing energy consumption in the EFM32GG}
@@ -213,4 +213,4 @@ As a rule of thumb, using a higher compiler optimization-level will result in mo
 
 \section{Generating Sounds}
 When interpreting a sound as a signal, we speak about properties of the sound such as frequency, period, and amplitude. Here frequency and period (the inverse frequency) describes the pitch of a sound, while amplitude describes the loudness. In a typical speaker, a voltage signal is converted directly into sound waves. Here the voltage signal is an accurate model of the sound wave and has the same frequency and amplitude. The range of sounds that can be perceived by a human being is from 20Hz to 20KHz.\cite{compendium}
-% TODO: Write about how we generate the different tones
+% TODO: Write about how different tones can be generated
