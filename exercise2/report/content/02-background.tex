@@ -19,7 +19,7 @@ Through the exercises in this course we are working with the Silicon labs EFM32G
 	\item Energy Management Unit
   \item Low Energy Timer
   \item Peripheral Reflex System
-  \item Low Energy Universal Asynchronous Receiver/Transmitter
+%  \item Low Energy Universal Asynchronous Receiver/Transmitter
 	\item Direct Memory Access controller
   % TODO: Add the components used in exercise 2 to this list
 \end{itemize}
@@ -67,36 +67,31 @@ To generate the clock signals and drive the clocks described above, the EFM32GG 
 Depending on the application, the board components can be run either fast or slow by driving clocks with different oscillators. The oscillators differ in having different start-up times. For instance, the crystal oscillators might need several hundreds of microseconds to become completely stable.\cite{efm32-clock-management-unit-application-note}
 
 
-\section{Timer/Counter}
-The Timer/Counter module (TIMER) can be used to count events and trigger actions in other peripherals without involving the CPU. It can also be used to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the timer.
+\section{Timer/Counter}\label{sec:timer}
+The Timer/Counter module (TIMER) can be used to count events and trigger actions in other peripherals, and to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the TIMER. The TIMER is driven by the HFPERCLK, and can be prescaled by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. This will result in a TIMER frequency of $\text{HFPERCLK}/2^{n}$. The timer can be started and stopped by writing to the bits START and STOP in the register TIMERn\_CMD, or by receiving signals from other peripherals through the PRS (see section \ref{sec:prs}).
+% TODO(maybe): Write about other source clocks for the timer
 
-\subsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at the prescaled frequency of the high frequency clock HFCLK (see section \ref{sec:cmu}), and this can be further prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
-%TODO: Write about other source clocks for the timer
-
-\subsection{Operation}
-The timer can be started and stopped by writing to the bits START and STOP in the register TIMERn\_CMD. However, it is also possible to control the timer from other peripherals through the PRS.
-
-\subsection{Counter Modes}
-The timer has four different modes:
-\begin{enumerate}
-	\item Up-count: The timer starts at 0, counts upwards, and resets to 0 when reaching the value of TIMER\_n\_TOP.
-	\item Down-count: The timer starts at TIMER\_n\_TOP, counts downwards, and resets to the value of TIMER\_n\_TOP when reaching 0.
-
-	\item Up/Down-count: TODO % TODO
-	\item Quadrature Decoder: TODO % TODO
-\end{enumerate}
+%\subsection{Counter Modes}
+%The timer has four different modes:
+%\begin{enumerate}
+%	\item Up-count: The timer starts at 0, counts upwards, and resets to 0 when reaching the value of TIMER\_n\_TOP.
+%	\item Down-count: The timer starts at TIMER\_n\_TOP, counts downwards, and resets to the value of TIMER\_n\_TOP when reaching 0.
+%
+%	\item Up/Down-count: TODO % TODO
+%	\item Quadrature Decoder: TODO % TODO
+%\end{enumerate}
 
 
 \section{Digital-to-Analog Converter}
-The Digital-to-Analog Converter (DAC) converts digital values to analog signals. The digital values are fed into the DAC through the two 12-bit input channels DACn\_CH0DATA and DACn\_CH1DATA, and is converted to output voltages on the two output channels. By feeding the output from the DAC through the on-board amplifier and into external speakers, the EFM32GG can be used to create sounds.
+The Digital-to-Analog Converter (DAC) converts digital values to analog signals. The digital values are fed into the DAC through the two 12-bit input channels DACn\_CH0DATA and DACn\_CH1DATA, and is converted to output voltages on the two output channels. By feeding the output from the DAC through the on-board amplifier and into external speakers, the EFM32GG can be used to create sounds. For more information about sound synthesizing in general, see section \ref{sec:sound-generation}.
 
 
 \section{General-Purpose Input/Output pins}
-The General-Purpose Input/output (GPIO) pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
+The General-Purpose Input/output (GPIO) pins makes it possible to connect a wide range of external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
 
 
 \section{Gamepad Prototype}
-The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper which allows us to toggle whether the amperage consumed by the LEDs will be measured. An image of the gamepad is shown in figure \ref{fig:gamepad}.
+The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper that allows us to toggle whether the amperage consumed by the LEDs will be measured during energy profiling. An image of the gamepad is shown in figure \ref{fig:gamepad}.
 
 \begin{figure}[ht]
   \centering
@@ -112,15 +107,17 @@ The Energy Management Unit (EMU) manages the different low energy modes in the E
 
 
 \section{Low Energy Timer}\label{sec:letimer}
-TODO % TODO: Write a brief section about the LETIMER. Mention EM2/EM3 capability.
+The Low Energy Timer (LETIMER) is a 16-bit timer available in energy modes down to EM3. Similar to the TIMER module (section \ref{sec:timer}), it can be used to generate interrupts after specific time intervals, to generate PRS signals for other peripherals, and to generate arbitrary waveforms on its two output pins. The fact that the LETIMER is available in EM3 makes it especially useful for applications where energy consumption is at a minimum. As mentioned in section \ref{sec:cmu}, the LETIMER is driven by the Low Frequency A Clock.
+
+The LETIMER can be started and stopped by setting the START and STOP bits respectively in register LETIMER0\_CMD. It has an internal counter that is decremented each cycle, and that can be read from register LETIMER0\_CNT. The counter value is by default reloaded to \texttt{0xffff} when it underflows, but this can be changed by setting COMP0\_TOP in LETIMER0\_CTRL and writing a new reload value to LETIMER0\_COMP0. 
 
 
-\section{Peripheral Reflex System}
+\section{Peripheral Reflex System}\label{sec:prs}
 The Peripheral Reflex System (PRS) is a network connecting the different peripheral modules together, allowing them to communicate directly without involving the CPU. The peripheral modules send each other \emph{reflex signals} routed by the PRS. On receiving such a signal, a peripheral module may perform some specific action depending on the signal received. By relieving the CPU of work, the PRS system can be used to improve energy efficiency. It is also suited for time-critical operations as it involves no variable-time software overhead.
 
 
-\section{Low Energy Universal Asynchronous Receiver/Transmitter}\label{subsec:leuart}
-TODO % TODO
+%\section{Low Energy Universal Asynchronous Receiver/Transmitter}\label{subsec:leuart}
+%TODO % TODO
 
 
 \section{Direct Memory Access controller}
@@ -152,11 +149,11 @@ At the start of a DMA cycle, the controller will read the channel\_cfg from memo
 
 
 
-\section{Energy Consumption}
-TODO % Introduce this section
+\section{Energy Optimization}
+This section introduces relevant theory of energy optimization, and lists several energy optimization techniques that are used in modern computing.
 
 \subsection{Static and dynamic power}
-The power used by a CMOS integrated circuit can be split into two main parts: \emph{dynamic power} and \emph{static power}. 
+When considering the power consumption of an electronic CMOS integrated circuit, it is useful to split the power into two main parts: \emph{dynamic power} and \emph{static power}. 
 
 Dynamic power is the power needed to switch a circuit between two states. It depends on the clock frequency and activity level of a circuit, and is proportional to the square of the circuit voltage. In a clocked circuit it can be expressed as
 $$P_{dynamic} = \alpha CV_{DD}^{2}f$$
@@ -171,7 +168,7 @@ $$P_{total} = P_{dynamic} + P_{static}\ .$$
 \cite{cmos-vlsi-design}
 
 
-\subsection{Reducing energy consumption in the EFM32GG}
+\subsection{EFM32GG Energy Optimization Techniques}
 This section gives an overview of several ways to reduce the static and dynamic power consumption in the EFM32GG.
 
 \subsubsection{Clock Gating}
@@ -219,6 +216,11 @@ As a rule of thumb, using a higher compiler optimization-level will result in mo
 %--------------------------------------------------------------------
 
 
-\section{Generating Sounds}
+\section{Sounds Generation}\label{sec:sound-generation}
 When interpreting a sound as a signal, we speak about properties of the sound such as frequency, period, and amplitude. Here frequency and period (the inverse frequency) describes the pitch of a sound, while amplitude describes the loudness. In a typical speaker, a voltage signal is converted directly into sound waves. Here the voltage signal is an accurate model of the sound wave and has the same frequency and amplitude. The range of sounds that can be perceived by a human being is from 20Hz to 20KHz.\cite{compendium}
 % TODO: Write about how different tones can be generated
+
+\subsection{Simple music theory}
+In the western world the chromatic scale is the standard way to describe music. The chromatic scale is a set of 12 ordered frequences such that the twelwth note has twice the frequency of the first, and that the spacing between the notes is equal on a logarithmic scale. The common ground note in western music is the $A_{4}$ with the frequency of 440hz. The number refers to the octave, such that $A_{5}$ at one octave higher will have twice the frequency of $A_{4}$, 880hz. The note is the letter, and can be sharpened with a \#. The 12 notes on a chromatic scale will be referred to as A, A\#/H, B, C, C\#, D, D\#, E, F, F\#, G, G\#. There is no differenence between a note with a \# and one without, they all have the same relation to their predecessor. \\
+The frequency of a note is given by the following equation: $$f = A_{4}*2^{D/12}$$
+Here we have used $A_4$ as the ground note, and D is the difference. For instance a third octave C sharp $C\#_3$ is 7 tones lower than A_4, so its frequency f will be $$f_{C\#_{3}} = f_{A_{4}}*2^{-7/12}$$
