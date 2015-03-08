@@ -73,6 +73,8 @@ int input = button_mapper();
     start_synth();
     break;
   case 3:		// btn 3
+    mode = 2;
+    start_synth();
     break;
   case 4:		// btn 4
     break;
