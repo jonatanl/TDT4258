@@ -1,6 +1,17 @@
 \chapter{Methodology}
+This chapter details the methods used and the process with which we achieved our results.
 
-For this assignment we decided to explore different methods to create sound with the DAC for the EFM32GG in order to have a solid basis of comparison for both energy efficiency and overall sound-quality. The two different approaches we settled on were sample playback using samples synthesized before runtime. The other approach was using an on board synthesizer creating square waves on the go. Before detailing the different approaches we will describe the necessary setup for both approaches.
+\section{Exercise Description}
+The goal of this exercise was to write a program for the EFM32GG that generated sounds by utilizing the onboard Digital to Analog Converter. The program should make at least three different sound effects, as well as a melody. These should be appropriate for use in the final exercise of the course where the goal is to create a game, and it should be possible to control which sound is being played by pressing the different buttons of the prototype gamepad. The program should be written in C, and should run directly on the EFM32GG hardware with no operating system involved. Emphasis is placed upon energy efficiency, an energy efficient solution will be rewarded with extra points.
+
+
+\subsection{Initial approach}
+We explored several different methods to create sound with EFM32GG, and eventually decided on two different approaches. In the first approach, pre-synthesized samples were loaded on to the board at compile time. In the second approach, distinct notes coded as 16 bits words were loaded on to the board at compile time, and synthesized at run-time by a synthesizer module. The result was two different implementations, and these are described and compared in section \ref{TODO}.
+
+%The energy efficiency and overall sound-quality of the two methods is compared in section \ref{TODO}.
+%
+%Before detailing the different approaches we will describe the necessary setup for both approaches.
+
 
 \section{Simple Sound Generator}
 In order to get an introduction to programming the DAC we created a program intended to play a static sound. This would be an easy introduction to C programming, and would give us a good performance baseline with regards energy expenditure.
