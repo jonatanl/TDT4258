@@ -38,12 +38,11 @@ We first used settled on the LFRCO clock as a timer, hpwever we experienced weir
 
 % Detail the synth approach
 
-\section{Saving song in memory}
+\section{Song Representation}
 Our first thougt was to save all the samples of a song. A normal song is sampled at 44100 Hz and each sample is n. One second of a normal song takes about 86 KB. However, the EFM32 board has a limited amount of memory. We could have managed to represent a few seconds of high quality sound with optimizations. 
 
-In our solution we chose to represent a song as an array of 16 bit int values. Inside these 16 bits we store information about pitch, octave, amplitude and duration. In table \ref{tab:bitFields} the bit partitions are described. \\
-
-\begin{table}[ht]
+In our solution we chose to represent a song as an array of 16 bit int values. Inside these 16 bits we store information about pitch, octave, amplitude and duration. In table \ref{tab:bitFields} the bit partitions are described.
+\begin{table}[H]
 	\begin{center}
 	\begin{tabular}{ |c|c|c|c| }
 	  \hline
