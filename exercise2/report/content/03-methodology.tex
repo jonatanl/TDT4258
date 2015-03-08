@@ -38,7 +38,7 @@ We first used settled on the LFRCO clock as a timer, hpwever we experienced weir
 
 % Detail the synth approach
 
-\section{Song Representation}
+\subsection{Song Representation}
 Our first thougt was to save all the samples of a song. A song is usually sampled at 44100 Hz and each sample is need 2 bytes. One second of a normal song takes about 86 KB. However, the EFM32 board has a limited amount of memory. We could have managed to represent a few seconds of high quality sound with optimizations. 
 
 \subsection{Our Solution}
