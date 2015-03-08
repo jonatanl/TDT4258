@@ -25,4 +25,10 @@ While a song is playing the board consumes a significant amount of power. To dec
 \end{table}
 
 \section{Song Size}
-Our Tetris theme song contains to arrays of integer. The arrays contains 38 and 64 integers. Each integer is uint16 and needs 2 bytes. The total size of the song is then 204 bytes. With this implementation we can fit multiple songs without using too much space.
+In order to compare the two implementations we needed to not only compare efficiency but also utility. 
+
+\subsection{Synth Songs}
+The synth based approach yielded fairly small song sizes, the tetris theme totalled at 204 bytes, needing only two arrays of respectively 38 and 64 16 bit integers. With this size we could fit in a lot of music before size would become an issue.
+
+\subsection{Samples}
+For the sample based apprach we used samples averaging at around 1640 integers per array for 0.05 seconds. Clearly the samples were a lot more memory intensive. While sample size could be brought down by only sampling a single waveform we decided 0.05 second samples would be more interesting to work with since they would allow for variance in the waveforms, creating more interesting tones. The final size per sample ended up averaging around 3280 bytes, a significant cost compared to the synth approach. However, reuse of samples can offset this cost somewhat since playing a note twice comes at the same cost as the synth approach
