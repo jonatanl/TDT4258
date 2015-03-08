@@ -1,20 +1,19 @@
 \chapter{Methodology}
 This chapter details the methods used and the process with which we achieved our results.
 
-\section{Exercise Description}
-The goal of this exercise was to write a program for the EFM32GG that generated sounds by utilizing the onboard Digital to Analog Converter. The program should make at least three different sound effects, as well as a melody. These should be appropriate for use in the final exercise of the course where the goal is to create a game, and it should be possible to control which sound is being played by pressing the different buttons of the prototype gamepad. The program should be written in C, and should run directly on the EFM32GG hardware with no operating system involved. Emphasis is placed upon energy efficiency, an energy efficient solution will be rewarded with extra points.
+\section{Process Overview} %Introductory chapter, sort of
+
+\subsection{Exercise Description}
+The goal of this exercise was to write a program for the EFM32GG that generated sounds by utilizing the onboard Digital to Analog Converter. The program should make at least three different sound effects, as well as a melody. These should be appropriate for use in the final exercise of the course where the goal is to create a game, and it should be possible to control which sound is being played by pressing the different buttons of the prototype gamepad. The program should be written in C, and should run directly on the EFM32GG hardware with no operating system involved. Emphasis was placed upon energy efficiency, an energy efficient solution will be rewarded with extra points.
+
+\subsection{Two Sound Generation Schemes}
+We explored several different methods to create sound with EFM32GG, and eventually decided on two different approaches. In the first approach, pre-synthesized samples were loaded on to the board at compile time. In the second approach, distinct notes coded as 16 bits words were loaded on to the board at compile time, and synthesized at run-time by a software synthesizer. The result was two different implementations, and these are described and compared in section \ref{sec:onboard-synthesizer} and \ref{sec:sample-based-music-player}.
+
+TODO % Write something about the rest of the approach
 
 
-\subsection{Initial approach}
-We explored several different methods to create sound with EFM32GG, and eventually decided on two different approaches. In the first approach, pre-synthesized samples were loaded on to the board at compile time. In the second approach, distinct notes coded as 16 bits words were loaded on to the board at compile time, and synthesized at run-time by a synthesizer module. The result was two different implementations, and these are described and compared in section \ref{TODO}.
-
-%The energy efficiency and overall sound-quality of the two methods is compared in section \ref{TODO}.
-%
-%Before detailing the different approaches we will describe the necessary setup for both approaches.
-
-
-\section{Simple Sound Generator}
-In order to get an introduction to programming the DAC we created a program intended to play a static sound. This would be an easy introduction to C programming, and would give us a good performance baseline with regards energy expenditure.
+\section{Initial Approach}
+In order to get an introduction to programming the DAC we created a program intended to play a static sound. This would be an easy introduction to C programming, and would give us a good performance baseline with regards to energy consumption.
 
 \subsection{GPIO and Clock Setup} 
 The first step was porting the assembly code we had previosuly written to control LEDs and clocks over to C. Having set up the LEDs and buttons would also make it easier to debug the code by writing values to the LEDs to discern the current program state. Rather than starting with a simple polling loop we felt confident enough to go straight to interrupts for the LEDs and buttons, letting the program idle in a loop between interrupts. In addition to GPIO we also activated the timer module TIMER1 so we could produce steady interrupts in order to generate sound.
@@ -44,7 +43,7 @@ In order to use the LETIMER, we configured the CMU through the following steps:
 \subsection{Clock Accuracy}
 We first used settled on the LFRCO clock as a timer, hpwever we experienced weird sound artifacts. This was most likely due inaccuracy in the LFRCO itself. It seems that we had no guarantee that the frequency was excactly 32.768 Hz, and as a result we changed to LFXO, which gave a stable sound.
 
-\section{On Board Synthesizer}
+\section{On-board Synthesizer}\label{sec:onboard-synthesizer}
 Limited memory is a consern on for the EFM32 board and as a result we wanted to create a synthesizer. A song is stored in memory as integer arrays. The integer array contains information to create different tones. Two integer arrays produces a song with two channels.
 
 \subsection{Song Representation}
@@ -75,7 +74,7 @@ Each pitch value is represented by a value from 0 to 11. The Octave can take the
 \subsection{Song Playback}
 To play a song the synthesizer wakes up 32768 times every second. Each tone is played with square waves. After calculating each tone's frequency the synthesizer turns the DAC on and off, to match the tone frequency. This method has limitations when it comes to reproducing sounds, but this metod is very space efficient.
 
-\section{Sample Based Music Player}
+\section{Sample Based Music Player}\label{sec:sample-based-music-player}
 An issue with the synth is that in order to generate more advanced waveforms a program must utilize expensive trigonometric calculations to express them. Although the EFM32GG does have the capability to generate a sine wave on the DAC, in order to play actual music a more advance approach is required. To achieve this we decided to do the expensive calculations on a personal computer, using a synthesizer to sample a sine wave and output an array that could be compiled. Although the limited DAC sound quality made it possible to use a fairly low sample rate with no discernable quality difference we settled on using the maximum sample rate the LFXO clock could grant us, 32768 samples per second. 
 
 \subsection{Song Representation}
