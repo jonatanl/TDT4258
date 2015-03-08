@@ -12,8 +12,11 @@
 void setupNVIC();
 void setupGPIO();
 
-synth_song_playback test_playback;
 synth_song tetrisSong;
+synth_song marioSong;
+
+synth_song_playback tetrisPlayback;
+synth_song_playback marioPlayback;
 
 // Allocate memory for synth playbacks
 synth_part_playback part1_playback;
@@ -21,8 +24,7 @@ synth_part_playback part2_playback;
 
 int main(void) 
 {  
-  synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback);
-  
+  synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback); 
   
   setupGPIO();
   setupDAC();
