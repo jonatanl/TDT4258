@@ -26,7 +26,7 @@ synthSongs.c : noteGenerator/tetris.json
 
 .PHONY : upload
 upload :
-	-eACommander.sh -r --address 0x00000000 -f "ex2.bin" -r
+	-start-eACommander.sh -r --address 0x00000000 -f "ex2.bin" -r
 
 .PHONY : songs
 songs :
