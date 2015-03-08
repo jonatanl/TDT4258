@@ -67,7 +67,7 @@ To generate the clock signals and drive the clocks described above, the EFM32GG 
 Depending on the application, the board components can be run either fast or slow by driving clocks with different oscillators. The oscillators differ in having different start-up times. For instance, the crystal oscillators might need several hundreds of microseconds to become completely stable.\cite{efm32-clock-management-unit-application-note}
 
 
-\section{Timer/Counter}
+\section{Timer/Counter}\label{sec:timer}
 The Timer/Counter module (TIMER) can be used to count events and trigger actions in other peripherals, and to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the TIMER. The TIMER is driven by the HFPERCLK, and can be prescaled by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. This will result in a TIMER frequency of $\text{HFPERCLK}/2^{n}$. The timer can be started and stopped by writing to the bits START and STOP in the register TIMERn\_CMD, or by receiving signals from other peripherals through the PRS (see section \ref{sec:prs}).
 % TODO(maybe): Write about other source clocks for the timer
 
@@ -107,7 +107,9 @@ The Energy Management Unit (EMU) manages the different low energy modes in the E
 
 
 \section{Low Energy Timer}\label{sec:letimer}
-TODO % TODO: Write a brief section about the LETIMER. Mention EM2/EM3 capability.
+The Low Energy Timer (LETIMER) is a 16-bit timer available in energy modes down to EM3. Similar to the TIMER module (section \ref{sec:timer}), it can be used to generate interrupts after specific time intervals, to generate PRS signals for other peripherals, and to generate arbitrary waveforms on its two output pins. The fact that the LETIMER is available in EM3 makes it especially useful for applications where energy consumption is at a minimum. As mentioned in section \ref{sec:cmu}, the LETIMER is driven by the Low Frequency A Clock.
+
+The LETIMER can be started and stopped by setting the START and STOP bits respectively in register LETIMER0\_CMD. It has an internal counter that is decremented each cycle, and that can be read from register LETIMER0\_CNT. The counter value is by default reloaded to \texttt{0xffff} when it underflows, but this can be changed by setting COMP0\_TOP in LETIMER0\_CTRL and writing a new reload value to LETIMER0\_COMP0. 
 
 
 \section{Peripheral Reflex System}\label{sec:prs}
@@ -147,11 +149,11 @@ At the start of a DMA cycle, the controller will read the channel\_cfg from memo
 
 
 
-\section{Energy Consumption}
-TODO % Introduce this section
+\section{Energy Optimization}
+This section introduces relevant theory of energy optimization, and lists several energy optimization techniques that are used in modern computing.
 
 \subsection{Static and dynamic power}
-The power used by a CMOS integrated circuit can be split into two main parts: \emph{dynamic power} and \emph{static power}. 
+When considering the power consumption of an electronic CMOS integrated circuit, it is useful to split the power into two main parts: \emph{dynamic power} and \emph{static power}. 
 
 Dynamic power is the power needed to switch a circuit between two states. It depends on the clock frequency and activity level of a circuit, and is proportional to the square of the circuit voltage. In a clocked circuit it can be expressed as
 $$P_{dynamic} = \alpha CV_{DD}^{2}f$$
@@ -166,7 +168,7 @@ $$P_{total} = P_{dynamic} + P_{static}\ .$$
 \cite{cmos-vlsi-design}
 
 
-\subsection{Reducing energy consumption in the EFM32GG}
+\subsection{EFM32GG Energy Optimization Techniques}
 This section gives an overview of several ways to reduce the static and dynamic power consumption in the EFM32GG.
 
 \subsubsection{Clock Gating}
