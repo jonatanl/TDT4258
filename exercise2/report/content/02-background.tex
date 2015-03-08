@@ -94,7 +94,13 @@ The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-s
 
 
 \section{Energy Management Unit}\label{sec:emu}
-The Energy Management Unit (EMU) manages the different low energy modes in the EFM32GG. The EFM32GG has the capability to turn off power to board components at runtime by switching between five distinct energy modes. These modes range from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where almost everything is disabled. The hardware component map in figure \ref{fig:giant-gecko-map} shows what components are active in the different energy modes by showing them with separate colors. A darker color indicates a component that is available in a lower energy mode. In addition to handling the energy modes, the EMU can also be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
+The Energy Management Unit (EMU) manages the different low energy modes in the EFM32GG. The EFM32GG has the capability to turn off power to board components at runtime by switching between five distinct energy modes. These modes range from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where almost everything is disabled. The hardware component map in figure \ref{fig:giant-gecko-map} shows what components are active in the different energy modes by showing them with separate colors. A description about the color scheme for each energy mode, can be found in figure \ref{fig:color-description}. In addition to handling the energy modes, the EMU can also be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{images/color_description.png}
+  \caption{Color scheme for the individual energy modes}\label{fig:color-description}
+\end{figure}
 % TODO(maybe): Explain how to disable RAM blocks
 % TODO(maybe): Write more about the different energy modes
 
@@ -214,6 +220,22 @@ When interpreting a sound as a signal, we speak about properties of the sound su
 % TODO: Write about how different tones can be generated
 
 \subsection{Simple music theory}
-In the western world the chromatic scale is the standard way to describe music. The chromatic scale is a set of 12 ordered frequences such that the twelwth note has twice the frequency of the first, and that the spacing between the notes is equal on a logarithmic scale. The common ground note in western music is the $A_{4}$ with the frequency of 440hz. The number refers to the octave, such that $A_{5}$ at one octave higher will have twice the frequency of $A_{4}$, 880hz. The note is the letter, and can be sharpened with a \#. The 12 notes on a chromatic scale will be referred to as A, A\#/H, B, C, C\#, D, D\#, E, F, F\#, G, G\#. There is no differenence between a note with a \# and one without, they all have the same relation to their predecessor. \\
+In the western world the chromatic scale is the standard way to describe music. The chromatic scale is a set of 12 ordered frequences such that the twelwth note has twice the frequency of the first, and that the spacing between the notes is equal on a logarithmic scale. The common ground note in western music is the $A_{4}$ with the frequency of 440hz. The number refers to the octave, such that $A_{5}$ at one octave higher will have twice the frequency of $A_{4}$, 880hz. The note is the letter, and can be sharpened with a \#. The 12 notes on a chromatic scale will be referred to in table \ref{tab:chromatic-scale}. There is no differenence between a note with a \# and one without, they all have the same relation to their predecessor.
+
 The frequency of a note is given by the following equation: $$f = A_{4}*2^{D/12}$$
 Here we have used $A_4$ as the ground note, and D is the difference. For instance a third octave C sharp $C\#_3$ is 7 tones lower than $A_4$, so its frequency f will be $$f_{C\#_{3}} = f_{A_{4}}*2^{-7/12}$$
+
+\begin{table}[H]
+  \begin{center}
+  \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c|c| }
+    \hline
+    1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 \\
+    \hline
+    A & A\#/H & B & C & C\# & D & D\# & E & F & F\# & G & G\# \\
+    \hline
+
+  \end{tabular}
+  \caption{Chromatic scale}
+  \label{tab:chromatic-scale}
+  \end{center}
+\end{table}
