@@ -13,35 +13,89 @@ TODO % Write something about the rest of the approach
 
 
 \section{Initial Approach}
-In order to get an introduction to programming the DAC we created a program intended to play a static sound. This would be an easy introduction to C programming, and would give us a good performance baseline with regards to energy consumption.
+In order to get an introduction to programming the DAC we created a program intended to play a single continuous note. This would be an easy introduction to C programming, and would give us a good performance baseline with regards to energy consumption.
 
-\subsection{GPIO and Clock Setup} 
-The first step was porting the assembly code we had previosuly written to control LEDs and clocks over to C. Having set up the LEDs and buttons would also make it easier to debug the code by writing values to the LEDs to discern the current program state. Rather than starting with a simple polling loop we felt confident enough to go straight to interrupts for the LEDs and buttons, letting the program idle in a loop between interrupts. In addition to GPIO we also activated the timer module TIMER1 so we could produce steady interrupts in order to generate sound.
+\subsection{GPIO Setup} 
+The first step was porting the assembly code we had previosuly written to control LEDs and clocks over to C. Having set up the LEDs and buttons would also make it easier to debug the code by writing values to the LEDs to discern the current program state. Rather than starting with a simple polling loop we felt confident enough to go straight to interrupts for the LEDs and buttons, letting the program idle in a loop between interrupts.
 
-%%Some code for the handlers maybe%%
+The code we used to set up the GPIO pins for input and output is shown in code listing \ref{lst:gpio-setup1} and \ref{lst:gpio-setup2} respectively. In addition to the steps shown, the clock signal for the modules needed to be enabled in the CMU. \\
+
+\noindent\begin{minipage}[pos=c,contentpos=c]{\textwidth}
+  \begin{lstlisting}[caption=Setting GPIO pins 0-7 as input,label={lst:gpio-setup1}]
+  *GPIO_PC_MODEL = 0x33333333;  // Set pins 0-7 as input pins
+  *GPIO_PC_DOUT = 0xff;         // Enable pull-up resistors
+  *GPIO_EXTIPSELL = 0x22222222; // Set interrupt generation for pin 0-7
+  *GPIO_EXTIFALL = 0xff;        // Set interrupt on 1->0
+  *GPIO_EXTIRISE = 0xff;        // Set interrupt on 0->1
+  *GPIO_IEN = 0xff;             // Enable interrupt generation
+  \end{lstlisting}
+\end{minipage}
+
+\noindent\begin{minipage}[c]{\textwidth}
+  \begin{lstlisting}[caption=Setting GPIO pins 8-15 as output,label={lst:gpio-setup2}]
+  *GPIO_PA_MODEH = 0x55555555; // Set pins 8-15 to output
+  *GPIO_PA_CTRL = 2;           // Set high drive strength
+  \end{lstlisting}
+\end{minipage}
+
 
 \subsection{DAC Setup}
-In order to generate a tone setting up the DAC was necessary. For the first program the configurations suggested by the compendium were used
+The setup code we wrote for the DAC closely followed the instructions in the compendium, as shown in code listing \ref{lst:dac-setup}. With this setup, the DAC would continuously read both its 12 bit channels and update the output voltage. The next step to generate sound was to continously write samples to the channels emulating an audible waveform.\\
 
-%%Some code for setting up DAC%%
+\noindent\begin{minipage}[c]{\textwidth}
+  \begin{lstlisting}[caption=Setting up the DAC,label={lst:dac-setup}]
+  *DAC0_CTRL = 0x50000; // Set a DAC clock division factor of 32
+  *DAC0_CTRL |= 0x10;   // Set continuous mode
+  *DAC0_CH0CTRL = 1;    // Enable left channel
+  *DAC0_CH1CTRL = 1;    // Enable right channel
+  \end{lstlisting}
+\end{minipage}
 
-Having set up the DAC writing a value represented by 12 bits would change the voltage of the DAC. In order to generate sound we needed to oscillate the DAC which we did with the timer interrupt we had set up. Using a simple conditional statement we oscillated the DAC voltage between 0 and 1000. Our first attempt was outside of the audible frequency range, but by adjusting the timer we could reduce the amount of interrupts to control the frequency.
+\subsection{TIMER setup}
+We chose to base our initial implementation on interrupts, writing a new sample to the DAC whenever an interrupt occurred. The sampling rate could then be set by setting the frequency of the interrupts. To generate interrupts, we used the TIMER module, setup as described in listing \ref{lst:timer-setup}. Note the variable \texttt{period} used to set interrupt frequency. \\
+
+\noindent\begin{minipage}[c]{\textwidth}
+  \begin{lstlisting}[caption=Setting up the timer to generate interrupts,label={lst:timer-setup}]
+  *TIMER1_TOP = period; // Set period between interrupts
+  *TIMER1_IEN = 1;      // Enable interrupt generation
+  *TIMER1_CMD = 1;      // Start the timer
+  \end{lstlisting}
+\end{minipage}
+
+Finally, an interrupt handler was written that used a simple conditional statement to write a square waveform to the DAC channels, oscillating the DAC voltage between 0 and 1000. Our first attempt was outside of the audible frequency range, but by adjusting the timer we could reduce the amount of interrupts to control the frequency.
+
 
 \section{Efficient Interrupts}
-After setting up everything we needed to generate a simple tone we decided on some preliminary optimizations to our program. Rather than using the TIMER1 module we used the LETIMER with a max speed of 32678 hz, more than ample for our needs. Going away from using the regular TIMER also allowed us to go as deep as energy mode 2, turning off the HF clock between samples.
+After setting up everything we needed to generate a simple tone we decided to do some preliminary optimizations in our program. Rather than using the TIMER module we would use the LETIMER with a max speed of 32678 Hz, more than ample for our needs. As the LETIMER module was available in EM2 and EM3, this would allow us to potentially save energy by entering EM2 between the interrupts. \\
 
-\subsection{LETIMER Setup}
-In order to use the LETIMER, we configured the CMU through the following steps:
-\begin{itemize}
-  \item Starting the Low Frequency Oscillator LFXO by writing 1 to the LFXO bit in CMU\_OSCENCMD.
-  \item Setting LFXO as a clock source for the LFACLK clock by writing 0 to the LFA bits in CMU\_LFCLKSEL.
-  \item Enabling the LFACLK clock for the LETIMER by setting the LETIMER0 bit in CMU\_LFACLKEN0.
-  \item Enabling the clock for the low energy peripheral interface by setting the LE bit in CMU\_HFCORECLKEN0.
-\end{itemize}
+% and turning off the HF clock between samples.
 
-% TODO: Explain how we needed to configure the registers
-\subsection{Clock Accuracy}
-We first used settled on the LFRCO clock as a timer, hpwever we experienced weird sound artifacts. This was most likely due inaccuracy in the LFRCO itself. It seems that we had no guarantee that the frequency was excactly 32.768 Hz, and as a result we changed to LFXO, which gave a stable sound.
+\subsection{LETIMER and LFACLK Setup}
+As the LETIMER is driven by the LFACLK clock, we needed to configure the LFACLK clock before using the LETIMER. The LFACLK was configured using the code shown in listing \ref{lst:lfaclk-setup}, and the LETIMER was configured using the code shown in listing \ref{lst:letimer-setup}. 
+
+\subsubsection{Choosing Low Frequency Oscillator}
+To drive the LFACLK we had the choice of either using the Low Frequency Crystal Oscillator (LFXO) or the Low Frequency RC Oscillator (LFRCO). After some initial testing we found that the LFRCO was unstable due to temperature differences, producing a slight variation in the pitch of the generated sound. LFXO was stable enough for our purposes. However, it had a longer start-up time, and we were aware that it might introduce delays into our program when waking up from low energy modes. \cite{efm32-oscillator-design-considerations-application-note} \\
+ 
+\noindent\begin{minipage}[c]{\textwidth}
+  \begin{lstlisting}[caption=Setting up the LFACLK to drive the LETIMER ,label={lst:lfaclk-setup}]
+  *CMU_OSCENCMD |= (1 << 8);    // Start the LFXO
+  *CMU_LFCLKSEL &= ~(0x3 << 0); // Select LFXO to drive LFACLK
+  *CMU_LFCLKSEL |= (2 << 0);    //
+  *CMU_LFACLKEN0 |= (1 << 2);   // Enable clock signal for LETIMER 
+
+  // Enable clock for the Low Energy Peripheral Interface
+  *CMU_HFCORECLKEN0 |= (1 << 4);
+  \end{lstlisting}
+\end{minipage}
+
+\noindent\begin{minipage}[c]{\textwidth}
+  \begin{lstlisting}[caption=Setting up LETIMER to generate periodic interrupts,label={lst:letimer-setup}]
+  *LETIMER0_CTRL |= (1 << 9); // Set period between interrupts
+  *LETIMER0_COMP0 = period;   // 
+  *LETIMER0_CMD |= (1 << 0);  // Start the LETIMER
+  *LETIMER0_IEN |= (1 << 2);  // Enable interrupt generation
+  \end{lstlisting}
+\end{minipage}
 
 \section{On-board Synthesizer}\label{sec:onboard-synthesizer}
 Limited memory is a consern on for the EFM32 board and as a result we wanted to create a synthesizer. A song is stored in memory as integer arrays. The integer array contains information to create different tones. Two integer arrays produces a song with two channels.
