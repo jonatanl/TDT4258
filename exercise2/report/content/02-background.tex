@@ -1,12 +1,5 @@
 \chapter{Background and Theory}
-% This chapter should describe the theoretical background needed to understand
-% and solve the problem. For instance, a description of the hardware platform
-% or specific components involved in this assignment, definition of concepts
-% that are important to understand the solution should be summarized here. Add
-% citations to show sources whenever appropriate.
-
 This chapter contains background theory relevant to the exercise. The first part is a brief introduction to the various hardware components of the EFM32GG-DK3750 that were used in this exercise. The second part details energy optimization techniques in modern computing systems. Finally, a small section outlines theory of soundwaves and music.
-
 
 \section{Overview of EFM32GG-DK3750}
 Through the exercises in this course we are working with the Silicon labs EFM32GG-DK3750 prototyping board (figure \ref{fig:efm-board}), from here on referenced as EFM32GG. The EFM32GG hardware components we used in this exercise include the following:
@@ -223,4 +216,4 @@ When interpreting a sound as a signal, we speak about properties of the sound su
 \subsection{Simple music theory}
 In the western world the chromatic scale is the standard way to describe music. The chromatic scale is a set of 12 ordered frequences such that the twelwth note has twice the frequency of the first, and that the spacing between the notes is equal on a logarithmic scale. The common ground note in western music is the $A_{4}$ with the frequency of 440hz. The number refers to the octave, such that $A_{5}$ at one octave higher will have twice the frequency of $A_{4}$, 880hz. The note is the letter, and can be sharpened with a \#. The 12 notes on a chromatic scale will be referred to as A, A\#/H, B, C, C\#, D, D\#, E, F, F\#, G, G\#. There is no differenence between a note with a \# and one without, they all have the same relation to their predecessor. \\
 The frequency of a note is given by the following equation: $$f = A_{4}*2^{D/12}$$
-Here we have used $A_4$ as the ground note, and D is the difference. For instance a third octave C sharp $C\#_3$ is 7 tones lower than A_4, so its frequency f will be $$f_{C\#_{3}} = f_{A_{4}}*2^{-7/12}$$
+Here we have used $A_4$ as the ground note, and D is the difference. For instance a third octave C sharp $C\#_3$ is 7 tones lower than $A_4$, so its frequency f will be $$f_{C\#_{3}} = f_{A_{4}}*2^{-7/12}$$
