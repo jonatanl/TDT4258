@@ -25,4 +25,4 @@ While a song is playing the board consumes a significant amount of power. To dec
 \end{table}
 
 \section{Song size}
-Our Tetris theme song contains to seperate arrays, one for each channel. The first
+Our Tetris theme song contains to arrays of integer. The arrays contains 38 and 64 integers. Each integer is uint16 and needs 2 bytes. The total size of the song is then 204 bytes. With this implementation we can fit multiple songs without using too much space.
