@@ -3,14 +3,15 @@
 #include "arraysound.h"
 #include "efm32gg.h"
 #include "dac.h"
-#include "synth.h"
 #include "sleepControl.h"
 #include "letimer.h"
+#include "synth.h"
 
 uint8_t button_mapper(void);
 void silence(void);
 
-synth_song_playback test_playback;
+synth_song_playback tetrisPlayback;
+synth_song_playback marioPlayback;
 
 // 0 - array, 1 - synth 
 int mode = -1;
@@ -26,7 +27,10 @@ void __attribute__ ((interrupt)) LETIMER0_IRQHandler()
     play();
     break;
   case 1:    
-    synth_next_song_sample(&test_playback);
+    synth_next_song_sample(&tetrisPlayback);
+    break;
+  case 2:    
+    synth_next_song_sample(&marioPlayback);
     break;
   default:
     break;

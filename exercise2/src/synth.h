@@ -27,10 +27,6 @@ typedef struct synth_part_playback synth_part_playback;
 #define Gx  11
 
 
-// Extern variable for testing purposes
-extern synth_song_playback test_playback;
-
-
 //-----------------------------------------------------------------------------
 // This struct defines several bitfields that are useful to pack a note into 16
 // bits. This makes it possible to load several long sounds into the efm32gg.

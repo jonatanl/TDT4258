@@ -24,7 +24,7 @@ synth_part_playback part2_playback;
 
 int main(void) 
 {  
-  synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback); 
+  synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &tetrisPlayback); 
   
   setupGPIO();
   setupDAC();
