@@ -62,7 +62,7 @@ void restart_song(synth_song_playback *song_playback)
 
 
 // Move the specified part playback on to the next note.
-void next_note(synth_part_playback *part_playback)
+void synth_next_note(synth_part_playback *part_playback)
 {
   if(part_playback->remaining_notes > 0){
     part_playback->remaining_notes--;
@@ -94,7 +94,7 @@ void synth_next_part_sample(synth_part_playback *part_playback)
   // If there are no more samples, move on to the next note
   part_playback->remaining_samples--;
   if(part_playback->remaining_samples == 0){
-    next_note(part_playback);
+    synth_next_note(part_playback);
   }
 }
 
