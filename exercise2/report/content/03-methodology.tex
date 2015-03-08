@@ -150,7 +150,7 @@ In order to play back sound at a given sample S with B bits accuracy the require
   \caption{A map of the memory layout for the sample based approach}\label{fig:array_layout}
 \end{figure}
 
-\begin{minipage}{\textwidth}
+\noindent\begin{minipage}{\textwidth}
 \begin{lstlisting}
 typedef struct Player
 {
@@ -171,7 +171,7 @@ typedef struct Player
 In order to play a song we bundled the necessary attributes to keep track of what notes to play and their tempo together in a Play struct. To initialize a song play\_init() is called with the song to be played as the argument. This sets up a playback. After initializing calling the play() function will output the next sample to the DAC.
 The play() function keeps track on the current position of a playback, reading from an array of triplets to load the next note whenever the current one has been finished.
 
-\begin{minipage}{\textwidth}
+\noindent\begin{minipage}{\textwidth}
 \begin{lstlisting}
 void play(void){
 	// Load the next sample
