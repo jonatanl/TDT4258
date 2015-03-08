@@ -68,35 +68,30 @@ Depending on the application, the board components can be run either fast or slo
 
 
 \section{Timer/Counter}
-The Timer/Counter module (TIMER) can be used to count events and trigger actions in other peripherals without involving the CPU. It can also be used to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the timer.
+The Timer/Counter module (TIMER) can be used to count events and trigger actions in other peripherals, and to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the TIMER. The TIMER is driven by the HFPERCLK, and can be prescaled by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. This will result in a TIMER frequency of $\text{HFPERCLK}/2^{n}$. The timer can be started and stopped by writing to the bits START and STOP in the register TIMERn\_CMD, or by receiving signals from other peripherals through the PRS (see section \ref{sec:prs}).
+% TODO(maybe): Write about other source clocks for the timer
 
-\subsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at the prescaled frequency of the high frequency clock HFCLK (see section \ref{sec:cmu}), and this can be further prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
-%TODO: Write about other source clocks for the timer
-
-\subsection{Operation}
-The timer can be started and stopped by writing to the bits START and STOP in the register TIMERn\_CMD. However, it is also possible to control the timer from other peripherals through the PRS.
-
-\subsection{Counter Modes}
-The timer has four different modes:
-\begin{enumerate}
-	\item Up-count: The timer starts at 0, counts upwards, and resets to 0 when reaching the value of TIMER\_n\_TOP.
-	\item Down-count: The timer starts at TIMER\_n\_TOP, counts downwards, and resets to the value of TIMER\_n\_TOP when reaching 0.
-
-	\item Up/Down-count: TODO % TODO
-	\item Quadrature Decoder: TODO % TODO
-\end{enumerate}
+%\subsection{Counter Modes}
+%The timer has four different modes:
+%\begin{enumerate}
+%	\item Up-count: The timer starts at 0, counts upwards, and resets to 0 when reaching the value of TIMER\_n\_TOP.
+%	\item Down-count: The timer starts at TIMER\_n\_TOP, counts downwards, and resets to the value of TIMER\_n\_TOP when reaching 0.
+%
+%	\item Up/Down-count: TODO % TODO
+%	\item Quadrature Decoder: TODO % TODO
+%\end{enumerate}
 
 
 \section{Digital-to-Analog Converter}
-The Digital-to-Analog Converter (DAC) converts digital values to analog signals. The digital values are fed into the DAC through the two 12-bit input channels DACn\_CH0DATA and DACn\_CH1DATA, and is converted to output voltages on the two output channels. By feeding the output from the DAC through the on-board amplifier and into external speakers, the EFM32GG can be used to create sounds.
+The Digital-to-Analog Converter (DAC) converts digital values to analog signals. The digital values are fed into the DAC through the two 12-bit input channels DACn\_CH0DATA and DACn\_CH1DATA, and is converted to output voltages on the two output channels. By feeding the output from the DAC through the on-board amplifier and into external speakers, the EFM32GG can be used to create sounds. For more information about sound synthesizing in general, see section \ref{sec:sound-generation}.
 
 
 \section{General-Purpose Input/Output pins}
-The General-Purpose Input/output (GPIO) pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
+The General-Purpose Input/output (GPIO) pins makes it possible to connect a wide range of external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
 
 
 \section{Gamepad Prototype}
-The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper which allows us to toggle whether the amperage consumed by the LEDs will be measured. An image of the gamepad is shown in figure \ref{fig:gamepad}.
+The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper that allows us to toggle whether the amperage consumed by the LEDs will be measured during energy profiling. An image of the gamepad is shown in figure \ref{fig:gamepad}.
 
 \begin{figure}[ht]
   \centering
@@ -115,7 +110,7 @@ The Energy Management Unit (EMU) manages the different low energy modes in the E
 TODO % TODO: Write a brief section about the LETIMER. Mention EM2/EM3 capability.
 
 
-\section{Peripheral Reflex System}
+\section{Peripheral Reflex System}\label{sec:prs}
 The Peripheral Reflex System (PRS) is a network connecting the different peripheral modules together, allowing them to communicate directly without involving the CPU. The peripheral modules send each other \emph{reflex signals} routed by the PRS. On receiving such a signal, a peripheral module may perform some specific action depending on the signal received. By relieving the CPU of work, the PRS system can be used to improve energy efficiency. It is also suited for time-critical operations as it involves no variable-time software overhead.
 
 
@@ -219,6 +214,6 @@ As a rule of thumb, using a higher compiler optimization-level will result in mo
 %--------------------------------------------------------------------
 
 
-\section{Generating Sounds}
+\section{Sounds Generation}\label{sec:sound-generation}
 When interpreting a sound as a signal, we speak about properties of the sound such as frequency, period, and amplitude. Here frequency and period (the inverse frequency) describes the pitch of a sound, while amplitude describes the loudness. In a typical speaker, a voltage signal is converted directly into sound waves. Here the voltage signal is an accurate model of the sound wave and has the same frequency and amplitude. The range of sounds that can be perceived by a human being is from 20Hz to 20KHz.\cite{compendium}
 % TODO: Write about how different tones can be generated
