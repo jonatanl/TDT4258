@@ -5,24 +5,24 @@
 
 // function to setup and start the LETIMER
 // might lose period variable
-void enableLETIMER(uint16_t period)
+void setupLETIMER(uint16_t period)
 {
   //-----------------------------------
   // Set up the letimer
   //-----------------------------------
 
-  // Start the Low Frequency Oscillator (LFXO)
+  // Start the Low Frequency Oscillator (LFXO) to run LETIMER
   *CMU_OSCENCMD |= (1 << 8);
 
   // Select LFXO to drive LFACLK
   *CMU_LFCLKSEL &= ~(0x3 << 0); // clear bits first
   *CMU_LFCLKSEL |= (2 << 0);
 
-  // Enable clock for LETIMER 
-  *CMU_LFACLKEN0 |= (1 << 2);
-
   // Enable clock for the Low Energy Peripheral Interface
   *CMU_HFCORECLKEN0 |= (1 << 4);
+
+  // Enable clock for LETIMER 
+  *CMU_LFACLKEN0 |= (1 << 2);
 
   // Enable LETIMER0_COMP0 as top register for LETIMER
   *LETIMER0_CTRL |= (1 << 9);
@@ -37,12 +37,17 @@ void enableLETIMER(uint16_t period)
   *LETIMER0_IEN |= (1 << 2);
 }
 
-// Disable the clock, effectively turning off LETIMER
-// This should only be done when we know we dont need the clock
-void disableLETIMER()
+void letimer_enable()
 {
-  *LETIMER0_CMD &= ~(1 << 1);
-  // *CMU_LFACLKEN0 &= ~(1 << 2);
+  *CMU_OSCENCMD |= (1 << 8);
+}
+
+void letimer_disable()
+{
+  *CMU_OSCENCMD |= (1 << 9);
+  // Enable clock for the Low Energy Peripheral Interface
+  *CMU_HFCORECLKEN0 |= (1 << 4);
+
 }
 
 

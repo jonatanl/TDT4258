@@ -46,6 +46,7 @@
 // CMU
 
 #define CMU_BASE 0x400c8000
+#define CMU_CTRL 	 ((volatile uint32_t*)(CMU_BASE + 0x000))
 
 #define CMU_HFPERCLKDIV  ((volatile uint32_t*)(CMU_BASE + 0x008))
 #define CMU_OSCENCMD     ((volatile uint32_t*)(CMU_BASE + 0x020))
@@ -54,6 +55,7 @@
 #define CMU_HFCORECLKEN0 ((volatile uint32_t*)(CMU_BASE + 0x040))
 #define CMU_HFPERCLKEN0  ((volatile uint32_t*)(CMU_BASE + 0x044))
 #define CMU_LFACLKEN0    ((volatile uint32_t*)(CMU_BASE + 0x058))
+#define CMU_LFBCLKEN0	 ((volatile uint32_t*)(CMU_BASE + 0x060))
 #define CMU_LFAPRESC0    ((volatile uint32_t*)(CMU_BASE + 0x068))
 
 

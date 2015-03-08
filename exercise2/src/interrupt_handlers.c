@@ -4,18 +4,35 @@
 #include "efm32gg.h"
 #include "dac.h"
 #include "synth.h"
+#include "sleepControl.h"
+#include "letimer.h"
 
 uint8_t button_mapper(void);
+void silence(void);
 
 synth_song_playback test_playback;
+
+// 0 - array, 1 - synth 
+int mode = -1;
 
 void handle_gpio(void);
 
 /* LETIMER0 interrupt handler */
 void __attribute__ ((interrupt)) LETIMER0_IRQHandler() 
-{  
-  play();
-  // Clear the interrupt
+{
+
+    switch(mode){
+  case 0:
+    play();
+    break;
+  case 1:    
+    synth_next_song_sample(&test_playback);
+    break;
+  default:
+    break;
+  }
+
+  (*GPIO_PA_DOUT)++;
   *LETIMER0_IFC |= (1 << 2);
 }
 
@@ -40,14 +57,16 @@ void __attribute__ ((interrupt)) GPIO_ODD_IRQHandler()
 void handle_gpio(void){
 int input = button_mapper();
   
-  // play_init(0);
-  
   if(input == 0){return;}
     switch(input){
   case 1:
-    play_init(0);	// btn 1
+    mode = 0;
+    play_init(0);
+    start_sampler();
     break;
-  case 2:		// btn 2
+  case 2:
+    mode = 1;
+    start_synth();
     break;
   case 3:		// btn 3
     break;
@@ -59,13 +78,15 @@ int input = button_mapper();
     break;
   case 7:		// btn 7
     break;
-  case 8:		// btn 8
+  case 8:
+    silence();		// btn 8
     break;
   default:
     break;
   }
   return;
 }
+
 
 
 uint8_t button_mapper(void){
