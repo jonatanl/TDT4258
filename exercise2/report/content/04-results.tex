@@ -9,7 +9,7 @@ TODO
 \label{sec:energyModeResults}
 During song playback the board consumes a significant amount of power. To decrease the consupmtion, we tried different energy modes between interrupts. We measured energy consumption in EM0, EM1 and EM2. The results can be seen in table \ref{tab:benchmarkEnergyModes}. In our case EM1 gave best results and not EM2 as first expected.
 
-\begin{table}[ht]
+\begin{table}[H]
 	\begin{center}
 	\begin{tabular}{ |c|c|c|c| }
 	  \hline
@@ -25,6 +25,8 @@ During song playback the board consumes a significant amount of power. To decrea
 	\label{tab:benchmarkEnergyModes}
 	\end{center}
 \end{table}
+
+From the table \ref{tab:benchmarkEnergyModes}, we can see that the synthesizer is most effecient in EM1 and the sample based player in EM2. We are assuming the computation time of the synthesizer is long and the sleep time is short. Energy consumption during wake up seems to be higher at the lower energy modes and in this case makes EM1 cheaper, with consern to energy consumption. The samle based player on the other hand contains easier computations and require less time awake. This makes the sleep time longer and the awake time shorter. 
 
 \section{Song Size}
 In order to compare the two implementations we needed to not only compare efficiency but also utility. 
