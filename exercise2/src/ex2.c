@@ -2,16 +2,15 @@
 #include <stdbool.h>
 #include "efm32gg.h"
 #include "synth.h"
+#include "dac.h"
+#include "letimer.h"
 #include "sleepControl.h"
 
 #define   SAMPLING_RATE   32768
 
 // Declaration of peripheral setup functions
-void enable_sample_DAC();
-void enable_synth_DAC();
 void setupNVIC();
 void setupGPIO();
-void setupLETIMER(uint16_t period);
 
 synth_song_playback test_playback;
 synth_song tetrisSong;
@@ -24,14 +23,13 @@ int main(void)
 {  
   synth_create_song_playback(&tetrisSong, &part1_playback, &part2_playback, SAMPLING_RATE, &test_playback);
   
-  *CMU_CTRL &= ~(3 << 18);	// Sets wake up time of LFXO clock for quick wakeup
   
   setupGPIO();
-  setupLETIMER(0);
+  setupDAC();
+  setupLETIMER();
   setupNVIC();
-  //start_synth();
 
-  toggle_sleep();
+  silence();
   return 0;
 }
 

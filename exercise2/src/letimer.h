@@ -1,3 +1,3 @@
 void setupLETIMER(void);
-void enableLETIMER(void);
-void disableLETIMER(void);
+void letimer_enable(void);
+void letimer_disable(void);
