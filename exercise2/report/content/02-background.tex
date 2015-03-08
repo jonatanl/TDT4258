@@ -5,32 +5,123 @@
 % that are important to understand the solution should be summarized here. Add
 % citations to show sources whenever appropriate.
 
-This chapter gives a brief introduction to the EFM32GG-DK3750 and various hardware components that were involved in the exercise. In addition, it will also introduce some concepts and underlying theory.
+This chapter contains background theory relevant to the exercise. The first part is a brief introduction to the various hardware components of the EFM32GG-DK3750 that were used in this exercise. The second part details energy optimization techniques in modern computing systems. Finally, a small section outlines theory of soundwaves and music.
+
 
 \section{Overview of EFM32GG-DK3750}
-Through the exercises in this course we will work with the Silicon labs EFM32GG-DK3750 prototyping board (figure \ref{fig:efm-board}), from here on referenced as EFM32GG. The EFM32GG have several hardware components and on-board peripherals that are of special interest for this exercise:
+Through the exercises in this course we are working with the Silicon labs EFM32GG-DK3750 prototyping board (figure \ref{fig:efm-board}), from here on referenced as EFM32GG. The EFM32GG hardware components we used in this exercise include the following:
 \begin{itemize}
+	\item Clock Management Unit
+	\item Timer/Counter
+	\item Digital to Analog Converter
 	\item General-Purpose Input/Output pins
 	\item Gamepad Prototype
-	\item Clock Management Unit
 	\item Energy Management Unit
+  \item Low Energy Timer
+  \item Peripheral Reflex System
+  \item Low Energy Universal Asynchronous Receiver/Transmitter
 	\item Direct Memory Access controller
-	\item Digital to Analog Converter
   % TODO: Add the components used in exercise 2 to this list
 \end{itemize}
-This chapter will give an introduction to each of those devices, and will highlight the relevant features. For a map of the EFM32GG hardware components, see figure \ref{fig:giant-gecko-map}.
+A more comprehensive map of the EFM32GG hardware components is shown in figure \ref{fig:giant-gecko-map}.
 
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.7\textwidth]{images/efm_board.jpg}
   \caption{The EFM32GG prototyping board}\label{fig:efm-board}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{images/giant_gecko_map.png}
   \caption{Map of the EFM32GG hardware components}\label{fig:giant-gecko-map}
 \end{figure}
+
+
+\section{Clock Management Unit}\label{sec:cmu}
+The Clock Management Unit (CMU) controls the on-board oscillators and clocks, and produces clock signals that drives the core modules and all the peripherals. The CMU can be used to enable or disable clock signals for the different peripherals on an individual basis. It possible to reduce the power consumption significantly by only enabling the clock for the peripherals that will be used. By default, the clock signals for all peripherals is disabled. 
+
+The CMU manages several system clocks in order to provide different clock signals to core modules and peripherals. These clocks include the High Frequency Clock (HFCLK), the High Frequency Core Clock (HFCORECLK), and the High Frequency Peripheral Clock (HFPERCLK).\cite{efm32gg-rm}
+
+\subsection{High Frequency Clock}
+HFCLK drives two prescalers that generate HFCORECLK and HFPERCLK, in addition to driving the CMU itself. With separate prescalers it is possible to configure the clock speeds of the core modules and the peripherals individually. The HFCLK itself can be driven either by one of the high-frequency oscillators (HFRCO and HFXO), or by one of the low-frequency oscillators (LFRCO and LFXO). 
+
+\subsection{High Frequency Core Clock}
+HFCORECLK is the clock that drives the core modules, which consists of the CPU and tightly coupled modules such as the DMA. The frequency of HFCORECLK can be changed dynamically by writing to CMU\_HFCORECLKDIV, and the clock can be disabled for individual modules by clearing bits in CMU\_HFCORECLKEN0. 
+
+\subsection{High Frequency Peripheral Clock}
+HFPERCLK is the clock that drives the high-frequency peripherals. The frequency of the HFPERCLK can be changed dynamically by writing to CMU\_HFPERCLKDIV, and the clock can be disabled for individual peripherals by clearing bits in CMU\_HFPERCLKEN0. 
+
+\subsection{Low Frequency Clocks}
+The HFCLK is only available in energy modes EM0 and EM1 (see section \ref{sec:emu}), and entering lower energy modes than EM1 will disable most core modules and peripherals. To drive components in EM2, the EFM32GG uses several special clocks, including the Low Frequency A Clock (LFACLK) and the Low Frequency B Clock (LFBCLK). Notably, the LFACLK clock drives the LETIMER module described in section \ref{sec:letimer}.
+
+\subsection{Oscilliators}
+To generate the clock signals and drive the clocks described above, the EFM32GG has five onboard oscillators:
+\begin{itemize}
+  \item 1 - 28 MHz High Frequency RC Oscilliator (HFRCO)
+  \item 4 - 48 MHz High Frequency Crystal Oscilliator (HFXO)
+  \item 32.768 KHz Low Frequency RC Oscilliator (LFRCO)
+  \item 32.768 KHz Low Frequency Crystal Oscilliator (LFXO)
+  \item 1 KHz Ultra Low Frequency RC Oscilliator (ULFRCO)
+\end{itemize}
+Depending on the application, the board components can be run either fast or slow by driving clocks with different oscillators. The oscillators differ in having different start-up times. For instance, the crystal oscillators might need several hundreds of microseconds to become completely stable.\cite{efm32-clock-management-unit-application-note}
+
+
+\section{Timer/Counter}
+The Timer/Counter module (TIMER) can be used to count events and trigger actions in other peripherals without involving the CPU. It can also be used to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the timer.
+
+\subsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at the prescaled frequency of the high frequency clock HFCLK (see section \ref{sec:cmu}), and this can be further prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
+%TODO: Write about other source clocks for the timer
+
+\subsection{Operation}
+The timer can be started and stopped by writing to the bits START and STOP in the register TIMERn\_CMD. However, it is also possible to control the timer from other peripherals through the PRS.
+
+\subsection{Counter Modes}
+The timer has four different modes:
+\begin{enumerate}
+	\item Up-count: The timer starts at 0, counts upwards, and resets to 0 when reaching the value of TIMER\_n\_TOP.
+	\item Down-count: The timer starts at TIMER\_n\_TOP, counts downwards, and resets to the value of TIMER\_n\_TOP when reaching 0.
+
+	\item Up/Down-count: TODO % TODO
+	\item Quadrature Decoder: TODO % TODO
+\end{enumerate}
+
+
+\section{Digital-to-Analog Converter}
+The Digital-to-Analog Converter (DAC) converts digital values to analog signals. The digital values are fed into the DAC through the two 12-bit input channels DACn\_CH0DATA and DACn\_CH1DATA, and is converted to output voltages on the two output channels. By feeding the output from the DAC through the on-board amplifier and into external speakers, the EFM32GG can be used to create sounds.
+
+
+\section{General-Purpose Input/Output pins}
+The General-Purpose Input/output (GPIO) pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
+
+
+\section{Gamepad Prototype}
+The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper which allows us to toggle whether the amperage consumed by the LEDs will be measured. An image of the gamepad is shown in figure \ref{fig:gamepad}.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.5\textwidth]{images/gamepad.jpg}
+  \caption{The prototype gamepad}\label{fig:gamepad}
+\end{figure}
+
+
+\section{Energy Management Unit}\label{sec:emu}
+The Energy Management Unit (EMU) manages the different low energy modes in the EFM32GG. The EFM32GG has the capability to turn off power to board components at runtime by switching between five distinct energy modes. These modes range from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where almost everything is disabled. The hardware component map in figure \ref{fig:giant-gecko-map} shows what components are active in the different energy modes by showing them with separate colors. A darker color indicates a component that is available in a lower energy mode. In addition to handling the energy modes, the EMU can also be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
+% TODO(maybe): Explain how to disable RAM blocks
+% TODO(maybe): Write more about the different energy modes
+
+
+\section{Low Energy Timer}\label{sec:letimer}
+TODO % TODO: Write a brief section about the LETIMER. Mention EM2/EM3 capability.
+
+
+\section{Peripheral Reflex System}
+The Peripheral Reflex System (PRS) is a network connecting the different peripheral modules together, allowing them to communicate directly without involving the CPU. The peripheral modules send each other \emph{reflex signals} routed by the PRS. On receiving such a signal, a peripheral module may perform some specific action depending on the signal received. By relieving the CPU of work, the PRS system can be used to improve energy efficiency. It is also suited for time-critical operations as it involves no variable-time software overhead.
+
+
+\section{Low Energy Universal Asynchronous Receiver/Transmitter}\label{subsec:leuart}
+TODO % TODO
+
 
 \section{Direct Memory Access controller}
 Direct Memory Access (DMA) is a technique in which I/O devices use the CPU bus to access the memory directly without involving the CPU. 
@@ -58,88 +149,6 @@ A channel descriptor contains the following elements:
 	\item channel\_cfg, provides control information such as cycle type and R\_power.
 \end{itemize}
 At the start of a DMA cycle, the controller will read the channel\_cfg from memory. After completing the cycle, an updated channel\_cfg will be written back.
-
-
-\section{Clock Management Unit}\label{sec:cmu}
-The Clock Management Unit (CMU) controls the on-board oscillators and clocks, and produces clock signals that drives the core modules and all the peripherals. The CMU can enable or disable clock signals for the peripherals on an individual basis, and the power consumption is reduced significantly by only enabling the clock for the peripherals that will be used. By default, the clock for all peripherals is disabled. 
-
-The CMU manages several system clocks in order to provide different clock signals to the core modules and the peripherals. These system clocks include the High Frequency Clock (HFCLK), the High Frequency Core Clock (HFCORECLK), and the High Frequency Peripheral Clock (HFPERCLK).\cite{efm32gg-rm}
-
-\subsection{High Frequency Clock}
-HFCLK drives two prescalers that generate HFCORECLK and HFPERCLK, in addition to driving the CMU itself. With separate prescalers it is possible to configure the clock speeds of the core modules and the peripherals individually. The HFCLK itself can be driven either by one of the high-frequency oscillators (HFRCO and HFXO), or by one of the low-frequency oscillators (LFRCO and LFXO). 
-
-\subsection{High Frequency Core Clock}
-HFCORECLK is the clock that drives the core modules, which consists of the CPU and tightly coupled modules such as the DMA. The frequency of HFCORECLK can be changed dynamically by writing to CMU\_HFCORECLKDIV, and the clock can be disabled for individual modules by clearing bits in CMU\_HFCORECLKEN0. 
-
-\subsection{High Frequency Peripheral Clock}
-HFPERCLK is the clock that drives the high-frequency peripherals. The frequency of the HFPERCLK can be changed dynamically by writing to CMU\_HFPERCLKDIV, and the clock can be disabled for individual peripherals by clearing bits in CMU\_HFPERCLKEN0. 
-
-%TODO: Write about other clocks
-
-\subsection{Oscilliators}
-TODO % TODO: Write about oscilliators
-
-
-\section{TIMER (Timer/Counter)}
-The TIMER module can be used to count events and trigger actions in other peripherals without involving the CPU. It can also be used to trigger interrupts after a specific time interval. It has a 16 bit counter that is either incremented or decremented depending on the \emph{counter mode} of the timer.
-
-
-\section{Low Energy Timer}\label{sec:letimer}
-TODO % TODO: Write a brief section about the LETIMER. Mention EM2/EM3 capability.
-
-
-\subsection{Source Clock and Prescaling} The peripheral clock HFPERCLK can be used as a source clock to drive the counter. It runs at the prescaled frequency of the high frequency clock HFCLK (see section \ref{sec:cmu}), and this can be further prescaled in the TIMER module by setting the PRESC bits in TIMERn\_CTRL to an integer $n$ between 0 and 10. The resulting frequency of which the timer is updated is HFPERCLK divided by $2^{n}$.
-%TODO: Write about other source clocks for the timer
-
-\subsection{Operation}
-The timer can be started and stopped by writing to the bits START and STOP in the register TIMERn\_CMD. However, it is also possible to control the timer from other peripherals through the PRS.
-
-\subsection{Counter Modes}
-The timer has four different modes:
-\begin{enumerate}
-	\item Up-count: The timer starts at 0, counts upwards, and resets to 0 when reaching the value of TIMER\_n\_TOP.
-	\item Down-count: The timer starts at TIMER\_n\_TOP, counts downwards, and resets to the value of TIMER\_n\_TOP when reaching 0.
-
-	\item Up/Down-count: TODO % TODO
-	\item Quadrature Decoder: TODO % TODO
-\end{enumerate}
-
-
-\section{Digital-to-Analog Converter}
-The Digital-to-Analog Converter (DAC) converts digital values to analog signals. The digital values are fed into the DAC through the two 12-bit input channels DACn\_CH0DATA and DACn\_CH1DATA, and is converted to output voltages on the two output channels. By feeding the output from the DAC through the on-board amplifier and into external speakers, the EFM32GG can be used to create sounds.
-
-
-\section{Energy Management Unit}\label{sec:emu}
-The Energy Management Unit (EMU) manages the different low energy modes in the EFM32GG. The EFM32GG has the capability to turn off power to board components at runtime by switching between five distinct energy modes. These modes range from EM0 (run mode) where the CPU and all peripherals are active, to EM4 where almost everything is disabled. The hardware component map in figure \ref{fig:giant-gecko-map} shows what components are active in the different energy modes by showing them with separate colors. A darker color indicates a component that is available in a lower energy mode. In addition to handling the energy modes, the EMU can also be used to turn off the power to unused SRAM blocks.\cite{efm32gg-rm}
-% TODO(maybe): Explain how to disable RAM blocks
-% TODO(maybe): Write more about the different energy modes
-
-
-\section{Other on-board components and peripherals}
-TODO % Introduce this section
-
-\subsection{General-Purpose Input/Output pins}
-The General-Purpose Input/output (GPIO) pins is what makes it possible to connect external peripherals to the EFM32GG prototyping board. The pins are organized into ports of 16 pins each. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
-
-
-\subsection{Prototype Gamepad}
-The gamepad peripheral is connected to the GPIO pins on port A and C using a Y-shaped ribbon cable. It has eight buttons and eight LEDs connecting the pins to ground, making it possible to provide both input and output. In addition, the gamepad also has a jumper which allows us to toggle whether the amperage consumed by the LEDs will be measured. An image of the gamepad is shown in figure \ref{fig:gamepad}.
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=0.5\textwidth]{images/gamepad.jpg}
-  \caption{The prototype gamepad}\label{fig:gamepad}
-\end{figure}
-
-
-
-
-\subsection{Peripheral Reflex System}
-The Peripheral Reflex System (PRS) is a network connecting the different peripheral modules together, allowing them to communicate directly without involving the CPU. The peripheral modules send each other \emph{reflex signals} routed by the PRS. On receiving such a signal, a peripheral module may perform some specific action depending on the signal received. By relieving the CPU of work, the PRS system can be used to improve energy efficiency. It is also suited for time-critical operations as it involves no variable-time software overhead.
-
-
-\subsection{Low Energy Universal Asynchronous Receiver/Transmitter}\label{subsec:leuart}
-TODO % TODO
 
 
 
@@ -208,7 +217,6 @@ As a rule of thumb, using a higher compiler optimization-level will result in mo
 %  - Use peripheral reflex system
 %  - Saving power with DMA
 %--------------------------------------------------------------------
-
 
 
 \section{Generating Sounds}

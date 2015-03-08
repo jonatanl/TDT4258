@@ -6,7 +6,8 @@ TODO
 % or energy measurements.
 
 \section{Energy modes}
-In the time between each interrupt we placed the board in sleep mode. We measured energy consumption in EM0, EM1 and EM2. The results can be seen in table \ref{tab:benchmarkEnergyModes}. In our case EM1 gave best results and not EM2 as first expected.
+\label{sec:energyModeResults}
+While a song is playing the board consumes a significant amount of power. To decrease the consupmtion, we tried different energy modes between interrupts. We measured energy consumption in EM0, EM1 and EM2. The results can be seen in table \ref{tab:benchmarkEnergyModes}. In our case EM1 gave best results and not EM2 as first expected.
 
 \begin{table}[ht]
 	\begin{center}
@@ -22,3 +23,6 @@ In the time between each interrupt we placed the board in sleep mode. We measure
 	\label{tab:benchmarkEnergyModes}
 	\end{center}
 \end{table}
+
+\section{Song size}
+Our Tetris theme song contains to seperate arrays, one for each channel. The first
