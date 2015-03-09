@@ -203,14 +203,42 @@ void play(void){
 \end{minipage}
 
 \section{The Final Program}
-In order to string together our different approaches to a single coherent program we made a sound selector using the GPIO functionality. Different sounds were mapped to different buttons such that pressing a mapped button would start a song. In addition we wrote functionality to toggle the LETIMER and DAC on and off, as well as toggling different sleep behaviour and switching between synth and sample playback. By necessity we also implemented a silencing function to make the board stop playing and power down extra functionality.
+In order to string together our different approaches to a single coherent program we made a sound selector using the GPIO functionality. Different sounds were mapped to different buttons such that pressing a mapped button would start a song. In addition we wrote functionality to toggle the LETIMER and DAC on and off, as well as toggling different sleep behaviour and switching between synth and sample playback. By necessity we also implemented a silencing function to make the board stop playing and power down extra functionality. The functionality of the different buttons is shown in table \ref{tab:button-map}.
+
+\begin{table}[H]
+	\begin{center}
+	\begin{tabular}{ |l|l| }
+	  \hline
+      Button 1 & Sample-based player \\
+	  \hline
+      Button 2 & Synthesizer (Tetris theme)  \\
+	  \hline
+      Button 3 & Synthesizer (Super Mario theme)  \\
+	  \hline
+      Button 4 & Sound effect \\
+	  \hline
+      Button 5 & Sound effect \\
+	  \hline
+      Button 8 & Enter EM2\\
+	  \hline
+	\end{tabular}
+	\caption{Button map}
+	\label{tab:button-map}
+	\end{center}
+\end{table}
+
 
 \section{Optimization}
 In order to reduce energy consumption we had two areas to focus on, efficiency when playing and standby mode. In order to make the board go back to sleep after finishing a playback or being manually halted we implemented several toggle functions in order to put the board to sleep when not used. When actively playing we tried different energy modes to observe whether maintaining the cache in EM1 would lead to greater energy efficiency compared to going down to EM2, effectively flushing the cache.
 
 \subsection{Sleeping Between Interrupts}
+During music playback the board recieves 32.768 interrupts each second. In the time between interrupts we placed the board in sleep mode. We tried different energy modes to measure the energy consumption and the result can bee seen in \ref{sec:energyModeResults}.
 
+\subsection{Disabling SRAM blocks}
+We disabled on-board SRAM blocks by writing to the POWERDOWN bits of the register EMU\_MEMCTRL. However, we found that even disabling only a single SRAM block, the program no longer worked correctly: the sample-based player stopped working, and produced static noise instead of beautiful songs.\label{dedicated-to-peter}
 
+\subsection{Compiler Optimizations}
+At one point the performance of the program went down as we added more sound effects. We tracked down the main cause to be a too large switch statement in the interrupt handler with five entries. We came up with the possible solution of turning on compiler optimizations. Adding the \texttt{-O1} flag to the compiler solved the problem.
 
 \section{Testing}
 In order to test the functionality of our program we relied on visual and aural feedback rather than software approaches such as GDB. By using the LEDs we could write values directly to the LEDs, and with the earphones we could hear whether the sound was playing correctly or not. In order to measure energy consumption we used the onboard LCD screen for quick estimates. For higher quality measurements we used eAProfiler on a PC to read energy consumption on the board via the USB connection. We performed all final measurements in succsession on a board that had been in use for several hours to minimize measurement variance. 
