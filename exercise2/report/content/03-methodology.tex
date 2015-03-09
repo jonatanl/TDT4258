@@ -1,11 +1,11 @@
 \chapter{Methodology}
-This chapter details the methods used and the process with which we achieved our results. The chapter starts with setup proccess with each component. Later we describe our method to generate songs and how they are stored in memory. At the end we desrcribe our different optimizations.
+This chapter details the methods used and the process with which we achieved our results. The chapter starts with setup process with each component. Later we describe our method to generate songs and how they are stored in memory. At the end we describe our different optimizations.
 
 \section{Initial Approach}
 In order to get an introduction to programming the DAC we created a program intended to play a single continuous note. This would be an easy introduction to C programming, and would give us a good performance baseline with regards to energy consumption.
 
 \subsection{GPIO Setup} 
-The first step was porting the assembly code we had previosuly written to control LEDs and clocks over to C. Having set up the LEDs and buttons would also make it easier to debug the code by writing values to the LEDs to discern the current program state. Rather than starting with a simple polling loop we felt confident enough to go straight to interrupts for the LEDs and buttons, letting the program idle in a loop between interrupts.
+The first step was porting the assembly code we had previously written to control LEDs and clocks over to C. Having set up the LEDs and buttons would also make it easier to debug the code by writing values to the LEDs to discern the current program state. Rather than starting with a simple polling loop we felt confident enough to go straight to interrupts for the LEDs and buttons, letting the program idle in a loop between interrupts.
 
 The code we used to set up the GPIO pins for input and output is shown in code listing \ref{lst:gpio-setup1} and \ref{lst:gpio-setup2} respectively. In addition to the steps shown, the clock signal for the modules needed to be enabled in the CMU. \\
 
@@ -29,7 +29,7 @@ The code we used to set up the GPIO pins for input and output is shown in code l
 
 
 \subsection{DAC Setup}
-The setup code we wrote for the DAC closely followed the instructions in the compendium, as shown in code listing \ref{lst:dac-setup}. With this setup, the DAC would continuously read both its 12 bit channels and update the output voltage. The next step to generate sound was to continously write samples to the channels emulating an audible waveform.\\
+The setup code we wrote for the DAC closely followed the instructions in the compendium, as shown in code listing \ref{lst:dac-setup}. With this setup, the DAC would continuously read both its 12 bit channels and update the output voltage. The next step to generate sound was to continuously write samples to the channels emulating an audible waveform.\\
 
 \noindent\begin{minipage}[c]{\textwidth}
   \begin{lstlisting}[caption=Setting up the DAC,label={lst:dac-setup}]
@@ -91,7 +91,7 @@ To drive the LFACLK we had the choice of either using the Low Frequency Crystal 
 We decided early in the process that we wanted to use the EFM32GG to play songs. We explored several different methods to create songs with the EFM32GG, and eventually decided on two different approaches. In the first approach, pre-synthesized samples were loaded on to the board at compile time. In the second approach, distinct notes coded as 16 bits words were loaded on to the board at compile time, and then synthesized at run-time by a software synthesizer. The result was two different implementations: The \emph{on-board synthesizer} and the \emph{sample-based music player}, described in section \ref{sec:onboard-synthesizer} and \ref{sec:sample-based-music-player} respectively.
 
 \subsection{Memory Limitations}
-The EFM32GG board has 128 kB of SRAM and 1024 kB of flash memory. This puts limitations on how a song is stored in the memory on the EFM32GG. Considering stoting the samples of a song sampled at 44100 Hz where each individual sample is 2 bytes large and the song duration is $d$ seconds. The size of the song can be calculated with the formula
+The EFM32GG board has 128 kB of SRAM and 1024 kB of flash memory. This puts limitations on how a song is stored in the memory on the EFM32GG. Considering storing the samples of a song sampled at 44100 Hz where each individual sample is 2 bytes large and the song duration is $d$ seconds. The size of the song can be calculated with the formula
 $$\text{Song size (bytes)} = 88.2 \cdot d$$.
 To find the longest song with a size that will fit in SRAM, we set $88200d = 128 kB = 131072 B$ which yields $d = 1.49$. Thus the longest song that will fit in SRAM is shorter than 1.5 seconds! This can be remedied somewhat by choosing a lower sample rate and possibly utilizing flash memory, but the EFM32GG will be hard pressed to store any quality song much longer than 30 seconds. Our two approaches uses different techniques to evade the memory limitations.
 
@@ -118,7 +118,7 @@ In our solution we chose to represent a song as an array of 16 bit int values. T
 	\end{center}
 \end{table}
 
-Each pitch value is represented by a value from 0 to 11. The Octave can take the values 0-10. Note A with octave 0 is lowest possible at 27.5 Hz, and note A with octave 10 the highest at 28160 Hz. DAC's lowest values is to low hear, beacuse of this we calculated the amplitude with the equation \ref{eq:amplitudCalculation}. In addition we only had 3 bit to store the amplitude values, and as a result we calculated it exponentially. Duration takes values between 0-32. In our program we define the duration of the shortest note. The duration value is multiplied with the defined duration value and returns each notes duration given in milliseconds. By changing the defined duration value we can increase or decrease the song's speed.
+Each pitch value is represented by a value from 0 to 11. The Octave can take the values 0-10. Note A with octave 0 is lowest possible at 27.5 Hz, and note A with octave 10 the highest at 28160 Hz. The DAC's lowest values is too low hear, because of this we calculated the amplitude with the equation \ref{eq:amplitudCalculation}. In addition we only had 3 bit to store the amplitude values, and as a result we calculated it exponentially. Duration takes values between 0-32. In our program we define the duration of the shortest note. The duration value is multiplied with the defined duration value and returns each notes duration given in milliseconds. By changing the defined duration value we can increase or decrease the song's speed.
 
 \begin{equation}
   x = 2^{amplitude + 5}
@@ -126,7 +126,7 @@ Each pitch value is represented by a value from 0 to 11. The Octave can take the
 \end{equation}
 
 \subsubsection{Song Playback}
-To play a song the synthesizer wakes up 32768 times every second. Each tone is played with square waves. After calculating each tone's frequency the synthesizer turns the DAC on and off, to match the tone frequency. This method has limitations when it comes to reproducing sounds, but this metod is very space efficient.
+To play a song the synthesizer wakes up 32768 times every second. Each tone is played with square waves. After calculating each tone's frequency the synthesizer turns the DAC on and off, to match the tone frequency. This method has limitations when it comes to reproducing sounds, but this method is very space efficient.
 
 
 \subsection{Sample Based Music Player}\label{sec:sample-based-music-player}
@@ -195,7 +195,7 @@ void play(void){
 \end{minipage}
 
 \section{The Final Program}
-In order to string together our different approaches to a single coherent program we made a sound selector using the GPIO functionality. Different sounds were mapped to different buttons such that pressing a mapped button would start a song. In addition we wrote functionality to toggle the LETIMER and DAC on and off, as well as toggling different sleep behaviour and switching between synth and sample playback. By necessity we also implemented a silencing function to make the board stop playing and power down extra functionality. The functionality of the different buttons is shown in table \ref{tab:button-map}.
+In order to string together our different approaches to a single coherent program we made a sound selector using the GPIO functionality. Different sounds were mapped to different buttons such that pressing a mapped button would start a song. In addition we wrote functionality to toggle the LETIMER and DAC on and off, as well as toggling different sleep behavior and switching between synth and sample playback. By necessity we also implemented a silencing function to make the board stop playing and power down extra functionality. The functionality of the different buttons is shown in table \ref{tab:button-map}.
 
 \begin{table}[H]
 	\begin{center}
@@ -224,13 +224,13 @@ In order to string together our different approaches to a single coherent progra
 In order to reduce energy consumption we had two areas to focus on, efficiency when playing and standby mode. In order to make the board go back to sleep after finishing a playback or being manually halted we implemented several toggle functions in order to put the board to sleep when not used. When actively playing we tried different energy modes to observe whether maintaining the cache in EM1 would lead to greater energy efficiency compared to going down to EM2, effectively flushing the cache.
 
 \subsection{Sleeping Between Interrupts}
-During music playback the board recieves 32.768 interrupts each second. In the time between interrupts we placed the board in sleep mode. We tried different energy modes to measure the energy consumption and the result can bee seen in \ref{sec:energyModeResults}.
+During music playback the board receives 32.768 interrupts each second. In the time between interrupts we placed the board in sleep mode. We tried different energy modes to measure the energy consumption and the result can bee seen in \ref{sec:energyModeResults}.
 
 \subsection{Disabling SRAM blocks}
 We disabled on-board SRAM blocks by writing to the POWERDOWN bits of the register EMU\_MEMCTRL. However, we found that even disabling only a single SRAM block, the program no longer worked correctly: the sample-based player stopped working, and produced static noise instead of beautiful songs.\label{dedicated-to-peter}
 
 \subsection{Compiler Optimizations}
-At one point the performance of the program went down as we added more sound effects. We tracked down the main cause to be a too large switch statement in the interrupt handler with five entries. We came up with the possible solution of turning on compiler optimizations. Adding the \texttt{-O1} flag to the compiler solved the problem.
+At one point the performance of the program went down as we added more sound effects. We tracked down the main cause to be a too large switch statement in the interrupt handler with five entries. We came up with the possible solution of turning on compiler optimizations, and adding the \texttt{-O1} flag to the compiler solved the problem. However, the additional compiler optimization broke the sample-based player again. The final solution was to reduce the size of the switch statement by pulling the most used cases out into an external conditional if-statement.
 
 \section{Testing}
-In order to test the functionality of our program we relied on visual and aural feedback rather than software approaches such as GDB. By using the LEDs we could write values directly to the LEDs, and with the earphones we could hear whether the sound was playing correctly or not. In order to measure energy consumption we used the onboard LCD screen for quick estimates. For higher quality measurements we used eAProfiler on a PC to read energy consumption on the board via the USB connection. We performed all final measurements in succsession on a board that had been in use for several hours to minimize measurement variance. 
+In order to test the functionality of our program we relied on visual and aural feedback rather than software approaches such as GDB. By using the LEDs we could write values directly to the LEDs, and with the earphones we could hear whether the sound was playing correctly or not. In order to measure energy consumption we used the on-board LCD screen for quick estimates. For higher quality measurements we used eAProfiler on a PC to read energy consumption on the board via the USB connection. We performed all final measurements in succession on a board that had been in use for several hours to minimize measurement variance. 
