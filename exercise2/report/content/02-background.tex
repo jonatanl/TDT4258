@@ -119,32 +119,32 @@ The Peripheral Reflex System (PRS) is a network connecting the different periphe
 %TODO % TODO
 
 
-\section{Direct Memory Access controller}
-Direct Memory Access (DMA) is a technique in which I/O devices use the CPU bus to access the memory directly without involving the CPU. 
-% TODO(maybe): Mention benefits of offloading work from the CPU
-This is usually achieved by having a DMA controller, a specialized hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. The I/O devices will be unaware that the transfer is being done by the DMA controller and not the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or to enter low energy modes.
-% TODO(maybe): Mention bus clogging and CPU idling. How can the DMA share a bus with the CPU?
-It is possible to run the DMA in EM2 by using the LEUART module (see section \ref{subsec:leuart}).
-
-\subsection{Configuration and use}
-The DMA controller has 12 independent \emph{channels}. These can be triggered from either peripherals or software to start a DMA cycle. During a cycle, the DMA controller will read a \emph{channel descriptor} from system memory corresponding to that channel(?), and perform one or more DMA transfers as specified by the channel descriptor (and the DMA configuration?).
-
-\subsubsection{Channel Configuration}
-Before using a peripheral module together with the controller, a DMA channel must be configured to receive that peripheral's requests. This is done by writing to the channel control registers DMA\_CHx\_CTRL. These registers have two components: SOURCESEL, used to select which peripheral to listen to, and SIGSEL that specifies the signal to listen to of that peripheral.
-
-\subsubsection{DMA Cycles}
-A DMA cycle consists of several DMA transfers in which the controller transfers a single byte or word from one memory location to another. The controller might need several cycles in order to completely service a request. The behaviour of the controller during a cycle must be specified in the channel descriptor by setting a cycle type in the cycle\_ctrl bits.
-
-\subsubsection{Channel Descriptors}
-Channel descriptors are used to configure the behaviour of the DMA controller during a single DMA cycle. The channel descriptors must be stored in a contiguous area of memory called the \emph{channel control data structure}. The channel controll data structure itself consists of a primary and an alternate data structure, and these are lists of channel descriptors. It is the responsibility of the software to allocate the channel control data structures, and to write the channel descriptors needed. In addition, the base address of the channel control data structure needs to be written to the controller register DMA\_CTRLBASE. When reading the channel control data structure, the controller uses the lower eight bits to address channel descriptors. For this reason, the base address of the data structure must be at an address like 0xXXXXXX00.
-
-A channel descriptor contains the following elements:
-\begin{itemize}
-	\item src\_data\_end\_ptr, a pointer to the ending address of the source data.
-	\item dst\_data\_end\_ptr, a pointer to the ending address of the destination data.
-	\item channel\_cfg, provides control information such as cycle type and R\_power.
-\end{itemize}
-At the start of a DMA cycle, the controller will read the channel\_cfg from memory. After completing the cycle, an updated channel\_cfg will be written back.
+%\section{Direct Memory Access controller}
+%Direct Memory Access (DMA) is a technique in which I/O devices use the CPU bus to access the memory directly without involving the CPU. 
+%% TODO(maybe): Mention benefits of offloading work from the CPU
+%This is usually achieved by having a DMA controller, a specialized hardware component that can transfer data between memory and I/O devices, without direct interaction from the CPU. The I/O devices will be unaware that the transfer is being done by the DMA controller and not the CPU. An alternative to using a DMA controller for I/O is to do programmed input/output, where the CPU either uses interrupts or busy-wait to continually service an I/O device. DMA usually benefits over this approach as it allows the CPU to perform other work, or to enter low energy modes.
+%% TODO(maybe): Mention bus clogging and CPU idling. How can the DMA share a bus with the CPU?
+%It is possible to run the DMA in EM2 by using the LEUART module (see section \ref{subsec:leuart}).
+%
+%\subsection{Configuration and use}
+%The DMA controller has 12 independent \emph{channels}. These can be triggered from either peripherals or software to start a DMA cycle. During a cycle, the DMA controller will read a \emph{channel descriptor} from system memory corresponding to that channel(?), and perform one or more DMA transfers as specified by the channel descriptor (and the DMA configuration?).
+%
+%\subsubsection{Channel Configuration}
+%Before using a peripheral module together with the controller, a DMA channel must be configured to receive that peripheral's requests. This is done by writing to the channel control registers DMA\_CHx\_CTRL. These registers have two components: SOURCESEL, used to select which peripheral to listen to, and SIGSEL that specifies the signal to listen to of that peripheral.
+%
+%\subsubsection{DMA Cycles}
+%A DMA cycle consists of several DMA transfers in which the controller transfers a single byte or word from one memory location to another. The controller might need several cycles in order to completely service a request. The behaviour of the controller during a cycle must be specified in the channel descriptor by setting a cycle type in the cycle\_ctrl bits.
+%
+%\subsubsection{Channel Descriptors}
+%Channel descriptors are used to configure the behaviour of the DMA controller during a single DMA cycle. The channel descriptors must be stored in a contiguous area of memory called the \emph{channel control data structure}. The channel controll data structure itself consists of a primary and an alternate data structure, and these are lists of channel descriptors. It is the responsibility of the software to allocate the channel control data structures, and to write the channel descriptors needed. In addition, the base address of the channel control data structure needs to be written to the controller register DMA\_CTRLBASE. When reading the channel control data structure, the controller uses the lower eight bits to address channel descriptors. For this reason, the base address of the data structure must be at an address like 0xXXXXXX00.
+%
+%A channel descriptor contains the following elements:
+%\begin{itemize}
+%	\item src\_data\_end\_ptr, a pointer to the ending address of the source data.
+%	\item dst\_data\_end\_ptr, a pointer to the ending address of the destination data.
+%	\item channel\_cfg, provides control information such as cycle type and R\_power.
+%\end{itemize}
+%At the start of a DMA cycle, the controller will read the channel\_cfg from memory. After completing the cycle, an updated channel\_cfg will be written back.
 
 
 
