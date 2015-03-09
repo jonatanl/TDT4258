@@ -1,13 +1,5 @@
 \chapter{Methodology}
-This chapter details the methods used and the process with which we achieved our results.
-
-\section{Process Overview} %Introductory chapter, sort of
-
-\subsection{Exercise Description}
-The goal of this exercise was to write a program for the EFM32GG that generated sounds by utilizing the onboard Digital to Analog Converter. The program should make at least three different sound effects, as well as a melody. These should be appropriate for use in the final exercise of the course where the goal is to create a game, and it should be possible to control which sound is being played by pressing the different buttons of the prototype gamepad. The program should be written in C, and should run directly on the EFM32GG hardware with no operating system involved. Emphasis was placed upon energy efficiency, an energy efficient solution will be rewarded with extra points.
-
-TODO % Write something about the rest of the approach
-
+This chapter details the methods used and the process with which we achieved our results. The chapter starts with setup proccess with each component. Later we describe our method to generate songs and how they are stored in memory. At the end we desrcribe our different optimizations.
 
 \section{Initial Approach}
 In order to get an introduction to programming the DAC we created a program intended to play a single continuous note. This would be an easy introduction to C programming, and would give us a good performance baseline with regards to energy consumption.
