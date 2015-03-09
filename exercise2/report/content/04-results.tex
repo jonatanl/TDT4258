@@ -4,7 +4,7 @@
 % implementation behaved as expected, or numerical results that express runtime
 % or energy measurements.
 
-This chapter discusses our results and findings through this exercise. 
+This chapter discusses our results and findings through this exercise. Our main focus is energy consumption and memory efficiency.
 
 
 \section{Energy Modes}
@@ -17,9 +17,9 @@ During song playback the board consumes a significant amount of power. To decrea
 	  \hline
 	  & EM0 & EM1 & EM2 \\
 	  \hline
-	  Synthesizer & 4.7 mA & 3.2 mA & 3.2 mA \\
+	  Synthesizer (Tetris theme) & 4.7 mA & 3.2 mA & 3.2 mA \\
 	  \hline
-	  Sample based player & 4.9 mA & 2.7 mA & 2.1 mA \\
+	  Sample-based player & 4.9 mA & 2.7 mA & 2.1 mA \\
 	  \hline
 
 	\end{tabular}
@@ -28,7 +28,9 @@ During song playback the board consumes a significant amount of power. To decrea
 	\end{center}
 \end{table}
 
-From the table \ref{tab:benchmarkEnergyModes}, we can see that the synthesizer is equal effecient in EM1 and EM2. The sample based player was most energy effecient in EM2. We are assuming the computation time of the synthesizer is long and the sleep time is short. Energy consumption during wake up seems to be higher at the lower energy modes and in this case makes EM1 cheaper, with consern to energy consumption. The samle based player on the other hand contains easier computations and require less time awake. This makes the sleep time longer and the awake time shorter.
+From the table \ref{tab:benchmarkEnergyModes}, we can see that the synthesizer is equal effecient in EM1 and EM2. The sample-based player was most energy effecient in EM2. We are assuming the computation time of the synthesizer is long and the sleep time is short. Energy consumption during wake up seems to be higher at the lower energy modes and in this case makes EM1 cheaper, with consern to energy consumption. The sample-based player on the other hand contains easier computations and require less time awake. This makes the sleep time longer and the awake time shorter.
+
+When the board was in EM2 and waiting for button interrupt the energy consumption ranged from 310-500 micro ampere.
 
 \section{Song Size}
 In order to compare the two implementations we needed to not only compare efficiency but also utility. 
@@ -36,8 +38,8 @@ In order to compare the two implementations we needed to not only compare effici
 \subsection{Synth Solution}
 The synth based approach yielded fairly small song sizes, the tetris theme totalled at 204 bytes. The song consists of two arrays with respectively 38 and 64 integers. Each integer had a size of 2 bytes.
 
-\subsection{Samples based Solution}
-For the sample based apprach we used samples averaging at around 1640 integers per array for 0.05 seconds. Clearly the samples were a lot more memory intensive. While sample size could be brought down by only sampling a single waveform we decided 0.05 second samples would be more interesting to work with since they would allow for variance in the waveforms, creating more interesting tones. The final size per sample ended up averaging around 3280 bytes, a significant cost compared to the synth approach. However, reuse of samples can offset this cost somewhat since playing a note twice comes at the same cost as the synth approach
+\subsection{Sample-based Solution}
+For the sample-based apprach we used samples averaging at around 1640 integers per array for 0.05 seconds. Clearly the samples were a lot more memory intensive. While sample size could be brought down by only sampling a single waveform we decided 0.05 second samples would be more interesting to work with since they would allow for variance in the waveforms, creating more interesting tones. The final size per sample ended up averaging around 3280 bytes, a significant cost compared to the synth approach. However, reuse of samples can offset this cost somewhat since playing a note twice comes at the same cost as the synth approach
 
 \section{Size vs Computation}
-The synth solution has a small memory footprint. This does however come at a cost. Since we only store small portion of the song in memory the rest has to be done on the fly. During music playback the board used about 4.9 mA. With the sample based solution a larger array was stored in memory. This solution required less computation, and we measured 2.6 mA.
+The synth solution has a small memory footprint. This does however come at a cost. Since we only store small portion of the song in memory the rest has to be done on the fly. During music playback the board used about 4.9 mA. With the sample-based solution a larger array was stored in memory. This solution required less computation, and we measured 2.6 mA.
