@@ -1,5 +1,5 @@
 \chapter{Background and Theory}
-This chapter contains background theory relevant to the exercise. The first part is a brief introduction to the various hardware components of the EFM32GG-DK3750 that were used in this exercise. The second part details energy optimization techniques in modern computing systems. Finally, a small section outlines theory of soundwaves and music.
+This chapter contains background theory relevant to the exercise. The first part is a brief introduction to the various hardware components of the EFM32GG-DK3750 that were used in this exercise. The second part details energy optimization techniques in modern computing systems. Finally, a small section outlines theory of sound waves and music.
 
 \section{Overview of EFM32GG-DK3750}
 Through the exercises in this course we are working with the Silicon labs EFM32GG-DK3750 prototyping board (figure \ref{fig:efm-board}), from here on referenced as EFM32GG. The EFM32GG hardware components we used in this exercise include the following:
@@ -48,14 +48,14 @@ HFPERCLK is the clock that drives the high-frequency peripherals. The frequency 
 \subsection{Low Frequency Clocks}
 The HFCLK is only available in energy modes EM0 and EM1 (see section \ref{sec:emu}), and entering lower energy modes than EM1 will disable most core modules and peripherals. To drive components in EM2, the EFM32GG uses several special clocks, including the Low Frequency A Clock (LFACLK) and the Low Frequency B Clock (LFBCLK). Notably, the LFACLK clock drives the LETIMER module described in section \ref{sec:letimer}.
 
-\subsection{Oscilliators}
-To generate the clock signals and drive the clocks described above, the EFM32GG has five onboard oscillators:
+\subsection{Oscillators}
+To generate the clock signals and drive the clocks described above, the EFM32GG has five on-board oscillators:
 \begin{itemize}
-  \item 1 - 28 MHz High Frequency RC Oscilliator (HFRCO)
-  \item 4 - 48 MHz High Frequency Crystal Oscilliator (HFXO)
-  \item 32.768 KHz Low Frequency RC Oscilliator (LFRCO)
-  \item 32.768 KHz Low Frequency Crystal Oscilliator (LFXO)
-  \item 1 KHz Ultra Low Frequency RC Oscilliator (ULFRCO)
+  \item 1 - 28 MHz High Frequency RC Oscillator (HFRCO)
+  \item 4 - 48 MHz High Frequency Crystal Oscillator (HFXO)
+  \item 32.768 KHz Low Frequency RC Oscillator (LFRCO)
+  \item 32.768 KHz Low Frequency Crystal Oscillator (LFXO)
+  \item 1 KHz Ultra Low Frequency RC Oscillator (ULFRCO)
 \end{itemize}
 Depending on the application, the board components can be run either fast or slow by driving clocks with different oscillators. The oscillators differ in having different start-up times. For instance, the crystal oscillators might need several hundreds of microseconds to become completely stable.\cite{efm32-clock-management-unit-application-note}
 
@@ -179,11 +179,11 @@ In the EFM32GG there is a static power dissipation in the RAM blocks of approxim
 
 
 \subsubsection{Increasing CPU frequency}
-By increasing the clock frequency of the CPU it is possible to reduce its overall static power consumption. An increased frequency usually means that the CPU will finish its computations sooner, allowing it to stay in low energy modes for a larger fraction of the time. Increasing the frequency will also cause an increase in dynamic power consumption, but this is cancelled out by the similar reduction in processing time. There are some exceptional cases where the CPU processing speed is limited by wait-states in bus protocols. In such a case, the frequency should be increased within the imposed bounds.\cite{efm32-energy-optimization}
+By increasing the clock frequency of the CPU it is possible to reduce its overall static power consumption. An increased frequency usually means that the CPU will finish its computations sooner, allowing it to stay in low energy modes for a larger fraction of the time. Increasing the frequency will also cause an increase in dynamic power consumption, but this is canceled out by the similar reduction in processing time. There are some exceptional cases where the CPU processing speed is limited by wait-states in bus protocols. In such a case, the frequency should be increased within the imposed bounds.\cite{efm32-energy-optimization}
 
 
 \subsubsection{Optimizing peripheral clocks}
-The EFM32GG has several clocks and oscilliators running at different frequencies. By using a slower clock for the peripherals, the associated dynamic power consumption is reduced. It is optimal to selecting the slowest clock that satisfies the application requirements. Clock prescalers in the CMU or the individual peripherals can be used to adjust the frequency further. Clocks and oscilliators are controlled by the Clock Management Unit, described in section \ref{sec:cmu}.\cite{efm32-energy-optimization} 
+The EFM32GG has several clocks and oscillators running at different frequencies. By using a slower clock for the peripherals, the associated dynamic power consumption is reduced. It is optimal to selecting the slowest clock that satisfies the application requirements. Clock prescalers in the CMU or the individual peripherals can be used to adjust the frequency further. Clocks and oscillators are controlled by the Clock Management Unit, described in section \ref{sec:cmu}.\cite{efm32-energy-optimization} 
 % Relevant optimization techniques:
 %  - Changing prescalers on-the-go to run at the fastest possible speed without introducing wait-states
 
@@ -206,7 +206,7 @@ As a rule of thumb, using a higher compiler optimization-level will result in mo
 
 %--------------------------------------------------------------------
 % Other optimization techniques that might be put into this section: 
-% (from the Energy Optization Application Note)
+% (from the Energy Optimization Application Note)
 %
 %  - Use interrupts instead of busy wait
 %  - Use wait-for-event instead of interrupts
@@ -220,7 +220,7 @@ When interpreting a sound as a signal, we speak about properties of the sound su
 % TODO: Write about how different tones can be generated
 
 \subsection{Simple music theory}
-In the western world the chromatic scale is the standard way to describe music. The chromatic scale is a set of 12 ordered frequences such that the twelwth note has twice the frequency of the first, and that the spacing between the notes is equal on a logarithmic scale. The common ground note in western music is the $A_{4}$ with the frequency of 440hz. The number refers to the octave, such that $A_{5}$ at one octave higher will have twice the frequency of $A_{4}$, 880hz. The note is the letter, and can be sharpened with a \#. The 12 notes on a chromatic scale will be referred to in table \ref{tab:chromatic-scale}. There is no differenence between a note with a \# and one without, they all have the same relation to their predecessor.
+In the western world the chromatic scale is the standard way to describe music. The chromatic scale is a set of 12 ordered frequencies such that the twelwth note has twice the frequency of the first, and that the spacing between the notes is equal on a logarithmic scale. The common ground note in western music is the $A_{4}$ with the frequency of 440Hz. The number refers to the octave, such that $A_{5}$ at one octave higher will have twice the frequency of $A_{4}$, 880Hz. The note is the letter, and can be sharpened with a \#. The 12 notes on a chromatic scale will be referred to in table \ref{tab:chromatic-scale}. There is no difference between a note with a \# and one without, they all have the same relation to their predecessor.
 
 The frequency of a note is given by the following equation: $$f = A_{4}*2^{D/12}$$
 Here we have used $A_4$ as the ground note, and D is the difference. For instance a third octave C sharp $C\#_3$ is 7 tones lower than $A_4$, so its frequency f will be $$f_{C\#_{3}} = f_{A_{4}}*2^{-7/12}$$
