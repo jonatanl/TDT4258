@@ -6,7 +6,7 @@ CC=arm-none-eabi-gcc
 LD=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 
-CFLAGS=-mcpu=cortex-m3 -mthumb -g -std=c99 -Wall -O1
+CFLAGS=-mcpu=cortex-m3 -mthumb -g -std=c99 -Wall
 LDFLAGS=--specs=nosys.specs -mcpu=cortex-m3 -mthumb -g -lgcc -lc -lefm32gg -L../lib
 ASFLAGS=-mcpu=cortex-m3 -mthumb -g
 LINKERSCRIPT=../lib/efm32gg.ld
