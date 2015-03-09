@@ -161,7 +161,7 @@ typedef struct Player
 
 \subsubsection{Song Playback}
 In order to play a song we bundled the necessary attributes to keep track of what notes to play and their tempo together in a Play struct. To initialize a song play\_init() is called with the song to be played as the argument. This sets up a playback. After initializing calling the play() function will output the next sample to the DAC.
-The play() function keeps track on the current position of a playback, reading from an array of triplets to load the next note whenever the current one has been finished.
+The play() function keeps track on the current position of a playback, reading from an array of triplets to load the next note whenever the current one has been finished. \\
 
 \noindent\begin{minipage}{\textwidth}
 \begin{lstlisting}
