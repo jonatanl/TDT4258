@@ -22,25 +22,24 @@ void handle_gpio(void);
 /* LETIMER0 interrupt handler */
 void __attribute__ ((interrupt)) LETIMER0_IRQHandler() 
 {
-
-    switch(mode){
-  case 0:
-    play();
-    break;
-  case 1:    
+  if(mode == 1){    
     synth_next_song_sample(&tetrisPlayback);
-    break;
-  case 2:    
+  }else if(mode == 2){
     synth_next_song_sample(&marioPlayback);
-    break;
-  case 3:    
-    effects_play1();
-    break;
-  case 4:    
-    effects_play2();
-    break;
-  default:
-    break;
+  }else{
+      switch(mode){
+    case 0:
+      play();
+      break;
+    case 3:    
+      effects_play1();
+      break;
+    case 4:    
+      effects_play2();
+      break;
+    default:
+      break;
+    }
   }
 
   (*GPIO_PA_DOUT)++;
