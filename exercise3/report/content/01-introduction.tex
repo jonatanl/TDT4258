@@ -1,3 +1,10 @@
 \chapter{Introduction}
 % Your report should start with an introduction chapter that motivates the
 % subject in general and describes the problem you are trying to solve.
+
+Embedded computing systems are being deployed on an increasingly larger scale, and it is expected that this trend will continue in the forseable future. It follows that there is a great market for developing software for embedded computing systems. In contrast to general-purpose computing, embedded computing often places strong constraints on energy consumption, performance, and cost. In order to implement these qualities in a system, software developers must make extensive use of low-level hardware functionality, and specific knowledge of the hardware components and technology used is required. 
+
+The course TDT4258 Energy Efficient Computer Systems gives an introduction to microcontroller programming, with a strong focus on energy-efficiency. Through a series of lectures and three comprehensive programming exercises, the students get theoretical knowledge as well as practical experience.\cite{ntnu-web-tdt4258} The target platform used is the Silicon Labs EFM32GG-DK3750 development kit, and the tools used include the GNU Compiler Collection, the energyAware Tools from Silicon Labs, and the PTXdist build system from Pengutronix.
+
+In the third exercise of the course we will make a computer game for the prototyping board. The game should run under the uClinux operating system, and all hardware must be accessed through device drivers. The game should also make use of a special prototype gamepad, and to access the gamepad we need to write a gamepad driver. An important exercise goal is that the program should be energy-efficient. To improve energy consumption, the program must utilize various hardware functions available through device drivers. In order to learn different techniques to improve energy consumption, we are encouraged to read relevant manuals and data sheets.\cite{compendium}
+
