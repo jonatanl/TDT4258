@@ -30,3 +30,45 @@ In addition to the concepts described above, several other terms are used in the
 \item \textsl{Linux Root Filesystem:} In Linux, the root filesystem is the filesystem available at the top-level directory. It is denoted with a forward slash, "/".
 \end{itemize}
 
+
+
+\section{PTXdist}
+PTXdist is a build system used to develop userland software for embedded platforms running Linux. It can control most parts of the build process:
+\begin{itemize}
+  \item Download package sources
+  \item Extract package sources and apply patches
+  \item Configure packages
+  \item Build packages
+  \item Create filesystem images
+  \item Flash filesystem images to target
+\end{itemize}
+PTXdist builds the Linux kernel used along with the userland software.
+
+\subsection{Project Setup}
+Setting up a PXTdist project consists of the following steps:
+\begin{itemize}
+  \item Selecting a userland configuration.
+  \item Selecting a hardware platform.
+  \item Selecting a toolchain.
+\end{itemize}
+The userland configuration defines what user programs will be built for the target platform apart from the kernel, and the hardware platform defines the target platform of the build. The toolchain selected is the toolchain PTXdist should use when building. As PTXdist looks for toolchains in the /opt folder, selecting a toolchain is not always necessary.
+
+\subsection{Building and Flashing}
+After the project has been setup, the kernel and the user programs can be built with one simple command:
+\lstset{style=lststyle-terminal}
+\begin{lstlisting}
+ptxdist go
+\end{lstlisting}
+This will build several filesystem images for the target platform containing the kernel and all userland programs specified by the userland configuration. PTXdist will automatically find out which packages needs to be built, and download them if necessary.
+
+Finally, the images can then be flashed onto the target platform with the command:
+\begin{lstlisting}
+ptxdist images
+\end{lstlisting}
+An illustration of how the PTXdist build process might be for a computer game is shown in figure \ref{fig:ptxdist-build-process}.
+
+\begin{figure}[ht]\label{fig:ptxdist-build-process}
+  \includegraphics[width=\textwidth]{images/ptxdist_build_process.png}
+  \caption{An example overview of a PTXdist build process for a computer game.}
+\end{figure}
+
