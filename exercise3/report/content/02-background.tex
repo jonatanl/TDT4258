@@ -15,6 +15,12 @@ An operating system is a special piece of software that provides two important f
   \item Managing the hardware resources.
   \item Providing a useful hardware abstraction layer for application programmers.
 \end{itemize}
-The core of the operating system is called the \emph{kernel} and runs in a privileged software mode that gives the kernel complete access to all hardware resources. The code running outside the kernel is often referred to as the \emph{user space} or the \emph{userland}, and has only restricted access to hardware. Because of this organization, all hardware-related activities necessary to run the operating system is performed by the kernel, and the user space programs only access hardware through \emph{system calls} in the kernel.
+The core of the operating system is called the \emph{kernel} and runs in a privileged software mode that gives the kernel complete access to all hardware resources. The code running outside the kernel is often referred to as the \emph{user space} or the \emph{userland}, and has only restricted access to hardware. Because of this organization, all hardware-related activities necessary to run the operating system is performed by the kernel, and the user space programs only access hardware through \emph{system calls} in the kernel.\cite{modern-operating-systems}
+
+\subsection{Device Driver}
+To more easily manage hardware devices with different characteristics, the kernel contains \emph{device drivers}. A device driver is a program that manages low-level hardware access to a particular device, providing a clean interface for the rest of the kernel programs.
+
+\subsection{Kernel Module}
+It is sometimes necessary to extend the functionality of the kernel, for instance if new hardware becomes available. While this could be achieved by modifying and rebuilding the kernel, a much more attractive alternative is to use \emph{kernel modules}, small programs that are loaded at runtime and extend the kernel with the needed functionality. Device drivers can be added as kernel modules.
 % TODO: Write a brief explaination on OS terminology.
 
