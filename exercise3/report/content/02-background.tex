@@ -7,4 +7,14 @@
 % managers make this easy.
 
 % TODO: Write an introduction to ptxdist usage
+
+
+\section{Operating Systems}
+An operating system is a special piece of software that provides two important functions in a computer:
+\begin{itemize}
+  \item Managing the hardware resources.
+  \item Providing a useful hardware abstraction layer for application programmers.
+\end{itemize}
+The core of the operating system is called the \emph{kernel} and runs in a privileged software mode that gives the kernel complete access to all hardware resources. The code running outside the kernel is often referred to as the \emph{user space} or the \emph{userland}, and has only restricted access to hardware. Because of this organization, all hardware-related activities necessary to run the operating system is performed by the kernel, and the user space programs only access hardware through \emph{system calls} in the kernel.
 % TODO: Write a brief explaination on OS terminology.
+
