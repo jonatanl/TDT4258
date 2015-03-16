@@ -12,3 +12,7 @@
 *.dvi
 *.out
 *.toc
+
+# Downloaded and compiled sources
+exercise3/OSELAS.BSP-EnergyMicro-Gecko/src/
+exercise3/OSELAS.BSP-EnergyMicro-Gecko/platform-energymicro-efm32gg-dk3750/
