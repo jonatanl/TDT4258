@@ -7,9 +7,22 @@
 % source code here -- small code snippets are fine if you want to discuss
 % something specific.
 
+\section{System Setup}
 % TODO: Write a section about system setup:
 %  - development (host) platform used and target platform
 %  - how ptxdist was used, configured etc.
+
+\subsection{Serial Terminal Emulator}
+In order to access the running operating system, we connected a laptop running a serial terminal emulator to the serial port of the EFM32GG. The program used for terminal emulation was \emph{minicom}, an open source communication program available for most Unix and Unix-like operating systems.\cite{minicom-man-page} The compendium instructions was followed to set up parameters for the serial port:
+\begin{itemize}
+  \item Baud rate: 115200 bps
+  \item Data bits: 8
+  \item 1 stop bit
+  \item No parity
+  \item No flow control
+\end{itemize}
+Connecting to the operating system via the serial port gave us access to a shell where we could type commands directly.
+% TODO(maybe): Add an image of the shell
 
 
 \section{Testing}
