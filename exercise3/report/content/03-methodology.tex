@@ -30,8 +30,6 @@ In order to access the running operating system, we connected a laptop running a
   \item No parity
   \item No flow control
 \end{itemize}
-Connecting to the operating system via the serial port gave us access to a shell where we could type commands directly.
-% TODO(maybe): Add an image of the shell
 
 \subsection{Git Version Control}
 The Git version control tool was used to manage different code revisions. The free hosting service GitHub was used to host a Git repository at \url{https://github.com/jonatanl/TDT4258}. The branch ``master'' was used for code development.
@@ -41,9 +39,27 @@ The Git version control tool was used to manage different code revisions. The fr
 When solving the exercise, we started out by doing the preliminary warm-up steps recommended by the compendium: building the uClinux operating system, and creating a simple application that used the framebuffer device \texttt{/dev/fb0}. The purpose of these steps was to familiarize with the development workflow and driver interfacing in Linux.
 
 \subsection{Building uClinux}
-TODO % TODO
+Building uClinux was done without any problems by executing the commands \texttt{ptxdist images} and \texttt{ptxdist test flash-all}. A large amount of sources were downloaded and compiled, and the whole build process took about fifteen minutes. After the board was restarted, Tux appeared on the display showing that uClinux was running.
+
+After having successfully configured the serial terminal emulator \emph{minicom}, we could communicate with the operating system via the serial port, and execute shell commands:
+\lstset{style=lststyle-terminal}
+\begin{lstlisting}
+OSELAS(R)-Gecko-2012.10.0+ / energymicro-efm32gg-dk3750-2012.10.0+
+ptxdist-2013.07.1/2015-03-16T15:23:07+0100
+
+/ # game
+Hello World, I'm game!
+\end{lstlisting}
+
+In order to further test the build chain, we made a small modification to the source file \texttt{game.c}, changing the \texttt{printf()} function arguments. After rerunning the necessary ptxdist actions, we observed the expected changes in the output of the \texttt{game} command:
+\lstset{style=lststyle-terminal}
+\begin{lstlisting}
+/ # game
+Hello World, I'm also a game!
+\end{lstlisting}
 
 \subsection{Creating a framebuffer application}
+Our next step was to write a simple application accessing the framebuffer device. To write data to the framebuffer, we used the Linux system calls \texttt{open()}, \texttt{write()}, and \texttt{close()} described in section \ref{sec:reading-and-writing-files}.
 TODO % TODO
 
 \subsubsection{Accessing the driver as a file}
