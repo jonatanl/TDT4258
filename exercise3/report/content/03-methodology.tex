@@ -8,9 +8,18 @@
 % something specific.
 
 \section{System Setup}
-% TODO: Write a section about system setup:
-%  - development (host) platform used and target platform
-%  - how ptxdist was used, configured etc.
+This section describes the system setup we used on our development computers.
+
+\subsection{PTXdist}
+As the process of compiling all required sources and building the file system images was quite involved, the exercise required us to use the PTXdist build management tool, described in section \ref{sec:ptxdist}. In order to install PTXdist on our computers, two main options were provided along with the exercise:
+\begin{itemize}
+  \item A virtual machine with PTXdist and cross toolchain installed.
+  \item A README file with instructions on how to build and install PTXdist and cross toolchain from sources.
+\end{itemize}
+
+Initially we used a computer with limited processing resources for development, and building PTXdist from sources was therefore the favoured alternative. By following the instructions, PTXdist and cross toolchain was installed successfully in a couple of hours.
+
+A possible third option was to use the lab computers with PTXdist and cross toolchain already installed. This option was regarded as a fall-back solution in case of technical difficulties.
 
 \subsection{Serial Terminal Emulator}
 In order to access the running operating system, we connected a laptop running a serial terminal emulator to the serial port of the EFM32GG. The program used for terminal emulation was \emph{minicom}, an open source communication program available for most Unix and Unix-like operating systems.\cite{minicom-man-page} The compendium instructions was followed to set up parameters for the serial port:
