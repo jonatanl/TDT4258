@@ -29,6 +29,8 @@ In addition to the concepts described above, several other terms are used in the
 \item \textsl{Boot Loader:} The bootloader is a small program that runs before the operating system starts, and makes the necessary preparations to start the kernel.
 \item \textsl{Linux Root Filesystem:} In Linux, the root filesystem is the filesystem available at the top-level directory. It is denoted with a forward slash, "/".
 \end{itemize}
+% TODO: Things to consider putting in here:
+%   - Virtual address space (of a process)
 
 
 \section{Linux}
@@ -38,7 +40,7 @@ TODO % TODO: Needs intro
 TODO % TODO: Needs intro
 
 \subsubsection{Reading and writing files}\label{sec:reading-and-writing-files}
-Several system calls in Linux are related to file operations such as reading and writing. This section will introduce \texttt{open()}, \texttt{read()}, \texttt{write()}, \texttt{lseek()} and \texttt{close()}.
+Several system calls in Linux are related to file operations such as reading and writing. This section will introduce \texttt{open()}, \texttt{read()}, \texttt{write()}, \texttt{lseek()} and \texttt{close()}, available from the headers \texttt{fcntl.h} and \texttt{unistd.h}.
 
 Before any file operations can be performed on a file, system resources needs to be allocated for the file, for instance with a call to \texttt{open()}:
 \begin{verbatim}
@@ -68,11 +70,32 @@ After an application is done with a file, the resources associated with that fil
 \begin{verbatim}
   int close(int fd);
 \end{verbatim}
-This will invalidate the file descriptor.
+This will invalidate the file descriptor.\cite{linux-man-pages}
 
 
-\subsubsection{Mapping files to memory}
-TODO % TODO
+\subsubsection{Mapping files to memory}\label{mapping-files-to-memory}
+Accessing a file in an arbitrary manner using the system calls described in \ref{sec:reading-and-writing-files} will involve many redundant calls to \texttt{lseek()}. A better alternative then is to map the file into the virtual address space of the process using \texttt{mmap()}, which will allow the file to be accessed with ordinary memory accesses:
+\begin{verbatim}
+  void *mmap(void *addr, size_t length, int prot, int flags,
+                  int fd, off_t offset);
+\end{verbatim}
+This will map a number of \texttt{length} bytes from the file specified by the file descriptor \texttt{fd}, starting 
+\texttt{offset} bytes from the beginning of the file. \texttt{addr} can be optionally used to give the kernel a hint as to where the mapping should be placed in virtual memory, or it can be \texttt{NULL}. \texttt{prot} is a bitfield specifying the memory protection of the mapping, and \texttt{flags} sets the visibility of updates to the mapping to other processes. An example of \texttt{mmap()} is shown in listing \ref{lst:mapping-file-to-memory}.
+\lstset{style=lststyle-c}
+\begin{lstlisting}[caption=Mapping the first 120 bytes of a file to memory,label=lst:mapping-file-to-memory]
+void *map = mmap(NULL, 120, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+\end{lstlisting}
+
+Updates to a memory mapped file might not become visible immediately. To synchronize a file with a memory map, the application should call \texttt{msync()}:
+\begin{verbatim}
+  int msync(void *addr, size_t length, int flags);
+\end{verbatim}
+
+After the application is done with the memory map, it may call \texttt{unmap()} to delete the mapping and release its associated resources: 
+\begin{verbatim}
+  int munmap(void *addr, size_t length);
+\end{verbatim}
+This will also cause the file to become synchronized with the memory map.
 
 
 
