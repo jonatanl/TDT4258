@@ -6,3 +6,17 @@
 % You can include comments about the assignment itself here. While this part is
 % not obligatory and not graded, it is valuable feedback to the course staff
 % that can be used to improve the exercises in the future.
+
+\subsection{Compendium Feedback}
+This section contains feedback and suggested improvements for the compendium.
+
+\subsubsection{Mention \texttt{ptxdist clean} in section 5.3.3}
+As mentioned in the compendium in section \textbf{5.3.3. Building and Flashing}, a single package can be flashed with the following four commands:
+\begin{enumerate}
+  \item \texttt{ptxdist compile <packagename>, e.g game or driver-gamepad}
+  \item \texttt{ptxdist targetinstall <packagename>}
+  \item \texttt{ptxdist image root.romfs}
+  \item \texttt{ptxdist test flash-rootfs}
+\end{enumerate}
+However, in order for the modified sources to be compiled, we also needed run one of the commands \texttt{ptxdist clean game} and \texttt{ptxdist drop game compile}. Maybe it would be useful to mention this in this section.
+
