@@ -7,22 +7,21 @@
 % source code here -- small code snippets are fine if you want to discuss
 % something specific.
 
-\section{Development Computer Setup}
+\section{Development Setup}
 This section briefly describes technical details regarding the system setup we used on our development computers.
 
 \subsection{PTXdist}
-The build process of this exercise was quite involved, and it was necessary to use the PTXdist build management tool, described in section \ref{sec:ptxdist}. In order to install PTXdist on our computers, two main options were provided along with the exercise:
+The build process of this exercise was quite involved, and for this reason it was necessary to use the PTXdist build management tool, described in section \ref{sec:ptxdist}. In order to install PTXdist on our computers, two options were provided along with the exercise:
 \begin{itemize}
   \item A virtual machine with PTXdist and cross toolchain installed.
   \item A README file with instructions on how to build and install PTXdist and cross toolchain from sources.
 \end{itemize}
-
 Initially we used a computer with limited processing resources for development, and building PTXdist from sources was therefore the favoured alternative. By following the instructions, PTXdist and cross toolchain was installed successfully in a couple of hours.
 
 A possible third option was to use the lab computers with PTXdist and cross toolchain already installed. This option was regarded as a fall-back solution in case of technical difficulties.
 
-\subsection{Serial Terminal Emulator}
-In order to access the running operating system, we connected a laptop running a serial terminal emulator to the serial port of the EFM32GG. The program used for terminal emulation was \emph{minicom}, an open source communication program available for most Unix and Unix-like operating systems.\cite{minicom-man-page} The compendium instructions was followed to set up parameters for the serial port:
+\subsection{Serial Terminal Emulator}\label{sec:serial-terminal-emulator}
+In order to access the running operating system, we connected a laptop running a serial terminal emulator to the serial port of the EFM32GG. The program used for terminal emulation was \emph{minicom}, an open source communication program available for most Unix and Unix-like operating systems.\cite{minicom-man-page} The compendium instructions was followed to set the following parameters for the serial port:
 \begin{itemize}
   \item Baud rate: 115200 bps
   \item Data bits: 8
@@ -32,18 +31,18 @@ In order to access the running operating system, we connected a laptop running a
 \end{itemize}
 
 \subsection{Git Version Control}
-The Git version control tool was used to manage different code revisions. The free hosting service GitHub was used to host a Git repository at \url{https://github.com/jonatanl/TDT4258}. The branch ``master'' was used for code development.
+To manage different code revisions, we used the Git version control system. The free hosting service GitHub was used to host a Git repository at \url{https://github.com/jonatanl/TDT4258}, and the branch ``master'' was used for code development.
 
 
 \section{Part 1: Linux Build and Warm-Up}
-When solving the exercise, we started out by doing the preliminary warm-up steps recommended by the compendium: building the uClinux operating system, and creating a simple application that used the framebuffer device \texttt{/dev/fb0}. The purpose of these steps was to familiarize with the development workflow and driver interfacing in Linux.
+When solving the exercise, we started out by doing preliminary warm-up steps recommended by the compendium: building the uClinux operating system, and creating a simple application that used the framebuffer device \texttt{/dev/fb0}. The purpose of these steps was to familiarize with the development workflow and driver interfacing in Linux.
 
 \subsection{Building uClinux}
-Building uClinux was done without any problems by executing the commands \texttt{ptxdist images} and \texttt{ptxdist test flash-all}. A large amount of sources were downloaded and compiled, and the whole build process took about fifteen minutes. After the board was restarted, Tux appeared on the display showing that uClinux was running.
+We used PTXdist to build uClinux by executing the commands \texttt{ptxdist images} and \texttt{ptxdist test flash-all} in the top-level project directory. A large amount of sources were downloaded and compiled, and the whole process took about fifteen minutes. PTXdist and its build process is described in section \ref{sec:ptxdist}. After the board was restarted, Tux appeared on the display showing that uClinux was running.
 
-After having successfully configured the serial terminal emulator \emph{minicom}, we could communicate with the operating system via the serial port, and execute shell commands:
+In order to communicate with the operating system, we configured the serial terminal emulator \emph{minicom} as described in section \ref{sec:serial-terminal-emulator}. This gave us access to a shell where we could execute commands. The output of executing the unmodified game application is shown in listing \ref{lst:initial-shell-commands1}.
 \lstset{style=lststyle-terminal}
-\begin{lstlisting}
+\begin{lstlisting}[caption=Executing the unmodified game,label=lst:initial-shell-commands1]
 OSELAS(R)-Gecko-2012.10.0+ / energymicro-efm32gg-dk3750-2012.10.0+
 ptxdist-2013.07.1/2015-03-16T15:23:07+0100
 
@@ -51,12 +50,13 @@ ptxdist-2013.07.1/2015-03-16T15:23:07+0100
 Hello World, I'm game!
 \end{lstlisting}
 
-In order to further test the build chain, we made a small modification to the source file \texttt{game.c}, changing the \texttt{printf()} function arguments. After rerunning the necessary ptxdist actions, we observed the expected changes in the output of the \texttt{game} command:
+To test that we were also able to make changes to the code, we made a small modification to the game application by changing the \texttt{printf()} function arguments in \texttt{game.c}. After rerunning the necessary ptxdist actions, we observed the expected changes in the output of the \texttt{game} command:
 \lstset{style=lststyle-terminal}
-\begin{lstlisting}
+\begin{lstlisting}[caption=Executing a slightly modified game,label=lst:initial-shell-commands2]
 / # game
-Hello World, I'm also a game!
+Hello World, I'm also game!
 \end{lstlisting}
+Notably, in order for \texttt{ptxdist compile game} to actually compile the modified sources of the game, we first had to run one of the commands \texttt{ptxdist clean game} and \texttt{ptxdist drop game compile}.
 
 \subsection{Creating a framebuffer application}
 Our next step was to write a simple application accessing the framebuffer device. To write data to the framebuffer, we used the Linux system calls \texttt{open()}, \texttt{write()}, and \texttt{close()} described in section \ref{sec:reading-and-writing-files}.
