@@ -151,8 +151,18 @@ This simple module uses the kernel function \texttt{printk()} to print messages 
 
 The included header files are included by almost all modules. Note that they are not system headers, but headers from the kernel source tree.
 
-\subsection{Error Handling}
-TODO % TODO
+
+\subsection{Handling Concurrency}
+The driver is shared between the processes running on a system, and must correctly handle the scenario that two or more processes wants to use the driver at once. To share the driver between multiple processes, it might be necessary to manage resources on a per-process basis using data structures. In addition, the resources shared between the processes needs to be sufficiently protected with synchronization primitives to avoid race conditions.
+
+As a driver registers its facilities, other parts of the kernel might try to use those facilities immediately. The driver needs to handle this case that some parts of the kernel try to use it before it is completely initialized.
+% TODO: Expand this section when we have some experience about concurrency handling.
+
+
+\subsection{Handling Errors}
+When a driver registers a facility during initialization, there is no guarantee that the kernel is able grant the driver's request. The driver might still recover from such an event to provide either full or some partial service, but in the event that the driver is not able to continue, it should unregister all facilities previously registered successfully. This may require that the driver uses some sort of scheme to track which facilities was registered successfully and which failed. 
+% TODO: Write about "facilities" somewhere.
+
 
 \subsection{Licensing}
 TODO % TODO
