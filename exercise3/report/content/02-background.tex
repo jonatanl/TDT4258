@@ -20,7 +20,7 @@ The core of the operating system is called the \emph{kernel} and runs in a privi
 \subsection{Device Drivers}
 To more easily manage hardware devices with different characteristics, the kernel contains \emph{device drivers}. A device driver is a program that manages low-level hardware access to a particular device, providing a clean interface for the rest of the kernel programs.
 
-\subsection{Kernel Modules}
+\subsection{Kernel Modules}\label{sec:kernel-modules}
 It is sometimes necessary to extend the functionality of the kernel, for instance if new hardware becomes available. While this could be achieved by modifying and rebuilding the kernel, a much more attractive alternative is to use \emph{kernel modules}, small programs that are loaded at runtime and extend the kernel with the needed functionality. Device drivers can be added as kernel modules.
 
 \subsection{Related Terminology}
@@ -100,19 +100,56 @@ This will also cause the file to become synchronized with the memory map.
 
 
 \section{Writing Device Drivers for Linux}
-TODO % TODO
+This section is a brief introduction to device driver development for the Linux kernel. It begins by explaining some practical details regarding driver development, then it highlights some important parts of the Linux kernel and common programming constructs, and finally it provides a brief outline on driver design. The main focus is on drivers implemented as kernel modules. For an explanation on the terminology used in this section, see section \ref{TODO}.
+% TODO(optional): Update this introduction if necessary (e.g. if lots of new stuff was added)
 
-\subsection{Development Setup}
-TODO % TODO
+
+\subsection{Programming in the Kernel}
+Kernel modules are different from user space applications in several important ways, and there are some considerations to take into account when writing a module.
+
+As a module is a part of the kernel, it runs in privileged mode with access to all hardware. A natural consequence of this is that bugs are much more serious. A module bug can easily crash the whole system, for instance by overwriting other parts of the kernel code in memory.
+% TODO: Mention privileged mode in sec1
+
+Again, because a module runs in privileged mode, it cannot be linked against any user space code. This includes the standard C library with all its nice functions such as \texttt{malloc()}, \texttt{strcmp()} and \texttt{printf()}. Instead, the module is linked against the kernel and has access to kernel routines.
+
+Debugging is also different: the Linux kernel cannot be debugged with any user space debugger such as the GNU Debugger. Instead, the built-in kernel debugger must be used.
+
+It is also worth mentioning that modules are linked against the kernel, meaning that the developer must have a kernel source tree available to build it against. The process of manually downloading, configuring and building a kernel source tree involves a fair amount of work, especially for a novice module programmer.
+
 
 \subsection{Loading and Unloading Modules}
-TODO % TODO
+As explained in section \ref{sec:kernel-modules}, the kernel functionality can be extended by modules loaded at runtime. The following commands can be used to load and unload modules:
+\begin{itemize}
+  \item \texttt{insmod <module>} will load a module into memory and initialize it.
+  \item \texttt{modprobe <module>} will load and initialize a module along with all its dependencies.
+  \item \texttt{rmmod <module>} will perform cleanup and unload a module.
+\end{itemize}
+The modules are in control of their own initialization and cleanup processes. This is achieved by having each module define special initialization and exit functions that will be called whenever the module is loaded and unloaded respectively, as explained in the next section.
 
-\subsection{Programming Basics}
-TODO % TODO
 
-\subsection{Debugging Drivers}
-TODO % TODO
+\subsection{A Simple Example}
+The following example program illustrates the basic structure of driver module:
+\lstset{style=lststyle-c}
+\begin{lstlisting}
+#include<linux/init.h>
+#include<linux/module.h>
+
+static int hello_init(void)
+{
+  printk(KERN_ALERT "Hello, world.\n");
+}
+
+static void hello_exit(void)
+{
+  printk(KERN_ALERT "Bye bye world, nice meeting you.\n");
+}
+
+module_init(hello_init);
+module_exit(hello_exit);
+\end{lstlisting}
+This simple module uses the kernel function \texttt{printk()} to print messages when it is loaded and unloaded. Initialization and cleanup is done through the functions \texttt{hello\_init()} and \texttt{hello\_exit()} respectively. The important thing to note here is the functions \texttt{module\_init()} and \texttt{module\_exit()} at the last two lines: these are special macros that indicates to the kernel which functions to use for initialization and cleanup.
+
+The included header files are included by almost all modules. Note that they are not system headers, but headers from the kernel source tree.
 
 \subsection{Error Handling}
 TODO % TODO
@@ -121,7 +158,7 @@ TODO % TODO
 TODO % TODO
 
 \subsection{Mechanism versus Policy}
-TODO % TODO
+TODO % TODO: Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1.
 
 
 
