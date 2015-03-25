@@ -152,6 +152,44 @@ This simple module uses the kernel function \texttt{printk()} to print messages 
 The included header files are included by almost all modules. Note that they are not system headers, but headers from the kernel source tree.
 
 
+\subsection{Devices Files}
+In Unix-like operating systems, user space applications access drivers through so-called \emph{device files} or \emph{special files}. These are similar to ordinary files in that they support many standard system calls for files, including the file operations described in section \ref{sec:reading-and-writing-files}. Notably, this is often true even for those drivers that do not provide access to storage devices at all. In any case, a driver provides its interface to the user space applications by implementing the needed system calls, and the implementation of those system calls constitutes a core part of the driver.
+
+A device file contains information to identify the driver that owns it, namely a \emph{major} and a \emph{minor revision number}.
+
+\textcolor{red}{(TODO: Write about how drivers registers device nodes in /dev)}
+
+
+\subsection{Implementing Driver Operations}
+We just explained that drivers are accessed through file operations that they define on a device file. This naturally begs the question of how those file operations are actually defined. In order to understand this, we need to look into how operations on files work in general for ordinary and special files alike.
+
+The kernel uses the structure \texttt{struct file} from the kernel header \texttt{<linux/fs.h>} to manage open files. Some important fields of this structure are listed here:
+\begin{description}
+  \item[\texttt{mode\_t f\_mode;}] \hfill \\
+    \texttt{f\_mode} is a bit field that stores the access mode of the file in the two bits \texttt{FMODE\_READ} and \texttt{FMODE\_WRITE}.
+  \item[\texttt{loff\_t f\_pos;}] \hfill \\
+    \texttt{f\_pos} is a 64-bit integer storing the current offset into the file.
+  \item[\texttt{struct dentry *f\_dentry;}] \hfill \\
+    \texttt{f\_dentry} points to a structure storing the directory entry of the file.   
+  \item[\texttt{struct file\_operations *f\_op;}] \hfill \\
+    \texttt{f\_op} points to a structure containing file operations to be used with the file.
+\end{description}
+The reader might be familiar with several of these file attributes. What is important, though, is the file operation structure associated with a file, \texttt{f\_op}. It is this structure that a driver uses to define the file operations of the device file. Below is a description of some fields in the structure \texttt{struct file\_operations}:
+\begin{description}
+  \item[\texttt{int (*open) (struct inode *, struct file *);}] \hfill \\
+    Pointer to a function that is called whenever \texttt{open()} is called on the file.
+  \item[\texttt{ssize\_t (*read) (struct file *, char \_\_user *, size\_t, loff\_t *);}] \hfill \\
+    Pointer to a function that is called whenever \texttt{read()} is called on the file.
+  \item[\texttt{ssize\_t (*write) (struct file *, const char \_\_user *, size\_t, loff\_t *);}] \hfill \\
+    Pointer to a function that is called whenever \texttt{write()} is called on the file.
+  \item[\texttt{loff\_t (*llseek) (struct file *, loff\_t, int);}] \hfill \\
+    Pointer to a function that is called whenever \texttt{lseek()} is called on the file.
+\end{description}
+This structure reveals that drivers implement file operations on special files by providing a function pointer for each operation. These function pointers will likely point to internal driver functions.
+
+\textcolor{red}{TODO: Write about how drivers register facilities and file operation structures}
+
+
 \subsection{Handling Concurrency}
 The driver is shared between the processes running on a system, and must correctly handle the scenario that two or more processes wants to use the driver at once. To share the driver between multiple processes, it might be necessary to manage resources on a per-process basis using data structures. In addition, the resources shared between the processes needs to be sufficiently protected with synchronization primitives to avoid race conditions.
 
@@ -163,9 +201,6 @@ As a driver registers its facilities, other parts of the kernel might try to use
 When a driver registers a facility during initialization, there is no guarantee that the kernel is able grant the driver's request. The driver might still recover from such an event to provide either full or some partial service, but in the event that the driver is not able to continue, it should unregister all facilities previously registered successfully. This may require that the driver uses some sort of scheme to track which facilities was registered successfully and which failed. 
 % TODO: Write about "facilities" somewhere.
 
-
-\subsection{Licensing}
-TODO % TODO
 
 \subsection{Mechanism versus Policy}
 TODO % TODO: Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1.
