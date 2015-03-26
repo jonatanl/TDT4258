@@ -44,29 +44,37 @@ static void print_error(int error, const char* message)
 // Called when a user process calls open()
 static int my_open(struct inode *inode, struct file *filp)
 {
+  printk("my_open()\n");
+
   // TODO
-  return -1;
+  return 0;
 } 
 
 // Called when the last user process calls close()
 static ssize_t my_read(struct file *filp, char __user *buff, size_t count, loff_t *offp)
 {
+  printk("my_read()\n");
+
   // TODO
-  return -1;
+  return 0;
 }
 
 // Called when a user process calls read()
 static ssize_t my_write(struct file *filp, const char __user *buff, size_t count, loff_t *offp)
 {
+  printk("my_writen()\n");
+
   // TODO
-  return -1;
+  return 0;
 } 
 
 // Called when the last user process calls write()
 static int my_release(struct inode *inode, struct file *filp)
 {
+  printk("my_release()\n");
+
   // TODO
-  return -1;
+  return 0;
 }
 
 // Initialize the gamepad module and insert it into kernel space
