@@ -6,6 +6,14 @@
 % \ref{fig:universe}) and charts you add in the text. Avoid putting lots of
 % source code here -- small code snippets are fine if you want to discuss
 % something specific.
+This chapter explains the complete process that lead to our final product, and the details of the implementation. It begins by explaining the development setup we used, and then goes through the major steps of the process. The exercise compendium recommended to complete the exercise sequentially in three parts:
+\begin{enumerate}
+  \item Part 1: Linux Build and Warm-Up
+  \item Part 2: The Driver
+  \item Part 3: The Game
+\end{enumerate}
+We followed this approach closely, and an individual section is dedicated to each part.
+
 
 \section{Development Setup}
 This section briefly describes technical details regarding the system setup we used on our development computers.
@@ -67,6 +75,17 @@ TODO % TODO
 
 \subsubsection{Accessing the driver with a memory map}
 TODO % TODO
+
+
+\section{Part 2: The Driver}
+Having completed the first part of the exercise, it was time to write the gamepad driver. This section relies on the theory introduced in section \ref{writing-device-drivers-for-linux}.
+
+\subsection{Registering a character device}
+Following the procedure described in the compendium and in \cite{linux-device-drivers}, we wrote a simple driver that requested dynamically allocated device numbers and registered a character device in the kernel on initialization. On exit, the driver would remove the character device from the kernel and then deallocate the device numbers.
+
+To pick up any errors, we checked all relevant error codes, using \texttt{printk()} to print out all nonzero codes. To verify our implementation, we checked the devices in \texttt{/proc/devices} before and after using \texttt{modprobe} and \texttt{rmmod}: the driver would appear with major device number 253 after calling \texttt{modprobe}, and disappear again after calling \texttt{rmmod}.
+
+
 
 
 
