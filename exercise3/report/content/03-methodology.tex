@@ -80,13 +80,19 @@ TODO % TODO
 \section{Part 2: The Driver}
 Having completed the first part of the exercise, it was time to write the gamepad driver. This section relies on the theory introduced in section \ref{writing-device-drivers-for-linux}.
 
-\subsection{Registering a character device}
+\subsection{Registering a Character Device}
 Following the procedure described in the compendium and in \cite{linux-device-drivers}, we wrote a simple driver that requested dynamically allocated device numbers and registered a character device in the kernel on initialization. On exit, the driver would remove the character device from the kernel and then deallocate the device numbers.
 
 To pick up any errors, we checked all relevant error codes, using \texttt{printk()} to print out all nonzero codes. To verify our implementation, we checked the devices in \texttt{/proc/devices} before and after using \texttt{modprobe} and \texttt{rmmod}: the driver would appear with major device number 253 after calling \texttt{modprobe}, and disappear again after calling \texttt{rmmod}.
 
-
-
+\subsection{Accessing the Driver}
+The next step was to access the driver through the functions in the \texttt{file\_operations} structure. We added a \texttt{printk()} to each of the functions \texttt{open()} and \texttt{close()}, and we rewrote the game application so that it would try to open and close the file \texttt{/dev/gamepad0}. After having rebooted the operating system, started the new driver, and created a driver device file with the command \texttt{mknod /dev/gamepad0 c 253 0}. Then we executed the game application, and we were indeed able to see that the driver functions were being called.
+TODO % TODO: Add the following command output here:
+% / # game
+% Trying to open the gamepad at /dev/gamepad0 ...
+% [   99.810000] my_open()
+% Trying to close the gamepad ...
+% [   99.820000] my_release()
 
 
 \section{Testing}
