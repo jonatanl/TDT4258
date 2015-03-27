@@ -68,13 +68,14 @@ Notably, in order for \texttt{ptxdist compile game} to actually compile the modi
 
 \subsection{Creating a framebuffer application}
 Our next step was to write a simple application accessing the framebuffer device. To write data to the framebuffer, we used the Linux system calls \texttt{open()}, \texttt{write()}, and \texttt{close()} described in section \ref{sec:reading-and-writing-files}.
-TODO % TODO
+
+\todo{Uncompleted}
 
 \subsubsection{Accessing the driver as a file}
-TODO % TODO
+\todo{Uncompleted}
 
 \subsubsection{Accessing the driver with a memory map}
-TODO % TODO
+\todo{Uncompleted}
 
 
 \section{Part 2: The Driver}
@@ -87,7 +88,8 @@ To pick up any errors, we checked all relevant error codes, using \texttt{printk
 
 \subsection{Accessing the Driver}
 The next step was to access the driver through the functions in the \texttt{file\_operations} structure. We added a \texttt{printk()} to each of the functions \texttt{open()} and \texttt{close()}, and we rewrote the game application so that it would try to open and close the file \texttt{/dev/gamepad0}. After having rebooted the operating system, started the new driver, and created a driver device file with the command \texttt{mknod /dev/gamepad0 c 253 0}. Then we executed the game application, and we were indeed able to see that the driver functions were being called.
-TODO % TODO: Add the following command output here:
+
+\todo{Add command output here (see comment below in the .tex document)}
 % / # game
 % Trying to open the gamepad at /dev/gamepad0 ...
 % [   99.810000] my_open()

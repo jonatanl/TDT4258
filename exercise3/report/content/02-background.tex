@@ -7,7 +7,8 @@
 % managers make this easy.
 
 This chapter is an introduction to theory and concepts needed to understand the rest of the report. It begins with a section explaining operating systems terminology and a section introducing the Linux operating systems and important system calls. Then it continues in the next section with a study of driver programming in Linux, and ends with an introduction of the PTXdist build system.
-% TODO: Verify that this is consistent with the rest of the chapter
+
+\todo{Verify that this is consistent with the rest of the chapter}
 
 \section{Basic Terminology}
 This section introduces some general terminology and concepts concerning operating systems and device drivers in general.
@@ -33,15 +34,16 @@ In addition to the concepts described above, several other terms are used in the
 \item \textsl{Boot Loader:} The bootloader is a small program that runs before the operating system starts, and makes the necessary preparations to start the kernel.
 \item \textsl{Linux Root Filesystem:} In Linux, the root filesystem is the filesystem available at the top-level directory. It is denoted with a forward slash, "/".
 \end{itemize}
-% TODO: Things to consider putting in here:
-%   - Virtual address space (of a process)
+
+\todo{Things to consider writing about here: \\
+\indent - The virtual address space of processes}
 
 
 \section{Linux}
-TODO % TODO: Needs intro
+\todo{Needs an introduction}
 
 \subsection{System calls}
-TODO % TODO: Needs intro
+\todo{Needs an introduction}
 
 \subsubsection{Reading and writing files}\label{sec:reading-and-writing-files}
 Several system calls in Linux are related to file operations such as reading and writing. This section will introduce \texttt{open()}, \texttt{read()}, \texttt{write()}, \texttt{lseek()} and \texttt{close()}, available from the headers \texttt{fcntl.h} and \texttt{unistd.h}.
@@ -105,14 +107,14 @@ This will also cause the file to become synchronized with the memory map.
 
 \section{Writing Device Drivers for Linux}\label{writing-device-drivers-for-linux}
 This section is a brief introduction to device driver development for the Linux kernel. It begins by explaining some practical details regarding driver development, then it highlights some important parts of the Linux kernel and common programming constructs, and finally it provides a brief outline on driver design. The main focus is on drivers implemented as kernel modules. For an explanation on the terminology used in this section, see section \ref{TODO}.
-% TODO(optional): Update this introduction if necessary (e.g. if lots of new stuff was added)
+
+\todo{Verify that this is consistent with the rest of the chapter}
 
 
 \subsection{Programming in the Kernel}
 Kernel modules are different from user space applications in several important ways, and there are some considerations to take into account when writing a module.
 
 As a module is a part of the kernel, it runs in privileged mode with access to all hardware. A natural consequence of this is that bugs are much more serious. A module bug can easily crash the whole system, for instance by overwriting other parts of the kernel code in memory.
-% TODO: Mention privileged mode in sec1
 
 Again, because a module runs in privileged mode, it cannot be linked against any user space code. This includes the standard C library with all its nice functions such as \texttt{malloc()}, \texttt{strcmp()} and \texttt{printf()}. Instead, the module is linked against the kernel and has access to kernel routines.
 
@@ -161,7 +163,8 @@ In Unix-like operating systems, user space applications access drivers through s
 
 A device file contains information to identify the driver that owns it, namely a \emph{major} and a \emph{minor revision number}.
 
-\textcolor{red}{(TODO: Write about how drivers registers device nodes in /dev)}
+\todo{Write about how drivers registers device nodes in /dev}
+\todo{Write about how device nodes can be created with \texttt{mknod}}
 
 
 \subsection{Implementing Driver Operations}
@@ -191,23 +194,25 @@ The reader might be familiar with several of these file attributes. What is impo
 \end{description}
 This structure reveals that drivers implement file operations on special files by providing a function pointer for each operation. These function pointers will likely point to internal driver functions.
 
-\textcolor{red}{TODO: Write about how drivers register facilities and file operation structures}
+\todo{Write about how drivers register facilities and file operation structures}
 
 
 \subsection{Handling Concurrency}
 The driver is shared between the processes running on a system, and must correctly handle the scenario that two or more processes wants to use the driver at once. To share the driver between multiple processes, it might be necessary to manage resources on a per-process basis using data structures. In addition, the resources shared between the processes needs to be sufficiently protected with synchronization primitives to avoid race conditions.
 
 As a driver registers its facilities, other parts of the kernel might try to use those facilities immediately. The driver needs to handle this case that some parts of the kernel try to use it before it is completely initialized.
-% TODO: Expand this section when we have some experience about concurrency handling.
+
+\todo{Expand this section when we have some experience about concurrency handling.}
 
 
 \subsection{Handling Errors}
 When a driver registers a facility during initialization, there is no guarantee that the kernel is able grant the driver's request. The driver might still recover from such an event to provide either full or some partial service, but in the event that the driver is not able to continue, it should unregister all facilities previously registered successfully. This may require that the driver uses some sort of scheme to track which facilities was registered successfully and which failed. 
-% TODO: Write about "facilities" somewhere.
+
+\todo{Write about "facilities" somewhere. Mentioned in the book LDD chapter two, I think}
 
 
 \subsection{Mechanism versus Policy}
-TODO % TODO: Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1.
+\todo{Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1}
 
 
 
