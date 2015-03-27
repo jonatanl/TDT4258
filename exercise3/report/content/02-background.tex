@@ -23,17 +23,19 @@ The core of the operating system is called the \emph{kernel} and runs in a privi
 \cite{modern-operating-systems}
 
 \subsection{Device Drivers}
-To more easily manage hardware devices with different characteristics, the kernel contains \emph{device drivers}. A device driver is a program that manages low-level hardware access to a particular device, providing a clean interface for the rest of the kernel programs.
+The kernel uses \emph{device drivers} to more easily manage hardware devices with different characteristics. A device driver is a program that manages low-level access to a particular hardware device, providing a clean interface for the rest of the kernel.
 
 \subsection{Kernel Modules}\label{sec:kernel-modules}
-It is sometimes necessary to extend the functionality of the kernel, for instance if new hardware becomes available. While this could be achieved by modifying and rebuilding the kernel, a much more attractive alternative is to use \emph{kernel modules}, small programs that are loaded at runtime and extend the kernel with the needed functionality. Device drivers can be added as kernel modules.
+The functionality of the kernel may sometimes need to be modified, for instance to accommodate new hardware. While this could be achieved by modifying and rebuilding the kernel, it is often a more attractive alternative to extend the functionality with \emph{kernel modules}, small kernel programs that are loaded at runtime. It is common to write device drivers as kernel modules.
 
 \subsection{Related Terminology}
 In addition to the concepts described above, several other terms are used in the context of operating systems:
-\begin{itemize}
-\item \textsl{Boot Loader:} The bootloader is a small program that runs before the operating system starts, and makes the necessary preparations to start the kernel.
-\item \textsl{Linux Root Filesystem:} In Linux, the root filesystem is the filesystem available at the top-level directory. It is denoted with a forward slash, "/".
-\end{itemize}
+\begin{description}
+\item[Boot Loader] \hfill \\
+The bootloader is a small program that runs before the operating system starts, and makes the necessary preparations to load the kernel.
+\item[Linux Root Filesystem] \hfill \\
+ In Linux, the root filesystem is the filesystem available at the top-level directory. It is denoted with a forward slash, \texttt{/}.
+\end{description}
 
 \todo{Things to consider writing about here: \\
 \indent - The virtual address space of processes}
@@ -46,62 +48,32 @@ In addition to the concepts described above, several other terms are used in the
 \todo{Needs an introduction}
 
 \subsubsection{Reading and writing files}\label{sec:reading-and-writing-files}
-Several system calls in Linux are related to file operations such as reading and writing. This section will introduce \texttt{open()}, \texttt{read()}, \texttt{write()}, \texttt{lseek()} and \texttt{close()}, available from the headers \texttt{fcntl.h} and \texttt{unistd.h}.
+Several system calls in Linux are related to file operations that perform file I/O. This section will introduce some of the most commonly used. The following system calls are available from the headers \texttt{<fcntl.h>} and \texttt{<unistd.h>}.
 
-Before any file operations can be performed on a file, system resources needs to be allocated for the file, for instance with a call to \texttt{open()}:
-\begin{verbatim}
-  int open(const char *pathname, int flags);
-\end{verbatim}
-Here \texttt{pathname} is the absolute path to the file, and \texttt{flags} specify access modes such as read-only or read-write. On success, \texttt{open()} will return a file descriptor that is used as a handle when modifying the file with future system calls.
-
-After opening a file with \texttt{open()}, the contents of the file can be read as individual bytes with \texttt{read()}:
-\begin{verbatim}
-  ssize_t read(int fd, void *buf, size_t count);
-\end{verbatim}
-Here \texttt{fd} is the file descriptor previously returned from \texttt{open()}, \texttt{buf} is a buffer where the file contents should be stored, and \texttt{count} is the number of bytes to read from the file. The returned value is the number of bytes that was read into \texttt{buf}. Note that \texttt{read()} gives no guarantee that the requested number of bytes has actually been read into \texttt{buf}. It is up to the application programmer to provide such guarantees by checking the return value.
-
-In order to write write bytes to a file, it is possible to use the very similar function \texttt{write()}:
-\begin{verbatim}
-  ssize_t write(int fd, const void *buf, size_t count);
-\end{verbatim}
-Here the roles of the parameters are reversed: \texttt{buf} is a buffer containing the contents to write to the file, \texttt{count} specifies the number of bytes to write, and the value returned is the actual number of bytes written. As expected, \texttt{fd} is the file descriptor.
-
-The functions \texttt{read()} and \texttt{write()} both perform their operations on the bytes located at a specific offset from the beginning of the file, called the \emph{file offset}. The file offset starts at the beginning of the file, and is incremented whenever a number of bytes is read or written by a file operation. To operate on bytes in a noncontiguous fashion, the offset needs to be changed with a call to \texttt{lseek()}:
-\begin{verbatim}
-  off_t lseek(int fd, off_t offset, int whence);
-\end{verbatim}
-Here the meaning of \texttt{offset} depends on the parameter \texttt{whence}. Three possible options are to specify the new offset directly, relative to the current offset, or relative to the end of the file.
-
-After an application is done with a file, the resources associated with that file can be released by calling \texttt{close()}:
-\begin{verbatim}
-  int close(int fd);
-\end{verbatim}
-This will invalidate the file descriptor.\cite{linux-man-pages}
-
+\begin{description}
+\item[\texttt{int open(const char *pathname, int flags);}] \hfill \\
+Before any file operations can be performed on a file, a call to \texttt{open()} is needed to allocate the necessary system resources. Here \texttt{pathname} is the absolute path to the file, and \texttt{flags} specify access modes such as read-only or read-write. On success, \texttt{open()} will return a file descriptor that is used as a handle on the file in future system calls.
+\item[\texttt{ssize\_t read(int fd, void *buf, size\_t count);}] \hfill \\
+After opening a file, the contents of the file can be read as individual bytes with \texttt{read()}. Here \texttt{fd} is the file descriptor previously returned from \texttt{open()}, \texttt{buf} is a buffer where the file contents should be stored, and \texttt{count} is the number of bytes to read from the file. The returned value is the number of bytes that was read into \texttt{buf}. Note that \texttt{read()} gives no guarantee that the requested number of bytes has actually been read into \texttt{buf}. It is up to the application programmer to provide such guarantees by checking the return value.
+\item[\texttt{ssize\_t write(int fd, const void *buf, size\_t count);}] \hfill \\
+To write bytes to a file, the very similar function \texttt{write()} can be used. The parameters roles are slightly changed: \texttt{buf} is a buffer containing the contents to write to the file, \texttt{count} specifies the number of bytes to write, and the value returned is the actual number of bytes written. As expected, \texttt{fd} is the file descriptor.
+\item[\texttt{off\_t lseek(int fd, off\_t offset, int whence);}] \hfill \\
+Read and write operations on a file is performed at the bytes located at a specific offset from the beginning of the file, called the \emph{file offset}. The file offset is initially zero, and is incremented with the number of bytes read or written by a file operation. To operate on bytes in a noncontiguous fashion, the offset can be changed with a call to \texttt{lseek()}. Here the meaning of \texttt{offset} depends on the parameter \texttt{whence}. Three possible options are to specify the new offset directly, relative to the current offset, or relative to the end of the file.
+\item[\texttt{int close(int fd);}] \hfill \\
+After an application is done with a file it should call \texttt{close()} to release the file's associated resources. This will invalidate the file descriptor.
+\end{description}
 
 \subsubsection{Mapping files to memory}\label{mapping-files-to-memory}
-Accessing a file in an arbitrary manner using the system calls described in \ref{sec:reading-and-writing-files} will involve many redundant calls to \texttt{lseek()}. A better alternative then is to map the file into the virtual address space of the process using \texttt{mmap()}, which will allow the file to be accessed with ordinary memory accesses:
-\begin{verbatim}
-  void *mmap(void *addr, size_t length, int prot, int flags,
-                  int fd, off_t offset);
-\end{verbatim}
-This will map a number of \texttt{length} bytes from the file specified by the file descriptor \texttt{fd}, starting 
-\texttt{offset} bytes from the beginning of the file. \texttt{addr} can be optionally used to give the kernel a hint as to where the mapping should be placed in virtual memory, or it can be \texttt{NULL}. \texttt{prot} is a bitfield specifying the memory protection of the mapping, and \texttt{flags} sets the visibility of updates to the mapping to other processes. An example of \texttt{mmap()} is shown in listing \ref{lst:mapping-file-to-memory}.
-\lstset{style=lststyle-c}
-\begin{lstlisting}[caption=Mapping the first 120 bytes of a file to memory,label=lst:mapping-file-to-memory]
-void *map = mmap(NULL, 120, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-\end{lstlisting}
+Accessing a file in an arbitrary manner using the system calls described in section \ref{sec:reading-and-writing-files} will involve many redundant calls to \texttt{lseek()}. A better alternative then is to map the file into the virtual address space of the process, allowing the file to be accessed with ordinary memory accesses. The following system calls are available from the headers \texttt{<sys/mman.h>} and \texttt{<unistd.h>}.
 
-Updates to a memory mapped file might not become visible immediately. To synchronize a file with a memory map, the application should call \texttt{msync()}:
-\begin{verbatim}
-  int msync(void *addr, size_t length, int flags);
-\end{verbatim}
-
-After the application is done with the memory map, it may call \texttt{unmap()} to delete the mapping and release its associated resources: 
-\begin{verbatim}
-  int munmap(void *addr, size_t length);
-\end{verbatim}
-This will also cause the file to become synchronized with the memory map.
+\begin{description}
+\item[\texttt{void *mmap(void *addr, size\_t length, int prot, int flags, int fd, off\_t offset);}]
+The function \texttt{mmap()} can be used to map a number of \texttt{length} bytes from the file specified by the file descriptor \texttt{fd} into memory. The mapping starts \texttt{offset} bytes from the beginning of the file. Optionally, \texttt{addr} can be used to give the kernel a hint as to where the mapping should be placed in virtual memory, or it can be \texttt{NULL}. \texttt{prot} is a bit field specifying the memory protection of the mapping, and \texttt{flags} sets the visibility of updates to the mapping to other processes.
+\item[\texttt{int msync(void *addr, size\_t length, int flags);}] \hfill \\
+Updates to a memory mapped file might not become visible immediately. To synchronize a file with a memory map, the application should call \texttt{msync()}.
+\item[\texttt{int munmap(void *addr, size\_t length);}] \hfill \\
+After the application is done with the memory map, it may call \texttt{unmap()} to delete the mapping and release its associated resources. This will also synchronize the file with the memory map.
+\end{description}
 
 
 
