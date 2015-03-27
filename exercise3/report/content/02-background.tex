@@ -10,7 +10,7 @@ This chapter is an introduction to theory and concepts needed to understand the 
 
 \todo{Verify that this is consistent with the rest of the chapter}
 
-\section{Basic Terminology}
+\section{Basic Terminology}\label{basic-terminology}
 This section introduces some general terminology and concepts concerning operating systems and device drivers in general.
 
 \subsection{Operating Systems}
@@ -78,7 +78,7 @@ After the application is done with the memory map, it may call \texttt{unmap()} 
 
 
 \section{Writing Device Drivers for Linux}\label{writing-device-drivers-for-linux}
-This section is a brief introduction to device driver development for the Linux kernel. It begins by explaining some practical details regarding driver development, then it highlights some important parts of the Linux kernel and common programming constructs, and finally it provides a brief outline on driver design. The main focus is on drivers implemented as kernel modules. For an explanation on the terminology used in this section, see section \ref{TODO}.
+This section is a brief introduction to device driver development for the Linux kernel. It begins by explaining some practical details regarding driver development, then it highlights some important parts of the Linux kernel and common programming constructs, and finally it provides a brief outline on driver design. The main focus is on drivers implemented as kernel modules. For an explanation on the terminology used in this section, see section \ref{basic-terminology}.
 
 \todo{Verify that this is consistent with the rest of the chapter}
 
@@ -86,27 +86,29 @@ This section is a brief introduction to device driver development for the Linux 
 \subsection{Programming in the Kernel}
 Kernel modules are different from user space applications in several important ways, and there are some considerations to take into account when writing a module.
 
-As a module is a part of the kernel, it runs in privileged mode with access to all hardware. A natural consequence of this is that bugs are much more serious. A module bug can easily crash the whole system, for instance by overwriting other parts of the kernel code in memory.
+\subsubsection{Module bugs are more serious}
+As a module is a part of the kernel, it runs in privileged mode with access to all hardware. A natural consequence of this is that bugs are much more serious. A module bug can easily crash the whole system, for instance by overwriting other parts of the kernel code in memory. Or, perhaps worse, a bug might introduce a hidden security vulnerability.
 
+\subsubsection{Modules cannot link user space code}
 Again, because a module runs in privileged mode, it cannot be linked against any user space code. This includes the standard C library with all its nice functions such as \texttt{malloc()}, \texttt{strcmp()} and \texttt{printf()}. Instead, the module is linked against the kernel and has access to kernel routines.
 
-Debugging is also different: the Linux kernel cannot be debugged with any user space debugger such as the GNU Debugger. Instead, the built-in kernel debugger must be used.
+\subsubsection{Module debugging is different}
+Debugging a module is different from using ordinary software debuggers such as the GNU Debugger. The Linux kernel must be debugged with the built-in kernel debugger.
 
-It is also worth mentioning that modules are linked against the kernel, meaning that the developer must have a kernel source tree available to build it against. The process of manually downloading, configuring and building a kernel source tree involves a fair amount of work, especially for a novice module programmer.
+\subsubsection{Modules must are linked against the kernel source tree}
+Since modules are linked against the kernel, the developer must have a kernel source tree available to build it against. The process of manually downloading, configuring and building a kernel source tree involves a fair amount of work, especially for a novice module programmer.
 
 
 \subsection{Loading and Unloading Modules}
-As explained in section \ref{sec:kernel-modules}, the kernel functionality can be extended by modules loaded at runtime. The following commands can be used to load and unload modules:
-\begin{itemize}
-  \item \texttt{insmod <module>} will load a module into memory and initialize it.
-  \item \texttt{modprobe <module>} will load and initialize a module along with all its dependencies.
-  \item \texttt{rmmod <module>} will perform cleanup and unload a module.
-\end{itemize}
-The modules are in control of their own initialization and cleanup processes. This is achieved by having each module define special initialization and exit functions that will be called whenever the module is loaded and unloaded respectively, as explained in the next section.
+As explained in section \ref{sec:kernel-modules}, the kernel functionality can be extended by modules loaded at runtime. The following two commands can be used to load and unload modules:
+\begin{description}
+  \item[\texttt{modprobe <module>}] will load and initialize a module along with all its dependencies.
+  \item[\texttt{rmmod <module>}] will perform cleanup and unload a module.
+\end{description}
+The modules control their own initialization and cleanup during loading with special initialization and cleanup functions. A module must notify the kernel of these functions by using the kernel macros \texttt{module\_init()} and \texttt{module\_exit()}, as shown in section \ref{a-simple-example}.
 
-
-\subsection{A Simple Example}
-The following example program illustrates the basic structure of driver module:
+\subsection{A Simple Example}\label{a-simple-example}
+The following example program illustrates the basic structure of a driver module:
 \lstset{style=lststyle-c}
 \begin{lstlisting}
 #include<linux/init.h>
@@ -125,18 +127,14 @@ static void hello_exit(void)
 module_init(hello_init);
 module_exit(hello_exit);
 \end{lstlisting}
-This simple module uses the kernel function \texttt{printk()} to print messages when it is loaded and unloaded. Initialization and cleanup is done through the functions \texttt{hello\_init()} and \texttt{hello\_exit()} respectively. The important thing to note here is the functions \texttt{module\_init()} and \texttt{module\_exit()} at the last two lines: these are special macros that indicates to the kernel which functions to use for initialization and cleanup.
-
-The included header files are included by almost all modules. Note that they are not system headers, but headers from the kernel source tree.
-
+When this module is loaded, the initialization function uses \texttt{printk()} to print a message to the system log and any open terminals. Similarly, a message is also printed when the module is unloaded. Notice the use of \texttt{module\_init()} and \texttt{module\_exit()} at the last two lines: these are kernel macros that indicates to the kernel which functions to use for initialization and cleanup. The included header files are included by almost all modules. Note that they are not system headers, but headers from the kernel source tree.
 
 \subsection{Devices Files}
-In Unix-like operating systems, user space applications access drivers through so-called \emph{device files} or \emph{special files}. These are similar to ordinary files in that they support many standard system calls for files, including the file operations described in section \ref{sec:reading-and-writing-files}. Notably, this is often true even for those drivers that do not provide access to storage devices at all. In any case, a driver provides its interface to the user space applications by implementing the needed system calls, and the implementation of those system calls constitutes a core part of the driver.
+In Unix-like operating systems, user space applications access drivers through so-called \emph{device files} or \emph{special files}. The application must communicate with the driver through the device file by using system calls for file operations, such as those described in section \ref{sec:reading-and-writing-files}. Notably, this is true for all drivers, even though not all drivers provide access to storage devices. The driver provides an implementation of those file operations it needs to support, and this code constitutes a core part of the driver.
 
-A device file contains information to identify the driver that owns it, namely a \emph{major} and a \emph{minor revision number}.
+The device files are conventionally placed in the \texttt{/dev} directory. Each device file in this directory contains a \emph{device number} that uniquely identifies the device file and the driver that owns it, composed of a \emph{major} and a \emph{minor} revision number. Drivers often use multiple device files to provide different services. A new device file can be created manually for a driver by issuing the command \texttt{mknod /dev/<device name> c <major rev> <minor rev>}.
 
 \todo{Write about how drivers registers device nodes in /dev}
-\todo{Write about how device nodes can be created with \texttt{mknod}}
 
 
 \subsection{Implementing Driver Operations}
