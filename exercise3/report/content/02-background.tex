@@ -105,9 +105,9 @@ As explained in section \ref{sec:kernel-modules}, the kernel functionality can b
   \item[\texttt{modprobe <module>}] will load and initialize a module along with all its dependencies.
   \item[\texttt{rmmod <module>}] will perform cleanup and unload a module.
 \end{description}
-The modules control their own initialization and cleanup during loading with special initialization and cleanup functions. A module must notify the kernel of these functions by using the kernel macros \texttt{module\_init()} and \texttt{module\_exit()}, as shown in section \ref{a-simple-example}.
+The modules control their own initialization and cleanup during loading with special initialization and cleanup functions. A module must notify the kernel of these functions by using the kernel macros \texttt{module\_init()} and \texttt{module\_exit()}, as shown in section \ref{a-simple-driver}.
 
-\subsection{A Simple Example}\label{a-simple-example}
+\subsection{A Simple Driver}\label{a-simple-driver}
 The following example program illustrates the basic structure of a driver module:
 \lstset{style=lststyle-c}
 \begin{lstlisting}
@@ -129,18 +129,38 @@ module_exit(hello_exit);
 \end{lstlisting}
 When this module is loaded, the initialization function uses \texttt{printk()} to print a message to the system log and any open terminals. Similarly, a message is also printed when the module is unloaded. Notice the use of \texttt{module\_init()} and \texttt{module\_exit()} at the last two lines: these are kernel macros that indicates to the kernel which functions to use for initialization and cleanup. The included header files are included by almost all modules. Note that they are not system headers, but headers from the kernel source tree.
 
-\subsection{Devices Files}
-In Unix-like operating systems, user space applications access drivers through so-called \emph{device files} or \emph{special files}. The application must communicate with the driver through the device file by using system calls for file operations, such as those described in section \ref{sec:reading-and-writing-files}. Notably, this is true for all drivers, even though not all drivers provide access to storage devices. The driver provides an implementation of those file operations it needs to support, and this code constitutes a core part of the driver.
+\subsection{Device Files}\label{device-files}
+In Unix-like operating systems, user space applications access drivers through so-called \emph{device files} or \emph{special files}. An application communicates with a driver through one of the driver's device files by using system calls for file operations, such as those described in section \ref{sec:reading-and-writing-files}. Notably, this is true for all drivers, even though not all drivers provide access to storage devices. The driver provides its own implementation of the file operations it needs to support, and this code constitutes a core part of the driver.
 
-The device files are conventionally placed in the \texttt{/dev} directory. Each device file in this directory contains a \emph{device number} that uniquely identifies the device file and the driver that owns it, composed of a \emph{major} and a \emph{minor} revision number. Drivers often use multiple device files to provide different services. A new device file can be created manually for a driver by issuing the command \texttt{mknod /dev/<device name> c <major rev> <minor rev>}.
+\subsubsection{The \texttt{/dev} directory}
+The device files are conventionally placed in the \texttt{/dev} directory. Each device file in this directory contains a \emph{device number} that uniquely identifies the device file and the driver that owns it, composed of a \emph{major} and a \emph{minor} revision number. Drivers often use multiple device files to provide different services.
 
-\todo{Write about how drivers registers device nodes in /dev}
+\subsubsection{Allocating device numbers}
+Before any device files can be created for a driver, the driver needs to obtain a range of device numbers. The recommended approach here is to request dynamically allocated device numbers from the kernel with the following function:
+\begin{verbatim}
+  int alloc_chrdev_region(dev_t *dev, unsigned int firstminor,
+          unsigned int count, char *name);
+\end{verbatim}
+If successful, this will return a range of major-minor device numbers in the memory pointed to by \texttt{dev\_t}. The parameter \texttt{firstminor} specifies the first minor device number, \texttt{count} is the total number of minor device numbers, and \texttt{name} is the name of the device. The device numbers are freed with:
+\begin{verbatim}
+  void unregister_chrdev_region(dev_t first, unsigned int count);
+\end{verbatim}
 
+\subsubsection{Creating device files}
+After device numbers have been allocated, a device file can be created manually by issuing the command:
+\lstset{style=lststyle-terminal}
+\begin{lstlisting}
+mknod /dev/<device name> c <major rev> <minor rev>
+\end{lstlisting}
+Here \texttt{<major rev>} and \texttt{<minor rev>} should correspond to a pair of major and minor revision numbers owned by the driver.
 
-\subsection{Implementing Driver Operations}
-We just explained that drivers are accessed through file operations that they define on a device file. This naturally begs the question of how those file operations are actually defined. In order to understand this, we need to look into how operations on files work in general for ordinary and special files alike.
+\todo{Check if also <device name> needs to correspond with the name of the driver} 
 
-The kernel uses the structure \texttt{struct file} from the kernel header \texttt{<linux/fs.h>} to manage open files. Some important fields of this structure are listed here:
+\subsection{File Operations on a Device File}
+Having explained in section \ref{device-files} that drivers are accessed through file operations that they define on a device file, we shall now look closer at how those file operations are actually defined, introducing the structures \texttt{file} and \texttt{file\_operations}.
+
+\subsubsection{File management in the kernel}
+To manage an open file, the kernel uses the structure \texttt{struct file} from the kernel header \texttt{<linux/fs.h>}. Some important fields of this structure are listed here:
 \begin{description}
   \item[\texttt{mode\_t f\_mode;}] \hfill \\
     \texttt{f\_mode} is a bit field that stores the access mode of the file in the two bits \texttt{FMODE\_READ} and \texttt{FMODE\_WRITE}.
@@ -151,7 +171,7 @@ The kernel uses the structure \texttt{struct file} from the kernel header \textt
   \item[\texttt{struct file\_operations *f\_op;}] \hfill \\
     \texttt{f\_op} points to a structure containing file operations to be used with the file.
 \end{description}
-The reader might be familiar with several of these file attributes. What is important, though, is the file operation structure associated with a file, \texttt{f\_op}. It is this structure that a driver uses to define the file operations of the device file. Below is a description of some fields in the structure \texttt{struct file\_operations}:
+The important thing here is the \texttt{file\_operations} structure associated with files through the pointer \texttt{f\_op}. The \texttt{file\_operations} structure contains pointers to the file operations of a file, and is mainly where special files differ from ordinary files: in a special file, the \texttt{f\_op} pointer will point to a \texttt{file\_operations} structure defined by the driver. Some of the important fields of the \texttt{struct file\_operations} structure is listed below:
 \begin{description}
   \item[\texttt{int (*open) (struct inode *, struct file *);}] \hfill \\
     Pointer to a function that is called whenever \texttt{open()} is called on the file.
@@ -162,7 +182,17 @@ The reader might be familiar with several of these file attributes. What is impo
   \item[\texttt{loff\_t (*llseek) (struct file *, loff\_t, int);}] \hfill \\
     Pointer to a function that is called whenever \texttt{lseek()} is called on the file.
 \end{description}
-This structure reveals that drivers implement file operations on special files by providing a function pointer for each operation. These function pointers will likely point to internal driver functions.
+These correspond to the file operations described in section \ref{sec:reading-and-writing-files}. 
+It is by initializing the function pointers in this structure that a driver makes functionality available to user space applications.
+
+\subsubsection{The \texttt{inode} structure}
+As shown above, the function pointers in the \texttt{file\_operations} structure identify files using a \texttt{struct inode}. The \texttt{inode} plays a different role than the \texttt{file} structure: while the \texttt{file} structure stores information about an open file, the \texttt{inode} structure stores information about a file that is common among all its open instances. For a device file, it will also contain the following two important fields:
+\begin{description}
+  \item[\texttt{dev\_t i\_rdev;}] \hfill \\
+    The device number.
+  \item[\texttt{struct cdev *i\_cdev;}] \hfill \\
+    A pointer to a structure the kernel uses to manage character devices.
+\end{description}
 
 \todo{Write about how drivers register facilities and file operation structures}
 
