@@ -3,6 +3,10 @@
 \newcommand{\mygroupnumber}{24}
 \newcommand{\myauthor}{Peter Aaser\\Audun Sutterud\\Jonatan Lund}
 
+\title{\mytitle}
+\author{\myauthor}
+\date{\today}
+
 % Defining styles for code listing environments
 \usepackage{color}
 \definecolor{mybgcolor}{rgb}{0.9, 0.9, 0.9}
@@ -38,6 +42,5 @@
     captionpos=b,           % place captions below listing
 }
 
-\title{\mytitle}
-\author{\myauthor}
-\date{\today}
+% Command to place a red TODO in the output pdf
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
