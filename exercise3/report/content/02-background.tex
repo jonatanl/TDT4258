@@ -6,16 +6,20 @@
 % citations to show sources whenever appropriate, LaTeX and bibliography
 % managers make this easy.
 
-% TODO: Write an introduction to ptxdist usage
+This chapter is an introduction to theory and concepts needed to understand the rest of the report. It begins with a section explaining operating systems terminology and a section introducing the Linux operating systems and important system calls. Then it continues in the next section with a study of driver programming in Linux, and ends with an introduction of the PTXdist build system.
+% TODO: Verify that this is consistent with the rest of the chapter
 
+\section{Basic Terminology}
+This section introduces some general terminology and concepts concerning operating systems and device drivers in general.
 
-\section{Operating Systems}
+\subsection{Operating Systems}
 An operating system is a special piece of software that provides two important functions in a computer:
 \begin{itemize}
   \item Managing the hardware resources.
   \item Providing a useful hardware abstraction layer for application programmers.
 \end{itemize}
-The core of the operating system is called the \emph{kernel} and runs in a privileged software mode that gives the kernel complete access to all hardware resources. The code running outside the kernel is often referred to as the \emph{user space} or the \emph{userland}, and has only restricted access to hardware. Because of this organization, all hardware-related activities necessary to run the operating system is performed by the kernel, and the user space programs only access hardware through \emph{system calls} in the kernel.\cite{modern-operating-systems}
+The core of the operating system is called the \emph{kernel} and runs in a privileged software that gives the kernel complete access to all hardware resources. The code running outside the kernel is often referred to as the \emph{user space} or the \emph{userland}, and has only restricted access to hardware. Because of this organization, all hardware-related activities necessary to run the operating system and execute programs is performed by the kernel, and the user space programs only access hardware through the kernel by special \emph{system calls}.
+\cite{modern-operating-systems}
 
 \subsection{Device Drivers}
 To more easily manage hardware devices with different characteristics, the kernel contains \emph{device drivers}. A device driver is a program that manages low-level hardware access to a particular device, providing a clean interface for the rest of the kernel programs.
