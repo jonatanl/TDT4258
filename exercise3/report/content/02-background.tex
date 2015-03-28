@@ -87,7 +87,7 @@ This section is a brief introduction to device driver development for the Linux 
 Kernel modules are different from user space applications in several important ways, and there are some considerations to take into account when writing a module.
 
 \subsubsection{Module bugs are more serious}
-As a module is a part of the kernel, it runs in privileged mode with access to all hardware. A natural consequence of this is that bugs are much more serious. A module bug can easily crash the whole system, for instance by overwriting other parts of the kernel code in memory. Or, perhaps worse, a bug might introduce a hidden security vulnerability.
+As a module is a part of the kernel, it runs in privileged mode with access to all hardware. A natural consequence of this is that bugs are much more serious. A module bug can easily crash the whole system, for instance by overwriting other parts of the kernel code in memory. Or, perhaps worse, a bug might introduce a security hole.
 
 \subsubsection{Modules cannot link user space code}
 Again, because a module runs in privileged mode, it cannot be linked against any user space code. This includes the standard C library with all its nice functions such as \texttt{malloc()}, \texttt{strcmp()} and \texttt{printf()}. Instead, the module is linked against the kernel and has access to kernel routines.
@@ -154,12 +154,12 @@ A device file can be created by the device driver itself at runtime. First the d
   struct class* __class_create (struct module *owner, const char *name,
             struct lock_class_key *key);
 \end{verbatim}
-This will return a pointer to a newly created \texttt{struct class} needed in the next function call. Here \texttt{owner} is the module that owns the device file, and \texttt{name} is the name of the class. The next function creates the device file:
+This will return a pointer to a newly created \texttt{struct class} needed in the next function call. Here \texttt{owner} is the module that owns the device file, and \texttt{name} is the name of the class. The parameter \texttt{key} is not needed for simple use, and can be passed as \texttt{NULL}. The next function creates the device file:
 \begin{verbatim}
   struct device* device_create ( struct class *class, struct device *parent,
             dev_t dev, void *drvdata, const char *name, ...);
 \end{verbatim}
-This will return a pointer to a \texttt{device} structure associated with the newly created device file. Here \texttt{class} is a pointer to the class returned by \texttt{\_\_class\_create()}, and \texttt{dev} is the device numbers of the module. The file name of the device file is \texttt{name}, and can be chosen freely. For simple use, \texttt{NULL} can be passed the parameters \texttt{parent} and \texttt{drvdata}, and the variable arguments can be omitted. When a driver is finished using the \texttt{class} and \texttt{device} structures, it should destroy them with \texttt{class\_destroy} and \texttt{device\_destroy} respectively.
+This will return a pointer to a \texttt{device} structure associated with the newly created device file. Here \texttt{class} is a pointer to the class returned by \texttt{\_\_class\_create()}, and \texttt{dev} is the device numbers of the module. The file name of the device file is \texttt{name}, and can be chosen freely. For simple use, \texttt{NULL} can be passed the parameters \texttt{parent} and \texttt{drvdata}, and the variable arguments can be omitted. When a driver is finished using the \texttt{class} and \texttt{device} structures, it should destroy them with \texttt{class\_destroy()} and \texttt{device\_destroy()} respectively.
 
 In addition to creating device files at runtime, it is also possible to create the device file manually by issuing the command:
 \lstset{style=lststyle-terminal}
@@ -198,15 +198,13 @@ These correspond to the file operations described in section \ref{sec:reading-an
 It is by initializing the function pointers in this structure that a driver makes functionality available to user space applications.
 
 \subsubsection{The \texttt{inode} structure}
-As shown above, the function pointers in the \texttt{file\_operations} structure identify files using a \texttt{struct inode}. The \texttt{inode} plays a different role than the \texttt{file} structure: while the \texttt{file} structure stores information about an open file, the \texttt{inode} structure stores information about a file that is common among all its open instances. For a device file, it will also contain the following two important fields:
+The function pointer to \texttt{open()} in the \texttt{file\_operations} structure identify a file using a \texttt{struct inode}. The \texttt{inode} plays a different role than the \texttt{file} structure: while the \texttt{file} structure stores information about an open file, the \texttt{inode} structure stores information about a file stored on the disk. For a device file, it will contain the following two important fields:
 \begin{description}
   \item[\texttt{dev\_t i\_rdev;}] \hfill \\
     The device number.
   \item[\texttt{struct cdev *i\_cdev;}] \hfill \\
     A pointer to a structure the kernel uses to manage character devices.
 \end{description}
-
-\todo{Write about how drivers register facilities and file operation structures}
 
 
 \subsection{Handling Concurrency}
