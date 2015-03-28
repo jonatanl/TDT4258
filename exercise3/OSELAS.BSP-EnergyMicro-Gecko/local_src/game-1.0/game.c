@@ -11,7 +11,7 @@
 
 #include <stdint.h>    // uint16_t
 
-#define DEVICE_PATH "/dev/gamepad0"
+#define DEVICE_PATH "/dev/driver-gamepad"
 
 static int error; // Error variable
 
