@@ -147,14 +147,26 @@ If successful, this will return a range of major-minor device numbers in the mem
 \end{verbatim}
 
 \subsubsection{Creating device files}
-After device numbers have been allocated, a device file can be created manually by issuing the command:
+After device numbers have been allocated, a device file needs to be created to make the device file visible to user space applications.
+
+A device file can be created by the device driver itself at runtime. First the driver needs to call the function:
+\begin{verbatim}
+  struct class* __class_create (struct module *owner, const char *name,
+            struct lock_class_key *key);
+\end{verbatim}
+This will return a pointer to a newly created \texttt{struct class} needed in the next function call. Here \texttt{owner} is the module that owns the device file, and \texttt{name} is the name of the class. The next function creates the device file:
+\begin{verbatim}
+  struct device* device_create ( struct class *class, struct device *parent,
+            dev_t dev, void *drvdata, const char *name, ...);
+\end{verbatim}
+This will return a pointer to a \texttt{device} structure associated with the newly created device file. Here \texttt{class} is a pointer to the class returned by \texttt{\_\_class\_create()}, and \texttt{dev} is the device numbers of the module. The file name of the device file is \texttt{name}, and can be chosen freely. For simple use, \texttt{NULL} can be passed the parameters \texttt{parent} and \texttt{drvdata}, and the variable arguments can be omitted. When a driver is finished using the \texttt{class} and \texttt{device} structures, it should destroy them with \texttt{class\_destroy} and \texttt{device\_destroy} respectively.
+
+In addition to creating device files at runtime, it is also possible to create the device file manually by issuing the command:
 \lstset{style=lststyle-terminal}
 \begin{lstlisting}
 mknod /dev/<device name> c <major rev> <minor rev>
 \end{lstlisting}
-Here \texttt{<major rev>} and \texttt{<minor rev>} should correspond to a pair of major and minor revision numbers owned by the driver.
-
-\todo{Check if also <device name> needs to correspond with the name of the driver} 
+Here \texttt{<major rev>} and \texttt{<minor rev>} should correspond to a pair of major and minor revision numbers owned by the driver. The major revision number can be read from \texttt{/proc/devices}, and the minor revision number can usually be inferred.
 
 \subsection{File Operations on a Device File}
 Having explained in section \ref{device-files} that drivers are accessed through file operations that they define on a device file, we shall now look closer at how those file operations are actually defined, introducing the structures \texttt{file} and \texttt{file\_operations}.
