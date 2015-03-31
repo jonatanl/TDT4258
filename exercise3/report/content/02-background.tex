@@ -6,7 +6,7 @@
 % citations to show sources whenever appropriate, LaTeX and bibliography
 % managers make this easy.
 
-This chapter is an introduction to theory and concepts needed to understand the rest of the report. It begins with a section explaining operating systems terminology and a section introducing the Linux operating systems and important system calls. Then it continues in the next section with a study of driver programming in Linux, and ends with an introduction of the PTXdist build system.
+This chapter is an introduction to theory and concepts needed to understand the rest of the report. It begins with a section explaining operating systems terminology and a section introducing the Linux operating systems and important system calls. Then it continues with a section on driver programming in Linux. The next section introduces some relevant hardware of the EFM32GG-DK3750 prototyping board, and the final section provides an overview of the PTXdist build system.
 
 \todo{Verify that this is consistent with the rest of the chapter}
 
@@ -43,6 +43,9 @@ The bootloader is a small program that runs before the operating system starts, 
 
 \section{Linux}
 \todo{Needs an introduction}
+
+\subsection{The Framebuffer}\label{sec:the-framebuffer}
+\todo{Write about the framebuffer device /dev/fb}
 
 \subsection{System calls}
 \todo{Needs an introduction}
@@ -146,7 +149,7 @@ If successful, this will return a range of major-minor device numbers in the mem
   void unregister_chrdev_region(dev_t first, unsigned int count);
 \end{verbatim}
 
-\subsubsection{Creating device files}
+\subsubsection{Creating device files}\label{sec:creating-device-files}
 After device numbers have been allocated, a device file needs to be created to make the device file visible to user space applications.
 
 A device file can be created by the device driver itself at runtime. First the driver needs to call the function:
@@ -224,6 +227,15 @@ When a driver registers a facility during initialization, there is no guarantee 
 \subsection{Mechanism versus Policy}
 \todo{Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1}
 
+
+\section{Overview of EFM32GG-DK3750}
+The target platform used in the exercise was an EFM32GG-DK3750, from here on referenced as EFM32GG, running the uClinux operating system. This section introduces those parts of the hardware that we needed to access directly when writing drivers.
+
+\subsection{General-Purpose Input/Output pins}
+The General-Purpose Input/Output (GPIO) pins makes it easy to connect peripherals to the EFM32GG. The pins are organized into ports of 16 pins each, numbered from A to F. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
+
+\subsubsection{Accessing GPIO pins}
+To access the GPIO pins with the gamepad driver, we needed to use a technique called 
 
 
 \section{PTXdist}\label{sec:ptxdist}

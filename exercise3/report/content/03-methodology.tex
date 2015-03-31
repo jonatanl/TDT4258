@@ -6,13 +6,13 @@
 % \ref{fig:universe}) and charts you add in the text. Avoid putting lots of
 % source code here -- small code snippets are fine if you want to discuss
 % something specific.
-This chapter explains the complete process that lead to our final product, and the details of the implementation. It begins by explaining the development setup we used, and then goes through the major steps of the process. The exercise compendium recommended to complete the exercise sequentially in three parts:
+This chapter explains the complete process that lead to our final product, and the details of the implementation. It begins by explaining the development setup we used, and then goes through the process step by step. The exercise compendium recommended to complete the exercise sequentially in three parts:
 \begin{enumerate}
   \item Part 1: Linux Build and Warm-Up
   \item Part 2: The Driver
   \item Part 3: The Game
 \end{enumerate}
-We followed this approach closely, and an individual section is dedicated to each part.
+We tried to follow this approach closely. This chapter dedicates an individual section to each part.
 
 
 \section{Development Setup}
@@ -29,7 +29,7 @@ Initially we used a computer with limited processing resources for development, 
 A possible third option was to use the lab computers with PTXdist and cross toolchain already installed. This option was regarded as a fall-back solution in case of technical difficulties.
 
 \subsection{Serial Terminal Emulator}\label{sec:serial-terminal-emulator}
-In order to access the running operating system, we connected a laptop running a serial terminal emulator to the serial port of the EFM32GG. The program used for terminal emulation was \emph{minicom}, an open source communication program available for most Unix and Unix-like operating systems.\cite{minicom-man-page} The compendium instructions was followed to set the following parameters for the serial port:
+In order to access the running operating system, we connected a laptop running a serial terminal emulator to the serial port of the EFM32GG. The program used for terminal emulation was \emph{minicom}, an open source communication program available for most Unix and Unix-like operating systems.\cite{minicom-man-page} According to the compendium, the serial port was configured with the following parameters:
 \begin{itemize}
   \item Baud rate: 115200 bps
   \item Data bits: 8
@@ -39,18 +39,19 @@ In order to access the running operating system, we connected a laptop running a
 \end{itemize}
 
 \subsection{Git Version Control}
-To manage different code revisions, we used the Git version control system. The free hosting service GitHub was used to host a Git repository at \url{https://github.com/jonatanl/TDT4258}, and the branch ``master'' was used for code development.
+To manage different code revisions, we used the Git version control system. The free hosting service GitHub was used to host a Git repository at \url{https://github.com/jonatanl/TDT4258}. During exercise 3, code was developed on the branch ``master'', and the report was written on branch ``report3''.
 
 
 \section{Part 1: Linux Build and Warm-Up}
-When solving the exercise, we started out by doing preliminary warm-up steps recommended by the compendium: building the uClinux operating system, and creating a simple application that used the framebuffer device \texttt{/dev/fb0}. The purpose of these steps was to familiarize with the development workflow and driver interfacing in Linux.
+When solving the exercise, we started out by doing the preliminary warm-up steps recommended by the compendium: building the uClinux operating system, and creating a simple application that used the framebuffer device \texttt{/dev/fb0}. The purpose of these steps was to familiarize with the development workflow and driver interfacing in Linux.
 
 \subsection{Building uClinux}
 We used PTXdist to build uClinux by executing the commands \texttt{ptxdist images} and \texttt{ptxdist test flash-all} in the top-level project directory. A large amount of sources were downloaded and compiled, and the whole process took about fifteen minutes. PTXdist and its build process is described in section \ref{sec:ptxdist}. After the board was restarted, Tux appeared on the display showing that uClinux was running.
 
+\subsection{Communicating with uClinux}
 In order to communicate with the operating system, we configured the serial terminal emulator \emph{minicom} as described in section \ref{sec:serial-terminal-emulator}. This gave us access to a shell where we could execute commands. The output of executing the unmodified game application is shown in listing \ref{lst:initial-shell-commands1}.
 \lstset{style=lststyle-terminal}
-\begin{lstlisting}[caption=Executing the unmodified game,label=lst:initial-shell-commands1]
+\begin{lstlisting}[caption=The original game application,label=lst:initial-shell-commands1]
 OSELAS(R)-Gecko-2012.10.0+ / energymicro-efm32gg-dk3750-2012.10.0+
 ptxdist-2013.07.1/2015-03-16T15:23:07+0100
 
@@ -58,43 +59,50 @@ ptxdist-2013.07.1/2015-03-16T15:23:07+0100
 Hello World, I'm game!
 \end{lstlisting}
 
-To test that we were also able to make changes to the code, we made a small modification to the game application by changing the \texttt{printf()} function arguments in \texttt{game.c}. After rerunning the necessary ptxdist actions, we observed the expected changes in the output of the \texttt{game} command:
+To further verify that our code was actually compiling, we made a small modification to the game application by changing the \texttt{printf()} function arguments in \texttt{game.c}. After rerunning the necessary ptxdist actions, the output of the \texttt{game} command had indeed changed:
 \lstset{style=lststyle-terminal}
-\begin{lstlisting}[caption=Executing a slightly modified game,label=lst:initial-shell-commands2]
+\begin{lstlisting}[caption=A modified game application,label=lst:initial-shell-commands2]
 / # game
 Hello World, I'm also game!
 \end{lstlisting}
-Notably, in order for \texttt{ptxdist compile game} to actually compile the modified sources of the game, we first had to run one of the commands \texttt{ptxdist clean game} and \texttt{ptxdist drop game compile}.
+Notably, in order for \texttt{ptxdist compile game} to actually compile the modified sources of the game, we first had to run the command \texttt{ptxdist clean game}.
 
 \subsection{Creating a framebuffer application}
-Our next step was to write a simple application accessing the framebuffer device. To write data to the framebuffer, we used the Linux system calls \texttt{open()}, \texttt{write()}, and \texttt{close()} described in section \ref{sec:reading-and-writing-files}.
+Our next step was to write a simple application accessing the framebuffer device described in section \ref{sec:the-framebuffer}.
 
-\todo{Uncompleted}
+\subsubsection{Accessing the framebuffer as a file}
+Initially we used the Linux system calls \texttt{open()}, \texttt{write()}, and \texttt{close()} described in section \ref{sec:reading-and-writing-files} to write data to the framebuffer. The application would fill an array with \texttt{uint16\_t} values corresponding to yellow pixels, and then write those values to the framebuffer. The array was large enough that half the screen was drawn yellow, making Tux disappear. A small artifact was observed at the left edge of the screen area. An image of the screen is shown in figure \ref{fig:TODO}.
 
-\subsubsection{Accessing the driver as a file}
-\todo{Uncompleted}
+\todo{Add picture of screen artifact}
 
-\subsubsection{Accessing the driver with a memory map}
-\todo{Uncompleted}
+\subsubsection{Accessing the framebuffer with a memory map}
+The compendium recommended to access the framebuffer through a memory mapping. This was achieved with the function \texttt{mmap()} described in section \ref{sec:mapping-files-to-memory}. Mapping the framebuffer to memory allowed us to access the framebuffer as an array of pixels. To demonstrate the increased freedom, the application colored every other pixel yellow, partly obscuring Tux behind a yellow haze.
 
 
 \section{Part 2: The Driver}
-Having completed the first part of the exercise, it was time to write the gamepad driver. This section relies on the theory introduced in section \ref{writing-device-drivers-for-linux}.
+Having completed the first part of the exercise, it was time to write the gamepad driver. Before continuing, the reader might consider reviewing section \ref{writing-device-drivers-for-linux}, as it introduces theory fundamental to this section.
 
 \subsection{Registering a Character Device}
-Following the procedure described in the compendium and in \cite{linux-device-drivers}, we wrote a simple driver that requested dynamically allocated device numbers and registered a character device in the kernel on initialization. On exit, the driver would remove the character device from the kernel and then deallocate the device numbers.
+Following steps described in the compendium and in \cite{linux-device-drivers}, we wrote a simple driver that requested dynamically allocated device numbers and registered a character device in the kernel on initialization. On exit, the driver would remove the character device from the kernel and then deallocate the device numbers.
 
-To pick up any errors, we checked all relevant error codes, using \texttt{printk()} to print out all nonzero codes. To verify our implementation, we checked the devices in \texttt{/proc/devices} before and after using \texttt{modprobe} and \texttt{rmmod}: the driver would appear with major device number 253 after calling \texttt{modprobe}, and disappear again after calling \texttt{rmmod}.
+To pick up any errors, we checked for relevant errors by using \texttt{printk()} to print out any nonzero error codes. To verify our implementation, we checked the devices in \texttt{/proc/devices} before and after using \texttt{modprobe} and \texttt{rmmod}: the driver would appear with major device number 253 after running \texttt{modprobe}, and disappear again after calling \texttt{rmmod}.
 
 \subsection{Accessing the Driver}
-The next step was to access the driver through the functions in the \texttt{file\_operations} structure. We added a \texttt{printk()} to each of the functions \texttt{open()} and \texttt{close()}, and we rewrote the game application so that it would try to open and close the file \texttt{/dev/gamepad0}. After having rebooted the operating system, started the new driver, and created a driver device file with the command \texttt{mknod /dev/gamepad0 c 253 0}. Then we executed the game application, and we were indeed able to see that the driver functions were being called.
+The next step was to access the driver through the functions in the \texttt{file\_operations} structure. We added a \texttt{printk()} statement to each of the functions \texttt{open()} and \texttt{close()} that would output the name of the function, and rewrote the game application so that it would try to open and close the file \texttt{/dev/gamepad0}. Then we rebooted the operating system, loaded the new driver and created a driver device file manually with the command \texttt{mknod /dev/gamepad0 c 253 0}. Running the game application produced the expected output:
+\lstset{style=lststyle-terminal}
+\begin{lstlisting}[caption=Accessing the driver,label=lst:accessing-the-driver]
+/ # game
+Trying to open the gamepad at /dev/gamepad0 ...
+[   99.810000] my_open()
+Trying to close the gamepad ...
+[   99.820000] my_release()
+\end{lstlisting}
 
-\todo{Add command output here (see comment below in the .tex document)}
-% / # game
-% Trying to open the gamepad at /dev/gamepad0 ...
-% [   99.810000] my_open()
-% Trying to close the gamepad ...
-% [   99.820000] my_release()
+\subsection{Creating the Device File Automatically}
+So that we would not have to create the device file manually each time testing the driver, we rewrote the driver so that it would create the device file ``driver-gamepad'' on initialization, as described in section \ref{sec:creating-device-files}.
+
+\subsection{Using the GPIO ports}
+\todo{Write about the first implementation where the driver utilizes the GPIO ports}
 
 
 \section{Testing}
