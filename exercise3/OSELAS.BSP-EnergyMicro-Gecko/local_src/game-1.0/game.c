@@ -7,9 +7,10 @@
 
 #include <unistd.h>    // open()
 
-#include <errno.h>     // errno macro
+#include <errno.h>     // errno
 
 #include <stdint.h>    // uint16_t
+#include <unistd.h>    // pread()
 
 #define DEVICE_PATH "/dev/driver-gamepad"
 
@@ -23,6 +24,21 @@ int main(int argc, char *argv[])
   int devfd = open(DEVICE_PATH, O_RDWR);
   if(devfd == -1)
     printf("Error opening file: %d\n", errno);
+
+  // Read from device
+  printf("Waiting for button input ... (Press Button 8 to exit)\n");
+  int value = 0;
+  int prev_value = 0;
+  while(1){
+    read(devfd, (void*)&value, sizeof(uint8_t));
+    if(value != prev_value){
+      printf("GPIO_PC_DIN: %d\n", value);
+      prev_value = value;
+      if(value >= 128){
+        break;
+      }
+    }
+  }
 
   // Close framebuffer file
   printf("Trying to close the gamepad ...\n");
