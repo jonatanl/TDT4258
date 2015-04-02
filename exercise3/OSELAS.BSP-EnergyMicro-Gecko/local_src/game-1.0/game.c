@@ -12,7 +12,7 @@
 #include <stdint.h>    // uint16_t
 #include <unistd.h>    // pread()
 
-#define DEVICE_PATH "/dev/driver-gamepad"
+#define DEVICE_PATH "/dev/driver-gamepad0"
 
 static int error; // Error variable
 

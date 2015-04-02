@@ -10,7 +10,8 @@
 #include <asm-generic/uaccess.h>  // ioread32
 
 
-#define DEVICE_NAME "driver-gamepad"
+#define DRIVER_NAME "driver-gamepad"
+#define DEVICE_NAME "driver-gamepad0"
 
 
 
@@ -30,12 +31,10 @@
 #define GPIO_PC_PINLOCKN ((void*)(GPIO_PC_BASE + 0x20))
 
 
-
 // necessary function prototypes
 static int gamepad_open(struct inode *inode, struct file *filp);
 static int gamepad_release(struct inode *inode, struct file *filp);
 static ssize_t gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp);
-
 
 
 // the first device number
@@ -64,7 +63,6 @@ void *gpio_ptr;
 static int err;
 
 
-
 // Prints an error code together with a custom message
 //
 // TODO: Print the name of the corresponding error
@@ -73,13 +71,6 @@ static void print_error(int err, const char* message)
   printk(KERN_ALERT "%s: %d\n", message, err);
 } 
 
-// Prints an error pointer together with a custom message
-//
-// TODO: Print a name corresponding to the error instead of using cast
-static void print_error_ptr(void *err_ptr, const char* message)
-{
-  printk(KERN_ALERT "%s: %d\n", message, (int)err_ptr);
-} 
 
 // Called when a user process calls read()
 static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp)
@@ -110,34 +101,48 @@ static int gamepad_release(struct inode *inode, struct file *filp)
 
 static int setup_gpio(void)
 {
+  printk("Setting up GPIO:\n");
+
   // Allocate GPIO memory region for Port C
+  printk("allocating GPIO memory ...\n");
   gpio_region = request_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH, DEVICE_NAME);
   if(gpio_region == NULL){
-    print_error_ptr(NULL, "Error allocating GPIO memory region");
-    return -1;
+    print_error(PTR_ERR(gpio_region), "Error allocating GPIO memory region");
+    return -1; // TODO: Handle error
   }
 
   // Map GPIO memory region into virtual memory space
+  printk("mapping GPIO memory into virtual memory space ...\n");
   gpio_ptr = ioremap_nocache(GPIO_PC_BASE, GPIO_PC_LENGTH);
 
-  // Set pins 0-7 to input
-  iowrite32(0x33333333, GPIO_PC_MODEL);
+  // Set up GPIO registers
+  printk("setting up GPIO registers ...\n");
+  iowrite32(0x33333333, GPIO_PC_MODEL); // Set pins 0-7 to input
+  iowrite32(0xff, GPIO_PC_DOUT); // Enable pull-up
 
-  // Enable pull-up
-  iowrite32(0xff, GPIO_PC_DOUT);
+  printk("OK: No errors setting up GPIO.\n");
+  return 0;
 }
 
-static void teardown_gpio(void)
+static void cleanup_gpio(void)
 {
-  // Reset register values
+  printk("Cleaning up the GPIO:\n");
+
+  // Reset GPIO registers
+  printk("resetting GPIO registers ...\n");
   iowrite32(0x00000000, GPIO_PC_MODEL);
   iowrite32(0x00000000, GPIO_PC_DOUT);
 
   // Unmap GPIO memory region
+  printk("unmapping GPIO memory ...\n");
   iounmap((void*)GPIO_PC_BASE);
 
   // Deallocate GPIO memory region
+  printk("deallocating GPIO memory ...\n");
   release_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH);
+
+  printk("OK: No errors during GPIO cleanup.\n");
+  return;
 }
 
 
@@ -146,48 +151,50 @@ static void teardown_gpio(void)
 // Returns 0 if successfull, otherwise -1
 static int __init gamepad_init(void)
 {
+  printk("Initializing the module:\n");
+
   setup_gpio();
 
   // Allocate device numbers
-  printk("Allocating device numbers ...\n");
+  printk("allocating device numbers ...\n");
   err = alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME);
   if(err){
     print_error(err, "Error allocating device numbers");
     return -1; // TODO: Handle error
   }
-  printk("Allocated device numbers from (%d,%d).\n", MAJOR(dev), MINOR(dev));
 
   // Set up a character device
-  printk("Setting up a character device ...\n");
+  printk("setting up character device ...\n");
   cdev_init(&my_cdev, &my_fops);
   err = cdev_add(&my_cdev, dev, 1);
   if(err){
     print_error(err, "Error adding char device to the kernel");
     return -1; // TODO: Handle error
   }
-  printk("No error setting up a character device.\n");
 
   // Create a device file
-  printk("Create a device file...\n");
+  printk("creating device file...\n");
   my_class = class_create(THIS_MODULE, DEVICE_NAME);
   if(IS_ERR(my_class)){
-    print_error_ptr(my_class, "Error creating class structure for device file");
+    print_error(PTR_ERR(my_class), "Error creating class structure for device file");
     return -1; // TODO: Handle error
   }
   my_device = device_create(my_class, NULL, dev, NULL, DEVICE_NAME);
   if(IS_ERR(my_device)){
-    print_error_ptr(my_device, "Error creating device structure for device file");
+    print_error(PTR_ERR(my_device), "Error creating device structure for device file");
     return -1; // TODO: Handle error
   }
-  printk("No error creating device file.\n");
 
-  printk("Done setting up the module resources.\n");
+  // Print OK and return
+  printk("OK: No errors during module initialization.\n");
 	return 0;
 }
 
 // Perform cleanup and remove the gamepad module from kernel space
 static void __exit gamepad_exit(void)
 {
+  printk("Cleaning up the module:\n");
+
   // Destroy structures used to create the device file
 	printk("Destroying structures used to create device file ...\n");
   device_destroy(my_class, dev);
@@ -201,18 +208,16 @@ static void __exit gamepad_exit(void)
 	printk("Deallocating device numbers ...\n");
   unregister_chrdev_region(dev, 1);
 
-  teardown_gpio();
+  cleanup_gpio();
 
-  printk("Done cleaning up the module resources.\n");
+  printk("OK: No errors during module cleanup.\n");
   return;
 }
-
 
 
 // Tell kernel about init and exit functions
 module_init(gamepad_init);
 module_exit(gamepad_exit);
-
 
 
 // Module metadata
