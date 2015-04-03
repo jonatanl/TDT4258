@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   int value = 0;
   int prev_value = 0;
   while(1){
-    read(devfd, (void*)&value, sizeof(uint8_t));
+    pread(devfd, (void*)&value, sizeof(uint8_t), (off_t)0);
     if(value != prev_value){
       printf("GPIO_PC_DIN: %d\n", value);
       prev_value = value;

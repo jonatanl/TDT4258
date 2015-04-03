@@ -13,6 +13,7 @@
 #define DRIVER_NAME "driver-gamepad"
 #define DEVICE_NAME "driver-gamepad0"
 
+#define DEVICE_LENGTH 1 // Length of the device in bytes
 
 
 // GPIO memory region, port C
@@ -35,6 +36,7 @@
 static int gamepad_open(struct inode *inode, struct file *filp);
 static int gamepad_release(struct inode *inode, struct file *filp);
 static ssize_t gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp);
+static loff_t gamepad_llseek(struct file *filp, loff_t offp, int whence);
 
 
 // the first device number
@@ -49,6 +51,7 @@ static struct file_operations my_fops = {
   .open = gamepad_open,
   .release = gamepad_release,
   .read = gamepad_read,
+  .llseek = gamepad_llseek,
 };
 
 // class and device structure used when creating device structure
@@ -75,10 +78,18 @@ static void print_error(int err, const char* message)
 // Called when a user process calls read()
 static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp)
 {
-  // Copy the first byte of GPIO_PC_DIN into the user buffer
-  uint8_t value = ioread32(GPIO_PC_DIN) ^ 0xff;
-  copy_to_user((void*)buff, (void*)&value, 1);
-  return 1;
+  if(*offp < DEVICE_LENGTH){
+
+    // copy the first byte of GPIO_PC_DIN into the user buffer
+    uint8_t value = ioread32(GPIO_PC_DIN) ^ 0xff;
+    copy_to_user((void*)buff, (void*)&value, 1);
+    (*offp)++;
+    return 1;
+  }else{
+
+    // file offset beyond EOF
+    return 0;
+  }
 } 
 
 // Called when a user process calls open()
@@ -97,6 +108,36 @@ static int gamepad_release(struct inode *inode, struct file *filp)
 
   // TODO
   return 0;
+}
+
+// Called when the last user process calls lseek()
+static loff_t gamepad_llseek(struct file *filp, loff_t offp, int whence)
+{
+  // calculate new offset
+  loff_t newpos;
+  switch(whence)
+  {
+    case SEEK_SET:
+      newpos = offp;
+      break;
+
+    case SEEK_CUR:
+      newpos = filp->f_pos + offp;
+      break;
+      
+    case SEEK_END:
+      newpos = DEVICE_LENGTH + offp;
+      break;
+    
+    default: // invalid whence
+      return EINVAL;
+  }
+
+  if(newpos < 0) {
+    return EINVAL;
+  }
+  filp->f_pos = newpos;
+  return newpos;
 }
 
 static int setup_gpio(void)
