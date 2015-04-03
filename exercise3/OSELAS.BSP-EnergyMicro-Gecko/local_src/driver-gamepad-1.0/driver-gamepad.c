@@ -75,6 +75,12 @@ static void print_error(int err, const char* message)
 } 
 
 
+// Read from the device. Currently, this function can only read register GPIO_PC_DIN.
+// 
+// NOTE: To read the same value repeatedly, the read/write offset needs to be
+// reset for each read. This is done automatically when using pread() (see: man
+// 2 pread).
+//
 // Called when a user process calls read()
 static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp)
 {
@@ -92,25 +98,31 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   }
 } 
 
-// Called when a user process calls open()
+
+// Release resources associated with a device.
+//
+// Called when a user process opens a device file.
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
-  printk("gamepad_open()\n");
-
-  // TODO
+  printk("Device opened\n");
   return 0;
 } 
 
-// Called when the last user process calls write()
+
+// Release the resources associated with a device.
+//
+// Called when a user process closes the last open instance of a device file.
 static int gamepad_release(struct inode *inode, struct file *filp)
 {
-  printk("gamepad_release()\n");
+  printk("Device released\n");
 
   // TODO
   return 0;
 }
 
-// Called when the last user process calls lseek()
+// Reposition the read/write offset of the device.
+//
+// Called when a user process calls lseek() or pread().
 static loff_t gamepad_llseek(struct file *filp, loff_t offp, int whence)
 {
   // calculate new offset
