@@ -1,3 +1,5 @@
+#define DEBUG   // enable pr_debug() and dev_dbg()
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -11,7 +13,7 @@
 #include "efm32gg.h"
 
 #define DRIVER_NAME "driver-gamepad"
-#define DEVICE_NAME "driver-gamepad0"
+#define DEVICE_NAME "gamepad"
 
 // Length of the device in bytes
 #define DEVICE_LENGTH 1
@@ -50,15 +52,6 @@ void *gpio_ptr;
 static int err;
 
 
-// Prints an error code together with a custom message
-//
-// TODO: Print the name of the corresponding error
-static void print_error(int err, const char* message)
-{
-  printk(KERN_ALERT "%s: %d\n", message, err);
-} 
-
-
 // Read from the device. Currently, this function can only read register GPIO_PC_DIN.
 // 
 // NOTE: To read the same value repeatedly, the read/write offset needs to be
@@ -88,7 +81,7 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
 // Called when a user process opens a device file.
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
-  printk("Device opened\n");
+  dev_dbg(my_device, "Device opened\n");
   return 0;
 } 
 
@@ -98,7 +91,7 @@ static int gamepad_open(struct inode *inode, struct file *filp)
 // Called when a user process closes the last open instance of a device file.
 static int gamepad_release(struct inode *inode, struct file *filp)
 {
-  printk("Device released\n");
+  dev_dbg(my_device, "Device released\n");
 
   // TODO
   return 0;
@@ -138,47 +131,47 @@ static loff_t gamepad_llseek(struct file *filp, loff_t offp, int whence)
 
 static int setup_gpio(void)
 {
-  printk("Setting up GPIO:\n");
+  pr_debug("Setting up GPIO:\n");
 
   // Allocate GPIO memory region for Port C
-  printk("allocating GPIO memory ...\n");
+  pr_debug("allocating GPIO memory ...\n");
   gpio_region = request_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH, DEVICE_NAME);
   if(gpio_region == NULL){
-    print_error(PTR_ERR(gpio_region), "Error allocating GPIO memory region");
+    pr_err("Error allocating GPIO memory region: %ld\n", PTR_ERR(gpio_region));
     return -1; // TODO: Handle error
   }
 
   // Map GPIO memory region into virtual memory space
-  printk("mapping GPIO memory into virtual memory space ...\n");
+  pr_debug("mapping GPIO memory into virtual memory space ...\n");
   gpio_ptr = ioremap_nocache(GPIO_PC_BASE, GPIO_PC_LENGTH);
 
   // Set up GPIO registers
-  printk("setting up GPIO registers ...\n");
+  pr_debug("setting up GPIO registers ...\n");
   iowrite32(0x33333333, GPIO_PC_MODEL); // Set pins 0-7 to input
   iowrite32(0xff, GPIO_PC_DOUT); // Enable pull-up
 
-  printk("OK: No errors setting up GPIO.\n");
+  pr_debug("OK: No errors setting up GPIO.\n");
   return 0;
 }
 
 static void cleanup_gpio(void)
 {
-  printk("Cleaning up the GPIO:\n");
+  pr_debug("Cleaning up the GPIO:\n");
 
   // Reset GPIO registers
-  printk("resetting GPIO registers ...\n");
+  pr_debug("resetting GPIO registers ...\n");
   iowrite32(0x00000000, GPIO_PC_MODEL);
   iowrite32(0x00000000, GPIO_PC_DOUT);
 
   // Unmap GPIO memory region
-  printk("unmapping GPIO memory ...\n");
+  pr_debug("unmapping GPIO memory ...\n");
   iounmap((void*)GPIO_PC_BASE);
 
   // Deallocate GPIO memory region
-  printk("deallocating GPIO memory ...\n");
+  pr_debug("deallocating GPIO memory ...\n");
   release_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH);
 
-  printk("OK: No errors during GPIO cleanup.\n");
+  pr_debug("OK: No errors during GPIO cleanup.\n");
   return;
 }
 
@@ -188,66 +181,66 @@ static void cleanup_gpio(void)
 // Returns 0 if successfull, otherwise -1
 static int __init gamepad_init(void)
 {
-  printk("Initializing the module:\n");
+  pr_debug("Initializing the module:\n");
 
   setup_gpio();
 
   // Allocate device numbers
-  printk("allocating device numbers ...\n");
+  pr_debug("allocating device numbers ...\n");
   err = alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME);
   if(err){
-    print_error(err, "Error allocating device numbers");
+    pr_err("Error allocating device numbers: %d\n", err);
     return -1; // TODO: Handle error
   }
 
   // Set up a character device
-  printk("setting up character device ...\n");
+  pr_debug("setting up character device ...\n");
   cdev_init(&my_cdev, &my_fops);
   err = cdev_add(&my_cdev, dev, 1);
   if(err){
-    print_error(err, "Error adding char device to the kernel");
+    pr_err("Error adding char device to the kernel: %d\n", err);
     return -1; // TODO: Handle error
   }
 
   // Create a device file
-  printk("creating device file...\n");
+  pr_debug("creating device file...\n");
   my_class = class_create(THIS_MODULE, DEVICE_NAME);
   if(IS_ERR(my_class)){
-    print_error(PTR_ERR(my_class), "Error creating class structure for device file");
+    pr_err("Error creating class structure for device file: %ld\n", PTR_ERR(my_class));
     return -1; // TODO: Handle error
   }
   my_device = device_create(my_class, NULL, dev, NULL, DEVICE_NAME);
   if(IS_ERR(my_device)){
-    print_error(PTR_ERR(my_device), "Error creating device structure for device file");
+    pr_err("Error creating device structure for device file: %ld\n", PTR_ERR(my_device));
     return -1; // TODO: Handle error
   }
 
   // Print OK and return
-  printk("OK: No errors during module initialization.\n");
+  pr_debug("OK: No errors during module initialization.\n");
 	return 0;
 }
 
 // Perform cleanup and remove the gamepad module from kernel space
 static void __exit gamepad_exit(void)
 {
-  printk("Cleaning up the module:\n");
+  pr_debug("Cleaning up the module:\n");
 
   // Destroy structures used to create the device file
-	printk("Destroying structures used to create device file ...\n");
+	pr_debug("Destroying structures used to create device file ...\n");
   device_destroy(my_class, dev);
   class_destroy(my_class);
 
   // Remove the character device from the kernel
-	printk("Removing the character device from the kernel ...\n");
+	pr_debug("Removing the character device from the kernel ...\n");
   cdev_del(&my_cdev);
 
   // Deallocate device numbers
-	printk("Deallocating device numbers ...\n");
+	pr_debug("Deallocating device numbers ...\n");
   unregister_chrdev_region(dev, 1);
 
   cleanup_gpio();
 
-  printk("OK: No errors during module cleanup.\n");
+  pr_debug("OK: No errors during module cleanup.\n");
   return;
 }
 
