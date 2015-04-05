@@ -42,13 +42,16 @@ The bootloader is a small program that runs before the operating system starts, 
 
 
 \section{Linux}
-\todo{Needs an introduction}
+This section is a brief introduction to important low-level concepts of the Linux operating system, such as system calls and certain Linux devices.
 
-\subsection{The Framebuffer}\label{sec:the-framebuffer}
-\todo{Write about the framebuffer device /dev/fb}
+\subsection{The Frame Buffer}\label{sec:the-framebuffer}
+The frame buffer device is an abstraction that allows user applications to access the frame buffer of some underlying graphics hardware, and usually appears as \texttt{/dev/fb0}. The pixels displayed on the screen are stored in the frame buffer in a hardware-dependent format, and can be changed by writing to the frame buffer. Frame buffers are \emph{memory devices} and can be mapped into process virtual memory with \texttt{mmap()} as explained in section \ref{mapping-files-to-memory}.
 
-\subsection{System calls}
-\todo{Needs an introduction}
+\todo{Add reference to Documentation/fb/framebuffer.txt}
+
+
+\subsection{Linux System Calls}
+This section explains a few Linux system calls relevant in this report.
 
 \subsubsection{Reading and writing files}\label{sec:reading-and-writing-files}
 Several system calls in Linux are related to file operations that perform file I/O. This section will introduce some of the most commonly used. The following system calls are available from the headers \texttt{<fcntl.h>} and \texttt{<unistd.h>}.
@@ -77,6 +80,10 @@ Updates to a memory mapped file might not become visible immediately. To synchro
 \item[\texttt{int munmap(void *addr, size\_t length);}] \hfill \\
 After the application is done with the memory map, it may call \texttt{unmap()} to delete the mapping and release its associated resources. This will also synchronize the file with the memory map.
 \end{description}
+
+
+\subsection{Signals}
+\todo{Write about signals in Unix/Linux}
 
 
 
@@ -210,6 +217,14 @@ The function pointer to \texttt{open()} in the \texttt{file\_operations} structu
 \end{description}
 
 
+\subsection{Advanced I/O Operation}
+\todo{Write about more advanced I/O operation: Asynchronous, Blocking, etc. (see Linux Device Drivers, ch 6)}
+\subsubsection{Polling}
+\todo{(uncompleted)}
+\subsubsection{Asynchronous Operation}
+\todo{(uncompleted)}
+
+
 \subsection{Handling Concurrency}
 The driver is shared between the processes running on a system, and must correctly handle the scenario that two or more processes wants to use the driver at once. To share the driver between multiple processes, it might be necessary to manage resources on a per-process basis using data structures. In addition, the resources shared between the processes needs to be sufficiently protected with synchronization primitives to avoid race conditions.
 
@@ -221,7 +236,9 @@ As a driver registers its facilities, other parts of the kernel might try to use
 \subsection{Handling Errors}
 When a driver registers a facility during initialization, there is no guarantee that the kernel is able grant the driver's request. The driver might still recover from such an event to provide either full or some partial service, but in the event that the driver is not able to continue, it should unregister all facilities previously registered successfully. This may require that the driver uses some sort of scheme to track which facilities was registered successfully and which failed. 
 
-\todo{Write about "facilities" somewhere. Mentioned in the book LDD chapter two, I think}
+
+\subsection{Debugging Modules}
+\todo{Write about techniques for debugging modules: printk(), dev\_dbg(), pr\_debug() and friends. (See chapter 4 in Linux Device Drivers)}
 
 
 \subsection{Mechanism versus Policy}
