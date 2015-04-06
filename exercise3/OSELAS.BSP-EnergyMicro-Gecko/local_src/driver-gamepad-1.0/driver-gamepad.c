@@ -44,9 +44,13 @@ static struct file_operations my_fops = {
 static struct class *my_class;
 static struct device *my_device;
 
-// GPIO memory region
-struct resource *gpio_region;
-void *gpio_port_c_base;
+// GPIO memory regions
+struct resource *gpio_pc_region;
+struct resource *gpio_irq_region;
+
+// GPIO memory pointers
+void *gpio_pc_ptr;
+void *gpio_irq_ptr;
 
 // last error
 static int err;
@@ -64,7 +68,7 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   if(*offp < DEVICE_LENGTH){
 
     // copy the first byte of GPIO_PC_DIN into the user buffer
-    uint8_t value = ioread32(gpio_port_c_base + GPIO_DIN) ^ 0xff;
+    uint8_t value = ioread32(gpio_pc_ptr + GPIO_Px_DIN) ^ 0xff;
     copy_to_user((void*)buff, (void*)&value, 1);
     (*offp)++;
     return 1;
@@ -129,56 +133,81 @@ static loff_t gamepad_llseek(struct file *filp, loff_t offp, int whence)
   return newpos;
 }
 
+// GPIO setup
 static int setup_gpio(void)
 {
-  pr_debug("Setting up GPIO:\n");
+  pr_debug("Setting up GPIO ...\n");
 
-  // Allocate GPIO memory region for Port C
-  pr_debug("allocating GPIO memory ...\n");
-  gpio_region = request_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH, DEVICE_NAME);
-  if(IS_ERR(gpio_region)){
-    pr_err("Error allocating GPIO memory region: %ld\n", PTR_ERR(gpio_region));
+  // Allocate memory region for port C registers
+  gpio_pc_region = request_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH, DEVICE_NAME);
+  if(IS_ERR(gpio_pc_region)){
+    pr_err("Error allocating memory region for port C: %ld\n", PTR_ERR(gpio_pc_region));
     return -1; // TODO: Handle error
   }
 
-  // Map GPIO memory region into virtual memory space
-  pr_debug("mapping GPIO memory into virtual memory space ...\n");
-  gpio_port_c_base = ioremap_nocache(GPIO_PC_BASE, GPIO_PC_LENGTH);
-  if(IS_ERR(gpio_port_c_base)){
-    pr_err("Error mapping GPIO memory region: %ld\n", PTR_ERR(gpio_port_c_base));
+  // Map memory region into virtual memory space
+  gpio_pc_ptr = ioremap_nocache(GPIO_PC_BASE, GPIO_PC_LENGTH);
+  if(IS_ERR(gpio_pc_ptr)){
+    pr_err("Error mapping memory region for port C: %ld\n", PTR_ERR(gpio_pc_ptr));
     return -1; // TODO: Handle error
   }
 
-  // Set up GPIO registers
-  pr_debug("setting up GPIO registers ...\n");
-  iowrite32(0x33333333, gpio_port_c_base + GPIO_MODEL); // Set pins 0-7 to input
-  iowrite32(0x000000ff, gpio_port_c_base + GPIO_DOUT);  // Enable pull-up
+  // Set up port C registers
+  iowrite32(0x33333333, gpio_pc_ptr + GPIO_Px_MODEL); // Set pins 0-7 to input
+  iowrite32(0x000000ff, gpio_pc_ptr + GPIO_Px_DOUT);  // Enable pull-up
 
+  // Allocate memory region for interrupt registers
+  gpio_irq_region = request_mem_region(GPIO_IRQ_BASE, GPIO_IRQ_LENGTH, DEVICE_NAME);
+  if(IS_ERR(gpio_irq_region)){
+    pr_err("Error allocating memory region for interrupt registers: %ld\n", PTR_ERR(gpio_irq_region));
+    return -1; // TODO: Handle error
+  }
+
+  // Map memory region into virtual memory space
+  gpio_irq_ptr = ioremap_nocache(GPIO_IRQ_BASE, GPIO_IRQ_LENGTH);
+  if(IS_ERR(gpio_irq_ptr)){
+    pr_err("Error mapping memory region for interrupt registers: %ld\n", PTR_ERR(gpio_irq_ptr));
+    return -1; // TODO: Handle error
+  }
+
+  // Set up interrupt registers
+  iowrite32(0x22222222, gpio_irq_ptr + GPIO_EXTIPSELL); // Set port C as interrupt source
+  iowrite32(0x000000ff, gpio_irq_ptr + GPIO_EXTIFALL);  // Set interrupt on 1->0
+  iowrite32(0x000000ff, gpio_irq_ptr + GPIO_EXTIRISE);  // Set interrupt on 0->1
+  iowrite32(0x000000ff, gpio_irq_ptr + GPIO_IEN);       // Enable interrupt generation
+
+  // No errors
   pr_debug("OK: No errors setting up GPIO.\n");
   return 0;
 }
 
+// GPIO cleanup
 static void cleanup_gpio(void)
 {
-  pr_debug("Cleaning up the GPIO:\n");
+  pr_debug("Releasing GPIO resources ... ");
 
-  // Reset GPIO registers
-  pr_debug("resetting GPIO registers ...\n");
-  iowrite32(0x00000000, gpio_port_c_base + GPIO_MODEL);
-  iowrite32(0x00000000, gpio_port_c_base + GPIO_DOUT);
+  // Reset interrupt registers
+  iowrite32(0x0, gpio_irq_ptr + GPIO_EXTIPSELL);
+  iowrite32(0x0, gpio_irq_ptr + GPIO_EXTIFALL);
+  iowrite32(0x0, gpio_irq_ptr + GPIO_EXTIRISE);
+  iowrite32(0x0, gpio_irq_ptr + GPIO_IEN);
 
-  // Unmap GPIO memory region
-  pr_debug("unmapping GPIO memory ...\n");
-  iounmap((void*)GPIO_PC_BASE);
+  // Unmap memory region for interrupt registers
+  iounmap(gpio_irq_ptr);
 
-  // Deallocate GPIO memory region
-  pr_debug("deallocating GPIO memory ...\n");
+  // Deallocate memory region for interrupt registers
+  release_mem_region(GPIO_IRQ_BASE, GPIO_IRQ_LENGTH);
+
+  // Reset port C registers
+  iowrite32(0x00000000, gpio_pc_ptr + GPIO_Px_MODEL);
+  iowrite32(0x00000000, gpio_pc_ptr + GPIO_Px_DOUT);
+
+  // Unmap memory region for port C registers
+  iounmap(gpio_pc_ptr);
+
+  // Deallocate memory region for port C registers
   release_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH);
-
-  pr_debug("OK: No errors during GPIO cleanup.\n");
-  return;
 }
-
 
 // Initialize the gamepad module and insert it into kernel space
 //
@@ -187,7 +216,10 @@ static int __init gamepad_init(void)
 {
   pr_debug("Initializing the module:\n");
 
-  setup_gpio();
+  err = setup_gpio();
+  if(err){
+    return -1; // TODO: Handle error
+  }
 
   // Allocate device numbers
   pr_debug("allocating device numbers ...\n");
