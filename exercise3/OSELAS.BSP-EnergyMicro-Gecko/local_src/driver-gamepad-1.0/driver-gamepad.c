@@ -136,7 +136,7 @@ static int setup_gpio(void)
   // Allocate GPIO memory region for Port C
   pr_debug("allocating GPIO memory ...\n");
   gpio_region = request_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH, DEVICE_NAME);
-  if(gpio_region == NULL){
+  if(IS_ERR(gpio_region)){
     pr_err("Error allocating GPIO memory region: %ld\n", PTR_ERR(gpio_region));
     return -1; // TODO: Handle error
   }
@@ -144,6 +144,10 @@ static int setup_gpio(void)
   // Map GPIO memory region into virtual memory space
   pr_debug("mapping GPIO memory into virtual memory space ...\n");
   gpio_ptr = ioremap_nocache(GPIO_PC_BASE, GPIO_PC_LENGTH);
+  if(IS_ERR(gpio_ptr)){
+    pr_err("Error mapping GPIO memory region: %ld\n", PTR_ERR(gpio_ptr));
+    return -1; // TODO: Handle error
+  }
 
   // Set up GPIO registers
   pr_debug("setting up GPIO registers ...\n");
