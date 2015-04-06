@@ -46,7 +46,7 @@ static struct device *my_device;
 
 // GPIO memory region
 struct resource *gpio_region;
-void *gpio_ptr;
+void *gpio_port_c_base;
 
 // last error
 static int err;
@@ -64,7 +64,7 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   if(*offp < DEVICE_LENGTH){
 
     // copy the first byte of GPIO_PC_DIN into the user buffer
-    uint8_t value = ioread32(GPIO_PC_DIN) ^ 0xff;
+    uint8_t value = ioread32(gpio_port_c_base + GPIO_DIN) ^ 0xff;
     copy_to_user((void*)buff, (void*)&value, 1);
     (*offp)++;
     return 1;
@@ -143,16 +143,16 @@ static int setup_gpio(void)
 
   // Map GPIO memory region into virtual memory space
   pr_debug("mapping GPIO memory into virtual memory space ...\n");
-  gpio_ptr = ioremap_nocache(GPIO_PC_BASE, GPIO_PC_LENGTH);
-  if(IS_ERR(gpio_ptr)){
-    pr_err("Error mapping GPIO memory region: %ld\n", PTR_ERR(gpio_ptr));
+  gpio_port_c_base = ioremap_nocache(GPIO_PC_BASE, GPIO_PC_LENGTH);
+  if(IS_ERR(gpio_port_c_base)){
+    pr_err("Error mapping GPIO memory region: %ld\n", PTR_ERR(gpio_port_c_base));
     return -1; // TODO: Handle error
   }
 
   // Set up GPIO registers
   pr_debug("setting up GPIO registers ...\n");
-  iowrite32(0x33333333, GPIO_PC_MODEL); // Set pins 0-7 to input
-  iowrite32(0xff, GPIO_PC_DOUT); // Enable pull-up
+  iowrite32(0x33333333, gpio_port_c_base + GPIO_MODEL); // Set pins 0-7 to input
+  iowrite32(0x000000ff, gpio_port_c_base + GPIO_DOUT);  // Enable pull-up
 
   pr_debug("OK: No errors setting up GPIO.\n");
   return 0;
@@ -164,8 +164,8 @@ static void cleanup_gpio(void)
 
   // Reset GPIO registers
   pr_debug("resetting GPIO registers ...\n");
-  iowrite32(0x00000000, GPIO_PC_MODEL);
-  iowrite32(0x00000000, GPIO_PC_DOUT);
+  iowrite32(0x00000000, gpio_port_c_base + GPIO_MODEL);
+  iowrite32(0x00000000, gpio_port_c_base + GPIO_DOUT);
 
   // Unmap GPIO memory region
   pr_debug("unmapping GPIO memory ...\n");
