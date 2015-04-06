@@ -225,6 +225,32 @@ The function pointer to \texttt{open()} in the \texttt{file\_operations} structu
 \todo{(uncompleted)}
 
 
+
+\subsection{Kernel Data Types}
+The Linux kernel defines several data types, in addition to the standard C types. Some of these types make it easier to write portable code, like the type \texttt{u32} and friends, and some types implement useful functionality, such as the linked list implementation.
+
+\subsubsection{The linked list}
+The kernel provides an implementation of a circular doubly linked list, and driver writers needing a linked is encouraged to use it rather than writing their own. The linked list is accessed through the type \texttt{struct list\_head} of \texttt{<linux/list.h>}:
+\begin{verbatim}
+  struct list_head {
+    struct list_head *next, *prev;
+  };
+\end{verbatim}
+By itself, this structure cannot implement a linked list as there is no list element pointer. The \texttt{list\_head} structure needs to be embedded into a structure representing the list element, and macros must be used to manipulate the list. Some important macros are listed below:
+\begin{description}
+  \item[\texttt{INIT\_LIST\_HEAD(struct *list\_head)}] \hfill \\
+    Initializes a linked list.  
+  \item[\texttt{list\_add(struct list\_head *new, struct list\_head *head)}] \hfill \\
+    Adds a new list entry immediately after the head.
+  \item[\texttt{list\_del(struct list\_head *entry)}] \hfill \\
+    Removes the specified entry from the list.
+  \item[\texttt{list\_entry(struct list\_head *ptr, type\_of\_struct, field\_name)}] \hfill \\
+    This macro is replaced with a pointer to the structure containing the specified \texttt{list\_head}. Here, \texttt{type\_of\_struct} is the type of the structure containing the \texttt{list\_head}, and \texttt{field\_name} is the name of the corresponding field.
+\end{description}
+The first three macros should be self-explaining. The fourth macro is more interesting: it gives access to the list elements by giving access to the structure embedding the \texttt{list\_head} structure.
+
+
+
 \subsection{Handling Concurrency}
 The driver is shared between the processes running on a system, and must correctly handle the scenario that two or more processes wants to use the driver at once. To share the driver between multiple processes, it might be necessary to manage resources on a per-process basis using data structures. In addition, the resources shared between the processes needs to be sufficiently protected with synchronization primitives to avoid race conditions.
 
