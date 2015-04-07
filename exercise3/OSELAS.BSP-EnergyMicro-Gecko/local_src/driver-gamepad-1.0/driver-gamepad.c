@@ -1,4 +1,4 @@
-#define DEBUG   // enable pr_debug() and dev_dbg()
+#define DEBUG   // enable pr_debug(), dev_dbg() and friends
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -11,6 +11,9 @@
 #include <linux/io.h>
 #include <asm-generic/uaccess.h>  // ioread32
 #include "efm32gg.h"
+#include <linux/interrupt.h>
+
+
 
 #define DRIVER_NAME "driver-gamepad"
 #define DEVICE_NAME "gamepad"
@@ -18,11 +21,18 @@
 // Length of the device in bytes
 #define DEVICE_LENGTH 1
 
+// Platform IRQ numbers
+#define GPIO_EVEN_IRQ 17
+#define GPIO_ODD_IRQ  18
+
+
+
 // necessary function prototypes
 static int gamepad_open(struct inode *inode, struct file *filp);
 static int gamepad_release(struct inode *inode, struct file *filp);
 static ssize_t gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp);
 static loff_t gamepad_llseek(struct file *filp, loff_t offp, int whence);
+
 
 
 // the first device number
@@ -56,6 +66,7 @@ void *gpio_irq_ptr;
 static int err;
 
 
+
 // Read from the device. Currently, this function can only read register GPIO_PC_DIN.
 // 
 // NOTE: To read the same value repeatedly, the read/write offset needs to be
@@ -68,7 +79,7 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   if(*offp < DEVICE_LENGTH){
 
     // copy the first byte of GPIO_PC_DIN into the user buffer
-    uint8_t value = ioread32(gpio_pc_ptr + GPIO_Px_DIN) ^ 0xff;
+    uint8_t value = ioread32(gpio_pc_ptr + GPIO_PC_DIN) ^ 0xff;
     copy_to_user((void*)buff, (void*)&value, 1);
     (*offp)++;
     return 1;
@@ -79,25 +90,25 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   }
 } 
 
-
-// Release resources associated with a device.
+// Initialize device resources
 //
 // Called when a user process opens a device file.
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
   dev_dbg(my_device, "Device opened\n");
+
+  // No resources to initialize
   return 0;
 } 
 
-
-// Release the resources associated with a device.
+// Release device resources
 //
 // Called when a user process closes the last open instance of a device file.
 static int gamepad_release(struct inode *inode, struct file *filp)
 {
   dev_dbg(my_device, "Device released\n");
 
-  // TODO
+  // No resources to release
   return 0;
 }
 
@@ -133,6 +144,19 @@ static loff_t gamepad_llseek(struct file *filp, loff_t offp, int whence)
   return newpos;
 }
 
+// GPIO interrupt handler for testing purposes
+static irqreturn_t gpio_handler(int irq, void *dev_id)
+{
+  // print interrupt count
+  static int count = 0;
+  pr_debug("INTERRUPT: %d\n", ++count);
+
+  // clear all interrupt flags
+  iowrite32(0xff, gpio_irq_ptr + GPIO_IFC);
+
+  return IRQ_HANDLED;
+}
+
 // GPIO setup
 static int setup_gpio(void)
 {
@@ -153,8 +177,8 @@ static int setup_gpio(void)
   }
 
   // Set up port C registers
-  iowrite32(0x33333333, gpio_pc_ptr + GPIO_Px_MODEL); // Set pins 0-7 to input
-  iowrite32(0x000000ff, gpio_pc_ptr + GPIO_Px_DOUT);  // Enable pull-up
+  iowrite32(0x33333333, gpio_pc_ptr + GPIO_PC_MODEL); // Set pins 0-7 to input
+  iowrite32(0x000000ff, gpio_pc_ptr + GPIO_PC_DOUT);  // Enable pull-up
 
   // Allocate memory region for interrupt registers
   gpio_irq_region = request_mem_region(GPIO_IRQ_BASE, GPIO_IRQ_LENGTH, DEVICE_NAME);
@@ -168,6 +192,17 @@ static int setup_gpio(void)
   if(IS_ERR(gpio_irq_ptr)){
     pr_err("Error mapping memory region for interrupt registers: %ld\n", PTR_ERR(gpio_irq_ptr));
     return -1; // TODO: Handle error
+  }
+
+  // Register interrupt handler
+  int flags = 0;
+  err = request_irq(GPIO_EVEN_IRQ, &gpio_handler, flags, DEVICE_NAME, NULL);
+  if(err){
+    pr_err("Error requesting EVEN interrupts: %d\n", err);
+  }
+  err = request_irq(GPIO_ODD_IRQ, &gpio_handler, flags, DEVICE_NAME, NULL);
+  if(err){
+    pr_err("Error requesting ODD interrupts: %d\n", err);
   }
 
   // Set up interrupt registers
@@ -199,8 +234,8 @@ static void cleanup_gpio(void)
   release_mem_region(GPIO_IRQ_BASE, GPIO_IRQ_LENGTH);
 
   // Reset port C registers
-  iowrite32(0x00000000, gpio_pc_ptr + GPIO_Px_MODEL);
-  iowrite32(0x00000000, gpio_pc_ptr + GPIO_Px_DOUT);
+  iowrite32(0x00000000, gpio_pc_ptr + GPIO_PC_MODEL);
+  iowrite32(0x00000000, gpio_pc_ptr + GPIO_PC_DOUT);
 
   // Unmap memory region for port C registers
   iounmap(gpio_pc_ptr);
@@ -281,9 +316,11 @@ static void __exit gamepad_exit(void)
 }
 
 
+
 // Tell kernel about init and exit functions
 module_init(gamepad_init);
 module_exit(gamepad_exit);
+
 
 
 // Module metadata
