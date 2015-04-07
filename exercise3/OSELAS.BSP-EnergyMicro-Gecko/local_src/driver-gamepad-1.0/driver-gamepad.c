@@ -64,8 +64,11 @@ struct resource *gpio_irq_region;
 void *gpio_pc_ptr;
 void *gpio_irq_ptr;
 
+// number of open file instances for this device
+static int open_count = 0;
+
 // last error
-static int err;
+static int err = 0;
 
 // a cyclic buffer of button states
 static uint8_t *bt_buffer;
@@ -102,22 +105,27 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
 // Called when a user process opens a device file.
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
-  dev_dbg(my_device, "Opening device ...\n");
+  // initialize device on first open
+  if(open_count == 0){
+    dev_dbg(my_device, "Opening device ...\n");
 
-  // initialize button buffer
-  bt_buffer = kmalloc(BT_BUFFER_SIZE, GFP_KERNEL);
-  if(IS_ERR(bt_buffer)){
-    pr_err("Error in kmalloc(): %ld\n", PTR_ERR(bt_buffer));
-    return -1; // TODO: Handle error
+    // initialize button buffer
+    bt_buffer = kmalloc(BT_BUFFER_SIZE, GFP_KERNEL);
+    if(IS_ERR(bt_buffer)){
+      pr_err("Error in kmalloc(): %ld\n", PTR_ERR(bt_buffer));
+      return -1; // TODO: Handle error
+    }
+    head = 0;
+    tail = 0;
+
+    // setup GPIO to receive interrupts
+    err = setup_gpio();
+    if(err){ return -1; } // TODO: Handle error
+
+    dev_dbg(my_device, "OK: No errors opening device.\n");
   }
-  head = 0;
-  tail = 0;
 
-  // setup GPIO to receive interrupts
-  err = setup_gpio();
-  if(err){ return -1; } // TODO: Handle error
-
-  dev_dbg(my_device, "OK: No errors opening device.\n");
+  open_count++;
   return 0;
 } 
 
@@ -126,17 +134,22 @@ static int gamepad_open(struct inode *inode, struct file *filp)
 // Called when a user process closes the last open instance of a device file.
 static int gamepad_release(struct inode *inode, struct file *filp)
 {
-  dev_dbg(my_device, "Releasing device ...\n");
+  // shut down device on last close
+  if(open_count == 1){
+    dev_dbg(my_device, "Releasing device ...%d\n", open_count);
 
-  cleanup_gpio();
+    cleanup_gpio();
 
-  // destroy button buffer
-  kfree(bt_buffer);
-  bt_buffer = NULL;
-  head = 0;
-  tail = 0;
+    // destroy button buffer
+    kfree(bt_buffer);
+    bt_buffer = NULL;
+    head = 0;
+    tail = 0;
 
-  dev_dbg(my_device, "OK: No errors releasing device.\n");
+    dev_dbg(my_device, "OK: No errors releasing device.\n");
+  }
+
+  open_count--;
   return 0;
 }
 
@@ -197,10 +210,12 @@ static int setup_gpio(void)
   err = request_irq(GPIO_EVEN_IRQ, &gpio_handler, flags, DEVICE_NAME, NULL);
   if(err){
     dev_err(my_device, "Error requesting EVEN interrupts: %d\n", err);
+    return -1; // TODO: Handle error
   }
   err = request_irq(GPIO_ODD_IRQ, &gpio_handler, flags, DEVICE_NAME, NULL);
   if(err){
     dev_err(my_device, "Error requesting ODD interrupts: %d\n", err);
+    return -1; // TODO: Handle error
   }
 
   // Set up interrupt registers
