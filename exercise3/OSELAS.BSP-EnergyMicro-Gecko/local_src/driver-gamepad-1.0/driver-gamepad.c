@@ -12,6 +12,7 @@
 #include <asm-generic/uaccess.h>  // ioread32
 #include "efm32gg.h"
 #include <linux/interrupt.h>
+#include <linux/slab.h>   // kmalloc, kfree
 
 
 
@@ -31,7 +32,6 @@
 static int gamepad_open(struct inode *inode, struct file *filp);
 static int gamepad_release(struct inode *inode, struct file *filp);
 static ssize_t gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp);
-static loff_t gamepad_llseek(struct file *filp, loff_t offp, int whence);
 
 
 
@@ -47,7 +47,7 @@ static struct file_operations my_fops = {
   .open = gamepad_open,
   .release = gamepad_release,
   .read = gamepad_read,
-  .llseek = gamepad_llseek,
+  .llseek = no_llseek,
 };
 
 // class and device structure used when creating device structure
@@ -65,7 +65,11 @@ void *gpio_irq_ptr;
 // last error
 static int err;
 
-
+// a cyclic buffer of button states
+static uint8_t *bt_buffer;
+static uint32_t head; // next element to write
+static uint32_t tail; // next element to read
+#define BT_BUFFER_SIZE 1024
 
 // Read from the device. Currently, this function can only read register GPIO_PC_DIN.
 // 
@@ -76,16 +80,17 @@ static int err;
 // Called when a user process calls read()
 static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp)
 {
-  if(*offp < DEVICE_LENGTH){
+  if(tail != head){ // data is available
 
-    // copy the first byte of GPIO_PC_DIN into the user buffer
-    uint8_t value = ioread32(gpio_pc_ptr + GPIO_PC_DIN) ^ 0xff;
-    copy_to_user((void*)buff, (void*)&value, 1);
-    (*offp)++;
+    // copy one byte into user buffer
+    copy_to_user((void*)buff, (void*)&bt_buffer[tail], 1);
+
+    // increment read index
+    tail = (tail + 1) % BT_BUFFER_SIZE;
+
+    // return number of bytes read
     return 1;
   }else{
-
-    // file offset beyond EOF
     return 0;
   }
 } 
@@ -96,6 +101,11 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
   dev_dbg(my_device, "Device opened\n");
+
+  // initialize button buffer
+  bt_buffer = kmalloc(BT_BUFFER_SIZE, GFP_KERNEL);
+  head = 0;
+  tail = 0;
 
   // No resources to initialize
   return 0;
@@ -108,48 +118,27 @@ static int gamepad_release(struct inode *inode, struct file *filp)
 {
   dev_dbg(my_device, "Device released\n");
 
-  // No resources to release
+  // destroy button buffer
+  kfree(bt_buffer);
+  bt_buffer = NULL;
+  head = 0;
+  tail = 0;
+
   return 0;
-}
-
-// Reposition the read/write offset of the device.
-//
-// Called when a user process calls lseek() or pread().
-static loff_t gamepad_llseek(struct file *filp, loff_t offp, int whence)
-{
-  // calculate new offset
-  loff_t newpos;
-  switch(whence)
-  {
-    case SEEK_SET:
-      newpos = offp;
-      break;
-
-    case SEEK_CUR:
-      newpos = filp->f_pos + offp;
-      break;
-      
-    case SEEK_END:
-      newpos = DEVICE_LENGTH + offp;
-      break;
-    
-    default: // invalid whence
-      return EINVAL;
-  }
-
-  if(newpos < 0) {
-    return EINVAL;
-  }
-  filp->f_pos = newpos;
-  return newpos;
 }
 
 // GPIO interrupt handler for testing purposes
 static irqreturn_t gpio_handler(int irq, void *dev_id)
 {
-  // print interrupt count
-  static int count = 0;
-  pr_debug("INTERRUPT: %d\n", ++count);
+  // read one element into buffer
+  bt_buffer[head] = ioread8(gpio_pc_ptr + GPIO_PC_DIN) ^ 0xff;
+
+  // increment write index
+  head = (head + 1) % BT_BUFFER_SIZE;
+
+  // if full, one element is overwritten
+  if(head == tail)
+    tail = (tail + 1) % BT_BUFFER_SIZE;
 
   // clear all interrupt flags
   iowrite32(0xff, gpio_irq_ptr + GPIO_IFC);
