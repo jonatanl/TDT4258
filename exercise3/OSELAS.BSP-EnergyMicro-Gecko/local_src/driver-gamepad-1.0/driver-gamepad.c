@@ -76,38 +76,30 @@ static uint32_t head; // next element to write
 static uint32_t tail; // next element to read
 #define BT_BUFFER_SIZE 1024
 
-// Read from the device. Currently, this function can only read register GPIO_PC_DIN.
-// 
-// NOTE: To read the same value repeatedly, the read/write offset needs to be
-// reset for each read. This is done automatically when using pread() (see: man
-// 2 pread).
-//
-// Called when a user process calls read()
+// copy data from button buffer to user space
 static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp)
-{
-  if(tail != head){ // data is available
-
-    // copy one byte into user buffer
+{ 
+  // if the buffer has data, copy one byte
+  // TODO: protect with mutex
+  if(tail != head){
     copy_to_user((void*)buff, (void*)&bt_buffer[tail], 1);
-
-    // increment read index
     tail = (tail + 1) % BT_BUFFER_SIZE;
-
-    // return number of bytes read
     return 1;
-  }else{
-    return 0;
   }
+
+  // if no data available, send EOF
+  // TODO: Block instead
+  return 0;
 } 
 
-// Initialize device resources
-//
-// Called when a user process opens a device file.
+// initialize device resources on open()
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
+  dev_dbg(my_device, "Device opened. Open instances: %d\n", open_count);
+
   // initialize device on first open
   if(open_count == 0){
-    dev_dbg(my_device, "Opening device ...\n");
+    dev_dbg(my_device, "Initialize device on first open:\n");
 
     // initialize button buffer
     bt_buffer = kmalloc(BT_BUFFER_SIZE, GFP_KERNEL);
@@ -122,7 +114,7 @@ static int gamepad_open(struct inode *inode, struct file *filp)
     err = setup_gpio();
     if(err){ return -1; } // TODO: Handle error
 
-    dev_dbg(my_device, "OK: No errors opening device.\n");
+    dev_dbg(my_device, "OK: No errors initializing device.\n");
   }
 
   open_count++;
@@ -134,9 +126,11 @@ static int gamepad_open(struct inode *inode, struct file *filp)
 // Called when a user process closes the last open instance of a device file.
 static int gamepad_release(struct inode *inode, struct file *filp)
 {
+  dev_dbg(my_device, "Device released. Open instances: %d\n", open_count);
+
   // shut down device on last close
   if(open_count == 1){
-    dev_dbg(my_device, "Releasing device ...%d\n", open_count);
+    dev_dbg(my_device, "Releasing device on last release:\n");
 
     cleanup_gpio();
 
@@ -165,6 +159,9 @@ static irqreturn_t gpio_handler(int irq, void *dev_id)
 
   // clear all interrupt flags and return
   iowrite32(0xff, gpio_irq_ptr + GPIO_IFC);
+
+  static int interrupt_count = 0;
+  dev_dbg(my_device, "Interrupt at irq %d. Interrupts handled: %d\n", irq, ++interrupt_count);
   return IRQ_HANDLED;
 }
 
@@ -233,6 +230,10 @@ static int setup_gpio(void)
 static void cleanup_gpio(void)
 {
   dev_dbg(my_device, "Releasing GPIO resources ... ");
+
+  // Unregister interrupt handler
+  free_irq(GPIO_EVEN_IRQ, NULL);
+  free_irq(GPIO_ODD_IRQ, NULL);
 
   // Reset interrupt registers
   iowrite32(0x0, gpio_irq_ptr + GPIO_EXTIPSELL);
