@@ -95,7 +95,8 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
 // initialize device resources on open()
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
-  dev_dbg(my_device, "Device opened. Open instances: %d\n", open_count);
+  dev_dbg(my_device, "Device opened.\n");
+  dev_dbg(my_device, "Currently open instances: %d\n", open_count);
 
   // initialize device on first open
   if(open_count == 0){
@@ -126,11 +127,12 @@ static int gamepad_open(struct inode *inode, struct file *filp)
 // Called when a user process closes the last open instance of a device file.
 static int gamepad_release(struct inode *inode, struct file *filp)
 {
-  dev_dbg(my_device, "Device released. Open instances: %d\n", open_count);
+  dev_dbg(my_device, "Device released.\n");
+  dev_dbg(my_device, "Currently open instances: %d\n", open_count);
 
   // shut down device on last close
   if(open_count == 1){
-    dev_dbg(my_device, "Releasing device on last release:\n");
+    dev_dbg(my_device, "Shutting down device on last release:\n");
 
     cleanup_gpio();
 
@@ -140,7 +142,7 @@ static int gamepad_release(struct inode *inode, struct file *filp)
     head = 0;
     tail = 0;
 
-    dev_dbg(my_device, "OK: No errors releasing device.\n");
+    dev_dbg(my_device, "OK: No errors shutting down device.\n");
   }
 
   open_count--;
@@ -202,6 +204,11 @@ static int setup_gpio(void)
     return -1; // TODO: Handle error
   }
 
+  // Set up interrupt registers
+  iowrite32(0x22222222, gpio_irq_ptr + GPIO_EXTIPSELL); // Set port C as interrupt source
+  iowrite32(0x000000ff, gpio_irq_ptr + GPIO_EXTIFALL);  // Set interrupt on 1->0
+  iowrite32(0x000000ff, gpio_irq_ptr + GPIO_EXTIRISE);  // Set interrupt on 0->1
+
   // Register interrupt handler
   int flags = 0;
   err = request_irq(GPIO_EVEN_IRQ, &gpio_handler, flags, DEVICE_NAME, NULL);
@@ -215,11 +222,8 @@ static int setup_gpio(void)
     return -1; // TODO: Handle error
   }
 
-  // Set up interrupt registers
-  iowrite32(0x22222222, gpio_irq_ptr + GPIO_EXTIPSELL); // Set port C as interrupt source
-  iowrite32(0x000000ff, gpio_irq_ptr + GPIO_EXTIFALL);  // Set interrupt on 1->0
-  iowrite32(0x000000ff, gpio_irq_ptr + GPIO_EXTIRISE);  // Set interrupt on 0->1
-  iowrite32(0x000000ff, gpio_irq_ptr + GPIO_IEN);       // Enable interrupt generation
+  // Enable interrupts
+  iowrite32(0x000000ff, gpio_irq_ptr + GPIO_IEN);
 
   // No errors
   dev_dbg(my_device, "OK: No errors setting up GPIO.\n");
@@ -231,6 +235,9 @@ static void cleanup_gpio(void)
 {
   dev_dbg(my_device, "Releasing GPIO resources ... ");
 
+  // Disable interrupts
+  iowrite32(0x0, gpio_irq_ptr + GPIO_IEN);
+
   // Unregister interrupt handler
   free_irq(GPIO_EVEN_IRQ, NULL);
   free_irq(GPIO_ODD_IRQ, NULL);
@@ -239,7 +246,6 @@ static void cleanup_gpio(void)
   iowrite32(0x0, gpio_irq_ptr + GPIO_EXTIPSELL);
   iowrite32(0x0, gpio_irq_ptr + GPIO_EXTIFALL);
   iowrite32(0x0, gpio_irq_ptr + GPIO_EXTIRISE);
-  iowrite32(0x0, gpio_irq_ptr + GPIO_IEN);
 
   // Unmap memory region for interrupt registers
   iounmap(gpio_irq_ptr);
