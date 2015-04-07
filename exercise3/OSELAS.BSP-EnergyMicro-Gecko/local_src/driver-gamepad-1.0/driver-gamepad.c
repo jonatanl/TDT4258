@@ -32,6 +32,8 @@
 static int gamepad_open(struct inode *inode, struct file *filp);
 static int gamepad_release(struct inode *inode, struct file *filp);
 static ssize_t gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp);
+static int setup_gpio(void);
+static void cleanup_gpio(void);
 
 
 
@@ -100,14 +102,22 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
 // Called when a user process opens a device file.
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
-  dev_dbg(my_device, "Device opened\n");
+  dev_dbg(my_device, "Opening device ...\n");
 
   // initialize button buffer
   bt_buffer = kmalloc(BT_BUFFER_SIZE, GFP_KERNEL);
+  if(IS_ERR(bt_buffer)){
+    pr_err("Error in kmalloc(): %ld\n", PTR_ERR(bt_buffer));
+    return -1; // TODO: Handle error
+  }
   head = 0;
   tail = 0;
 
-  // No resources to initialize
+  // setup GPIO to receive interrupts
+  err = setup_gpio();
+  if(err){ return -1; } // TODO: Handle error
+
+  dev_dbg(my_device, "OK: No errors opening device.\n");
   return 0;
 } 
 
@@ -116,7 +126,9 @@ static int gamepad_open(struct inode *inode, struct file *filp)
 // Called when a user process closes the last open instance of a device file.
 static int gamepad_release(struct inode *inode, struct file *filp)
 {
-  dev_dbg(my_device, "Device released\n");
+  dev_dbg(my_device, "Releasing device ...\n");
+
+  cleanup_gpio();
 
   // destroy button buffer
   kfree(bt_buffer);
@@ -124,44 +136,41 @@ static int gamepad_release(struct inode *inode, struct file *filp)
   head = 0;
   tail = 0;
 
+  dev_dbg(my_device, "OK: No errors releasing device.\n");
   return 0;
 }
 
 // GPIO interrupt handler for testing purposes
 static irqreturn_t gpio_handler(int irq, void *dev_id)
 {
-  // read one element into buffer
+  // read button state into buffer and update index
   bt_buffer[head] = ioread8(gpio_pc_ptr + GPIO_PC_DIN) ^ 0xff;
-
-  // increment write index
   head = (head + 1) % BT_BUFFER_SIZE;
-
-  // if full, one element is overwritten
-  if(head == tail)
+  if(head == tail){
     tail = (tail + 1) % BT_BUFFER_SIZE;
+  }
 
-  // clear all interrupt flags
+  // clear all interrupt flags and return
   iowrite32(0xff, gpio_irq_ptr + GPIO_IFC);
-
   return IRQ_HANDLED;
 }
 
 // GPIO setup
 static int setup_gpio(void)
 {
-  pr_debug("Setting up GPIO ...\n");
+  dev_dbg(my_device, "Setting up GPIO ...\n");
 
   // Allocate memory region for port C registers
   gpio_pc_region = request_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH, DEVICE_NAME);
   if(IS_ERR(gpio_pc_region)){
-    pr_err("Error allocating memory region for port C: %ld\n", PTR_ERR(gpio_pc_region));
+    dev_err(my_device, "Error allocating memory region for port C: %ld\n", PTR_ERR(gpio_pc_region));
     return -1; // TODO: Handle error
   }
 
   // Map memory region into virtual memory space
   gpio_pc_ptr = ioremap_nocache(GPIO_PC_BASE, GPIO_PC_LENGTH);
   if(IS_ERR(gpio_pc_ptr)){
-    pr_err("Error mapping memory region for port C: %ld\n", PTR_ERR(gpio_pc_ptr));
+    dev_err(my_device, "Error mapping memory region for port C: %ld\n", PTR_ERR(gpio_pc_ptr));
     return -1; // TODO: Handle error
   }
 
@@ -172,14 +181,14 @@ static int setup_gpio(void)
   // Allocate memory region for interrupt registers
   gpio_irq_region = request_mem_region(GPIO_IRQ_BASE, GPIO_IRQ_LENGTH, DEVICE_NAME);
   if(IS_ERR(gpio_irq_region)){
-    pr_err("Error allocating memory region for interrupt registers: %ld\n", PTR_ERR(gpio_irq_region));
+    dev_err(my_device, "Error allocating memory region for interrupt registers: %ld\n", PTR_ERR(gpio_irq_region));
     return -1; // TODO: Handle error
   }
 
   // Map memory region into virtual memory space
   gpio_irq_ptr = ioremap_nocache(GPIO_IRQ_BASE, GPIO_IRQ_LENGTH);
   if(IS_ERR(gpio_irq_ptr)){
-    pr_err("Error mapping memory region for interrupt registers: %ld\n", PTR_ERR(gpio_irq_ptr));
+    dev_err(my_device, "Error mapping memory region for interrupt registers: %ld\n", PTR_ERR(gpio_irq_ptr));
     return -1; // TODO: Handle error
   }
 
@@ -187,11 +196,11 @@ static int setup_gpio(void)
   int flags = 0;
   err = request_irq(GPIO_EVEN_IRQ, &gpio_handler, flags, DEVICE_NAME, NULL);
   if(err){
-    pr_err("Error requesting EVEN interrupts: %d\n", err);
+    dev_err(my_device, "Error requesting EVEN interrupts: %d\n", err);
   }
   err = request_irq(GPIO_ODD_IRQ, &gpio_handler, flags, DEVICE_NAME, NULL);
   if(err){
-    pr_err("Error requesting ODD interrupts: %d\n", err);
+    dev_err(my_device, "Error requesting ODD interrupts: %d\n", err);
   }
 
   // Set up interrupt registers
@@ -201,14 +210,14 @@ static int setup_gpio(void)
   iowrite32(0x000000ff, gpio_irq_ptr + GPIO_IEN);       // Enable interrupt generation
 
   // No errors
-  pr_debug("OK: No errors setting up GPIO.\n");
+  dev_dbg(my_device, "OK: No errors setting up GPIO.\n");
   return 0;
 }
 
 // GPIO cleanup
 static void cleanup_gpio(void)
 {
-  pr_debug("Releasing GPIO resources ... ");
+  dev_dbg(my_device, "Releasing GPIO resources ... ");
 
   // Reset interrupt registers
   iowrite32(0x0, gpio_irq_ptr + GPIO_EXTIPSELL);
@@ -239,11 +248,6 @@ static void cleanup_gpio(void)
 static int __init gamepad_init(void)
 {
   pr_debug("Initializing the module:\n");
-
-  err = setup_gpio();
-  if(err){
-    return -1; // TODO: Handle error
-  }
 
   // Allocate device numbers
   pr_debug("allocating device numbers ...\n");
@@ -297,8 +301,6 @@ static void __exit gamepad_exit(void)
   // Deallocate device numbers
 	pr_debug("Deallocating device numbers ...\n");
   unregister_chrdev_region(dev, 1);
-
-  cleanup_gpio();
 
   pr_debug("OK: No errors during module cleanup.\n");
   return;
