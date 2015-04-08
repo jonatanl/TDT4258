@@ -38,6 +38,7 @@ static int setup_gpio_input(void);
 static int setup_gpio_interrupts(void);
 static void cleanup_gpio_input(void);
 static void cleanup_gpio_interrupts(void);
+static void work_tasklet(unsigned long unused);
 
 
 
@@ -56,30 +57,14 @@ void *gpio_irq_ptr;
 // last error
 static int err = 0;
 
-static struct button_buffer
+static struct input_buffer
 {
   uint8_t *data;
   uint32_t size;
-  uint32_t write_count;
+  uint32_t next_write;
   struct semaphore sem;
-};
-#define BT_BUFFER_SIZE 1024
-
-static struct work_struct my_workqueue;
-
-static void buffer_do_tasklet(unsigned long data)
-{
-  // retrieve next value from data pointer
-  uint8_t value = *(uint8_t*)data;
-  uint32_t write_index;
-
-  // write value to buffer and increase write count atomically
-  down(my_gamepad.buf.sem);
-  write_index = my_gamepad.buf.write_count % my_gamepad.buf.size;
-  my_gamepad.buf.data[write_index] = value;
-  my_gamepad.buf.write_count++;
-  up(my_gamepad.buf.sem);
-}
+} my_buffer;
+#define BT_BUFFER_SIZE 64
 
 // device structure containing global device data
 static struct gamepad_device
@@ -88,7 +73,7 @@ static struct gamepad_device
   struct cdev cdev;     // character device
   struct semaphore sem;
   int open_count;       // open instances of this device
-  struct button_buffer buf;
+  struct input_buffer buf;
 } my_gamepad;
 
 // file operations structure
@@ -99,6 +84,10 @@ static struct file_operations my_fops = {
   .read = gamepad_read,
   .llseek = no_llseek,
 };
+
+// work struct and tasklet input
+struct work_struct my_work;
+uint8_t my_work_input;
 
 
 
@@ -113,12 +102,15 @@ static int gamepad_open(struct inode *inode, struct file *filp)
     dev_dbg(my_device, "No open instances. Initialize device data:\n");
 
     // initialize input buffer
-    my_gamepad.buf.data = (uint8_t*) kmalloc(BT_BUFFER_SIZE, GFP_KERNEL);
-    if(IS_ERR(my_gamepad.buf.data)){ return -1; } // TODO: Handle error
-    my_gamepad.buf.size = BT_BUFFER_SIZE;
-    my_gamepad.buf.write_count = 0;
-    spin_lock_init(&my_gamepad.buf.lock);
+    my_buffer.data = (uint8_t*) kmalloc(BT_BUFFER_SIZE, GFP_KERNEL);
+    if(IS_ERR(my_buffer.data)){ return -1; } // TODO: Handle error
+    my_buffer.size = BT_BUFFER_SIZE;
+    my_buffer.next_write = 0;
+    sema_init(&my_buffer.sem, 1);
     dev_dbg(my_device, "OK: Initialized input buffer\n");
+
+    // initialize buffer work
+    INIT_WORK(&my_work, work_tasklet);
 
     // setup GPIO to receive interrupts
     err = setup_gpio_input();
@@ -130,9 +122,9 @@ static int gamepad_open(struct inode *inode, struct file *filp)
   up(&my_gamepad.sem);
 
   // initialize private device data
-  filp->private_data = kmalloc(sizeof(uint8_t), GFP_KERNEL);
+  filp->private_data = kmalloc(sizeof(uint32_t), GFP_KERNEL);
   if(IS_ERR(filp->private_data)){ return -1; } // TODO: Handle error
-  *((uint8_t*)filp->private_data) = my_gamepad.buf.write_count;
+  *((uint32_t*)filp->private_data) = my_buffer.next_write;
   dev_dbg(my_device, "OK: Initialized private device data\n");
 
   dev_dbg(my_device, "DONE: No errors opening device\n");
@@ -164,9 +156,9 @@ static int gamepad_release(struct inode *inode, struct file *filp)
     cleanup_gpio_input();
 
     // destroy input buffer
-    kfree(my_gamepad.buf.data);
-    my_gamepad.buf.size = 0;
-    my_gamepad.buf.write_count = 0;
+    kfree(my_buffer.data);
+    my_buffer.size = 0;
+    my_buffer.next_write = 0;
     dev_dbg(my_device, "OK: Destroyed input buffer\n");
 
     dev_dbg(my_device, "DONE: No errors shutting down device\n");
@@ -182,64 +174,60 @@ static int gamepad_release(struct inode *inode, struct file *filp)
 // TODO: support blocking IO
 static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp)
 { 
-  uint32_t next_read;   // next value to read from the input buffer
-  uint32_t read_index;  // index of value
-  uint32_t next_write;  // next value to write to the input buffer
-  uint32_t write_index; // index of value
-  uint32_t contiguous_values; // contigous values
-  uint32_t copy_count;        // values to copy
+  uint32_t next_read;  // next value to read from the input buffer
+  uint32_t copy_count; // number of bytes actually copied into 'buff'
 
-  down(&my_gamepad.buf.sem);
-  next_read  = *(uint32_t*)filp->private_data;
-  next_write = my_gamepad.buf.write_count; 
-
-  // skip overwritten data
-  if(next_read <= next_write - my_gamepad.buf.size){
-    next_read = next_write - size + 1;
+  // if data is available, read one byte into 'buff'
+  down(&my_buffer.sem);
+  next_read = *(uint32_t*)filp->private_data;
+  if(next_read != my_buffer.next_write){
+    *(uint8_t*)buff = my_buffer.data[next_read % my_buffer.size]; 
+    *(uint32_t*)filp->private_data += 1;
+    copy_count = 1;
+  }else{
+    copy_count = 0;
   }
-  read_index  = next_read  % my_gamepad.buf.size;
-  write_index = next_write % my_gamepad.buf.size;
-
-  // number of contiguous unread values
-  contiguous_values = (read_index < write_index)
-      ? (write_index - read_index)
-      : (my_gamepad.buf.size - read_index);
-  
-  // number of values to copy into user buffer
-  copy_count = (contiguous_values < count)
-      ? contiguous_values
-      : count;
-  
-  // copy values into user buffer
-  copy_to_user(copy_count, (uint8_t*)my_gamepad.buf.data, copy_count * sizeof(uint8_t));
-
-  // increment read counter
-  *((uint32_t*)filp->private_data) += copy_count;
-
-  up(&my_gamepad.buf.sem);
+  up(&my_buffer.sem);
 
   return copy_count;
 } 
 
-// interrupt handler
+// Interrupt handler for GPIO interrupts.
+//
+// This handler reads GPIO_PC_DIN into 'my_work_input', then schedules a
+// tasklet that copies the result into the input buffer.
 static irqreturn_t gpio_handler(int irq, void *dev_id)
 {
-  unsigned long flags;
-  uint32_t write_index;
-  dev_dbg(my_device, "INTERRUPT (irq = %d)\n", irq);
+  dev_dbg(my_device, "(interrupt on irq = %d)\n", irq);
 
-  // insert data and update write count atomically
-  spin_lock_irqsave(&my_gamepad.buf.lock, flags);
-  write_index = my_gamepad.buf.write_count % my_gamepad.buf.size;
-  my_gamepad.buf.data[write_index] = ioread32(gpio_pc_ptr + GPIO_PC_DIN);
-  my_gamepad.buf.write_count++;
-  spin_unlock_irqrestore(&my_gamepad.buf.lock, flags);
+  // while tasklet is busy, no new interrupts are handled
+  if(work_busy(&my_work)){
+    dev_dbg(my_device, "(interrupt missed!)\n", irq);
+    iowrite32(0xff, gpio_irq_ptr + GPIO_IFC); // clear interrupts
+    return IRQ_NONE;
+  }
 
-  // but this approach is poor. Competing with read calls for the spin lock can stall the system for a long time.
+  // read GPIO_PC_DIN into 'button_state'
+  my_work_input = ioread8(gpio_pc_ptr + GPIO_PC_DIN) ^ 0xff;
+
+  // schedule tasklet to copy register for us
+  schedule_work(&my_work);
 
   // clear all interrupts
   iowrite32(0xff, gpio_irq_ptr + GPIO_IFC);
   return IRQ_HANDLED;
+}
+
+// tasklet that copies values into the input buffer.
+static void work_tasklet(unsigned long unused)
+{
+  dev_dbg(my_device, "(buffer tasklet executed)\n");
+
+  // write value to buffer and increase write count
+  down(&my_buffer.sem);
+  my_buffer.data[my_buffer.next_write % my_buffer.size] = my_work_input;
+  my_buffer.next_write++;
+  up(&my_buffer.sem);
 }
 
 // initialize the gamepad module and insert it into kernel space
