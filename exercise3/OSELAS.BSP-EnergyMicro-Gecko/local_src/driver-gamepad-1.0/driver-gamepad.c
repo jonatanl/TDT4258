@@ -13,6 +13,7 @@
 #include <linux/interrupt.h>      // request_irq(), free_irq()
 #include <linux/slab.h>           // kmalloc(), kfree()
 #include <linux/spinlock.h>       // init_spin_lock(), spin_lock()
+#include <linux/wait.h>           // wait_queue_head_t
 #include "efm32gg.h"              // efm32gg hardware definitions
 
 // platform-specific IRQ numbers
@@ -61,13 +62,15 @@ static struct file_operations my_fops = {
 // size - number of states stored in 'data'
 // next_write - a counter increased on each write. The next index to write a
 //              value is calculated as 'next_write % size'.
-// semaphore sem - provides mutual exclusive access to 'data' and 'next_write'.
+// sem - provides mutual exclusive access to 'data' and 'next_write'.
+// read_queue - blocked readers wait here
 static struct input_buffer
 {
   uint8_t *data;
   uint32_t size;
   uint32_t next_write;
   struct semaphore sem;
+  wait_queue_head_t read_queue;
 } my_buffer;
 #define BT_BUFFER_SIZE 64
 
@@ -115,6 +118,7 @@ static int gamepad_open(struct inode *inode, struct file *filp)
     my_buffer.size = BT_BUFFER_SIZE;
     my_buffer.next_write = 0;
     sema_init(&my_buffer.sem, 1);
+    init_waitqueue_head(&my_buffer.read_queue);
     dev_dbg(my_device, "OK: Initialized input buffer\n");
 
     // initialize buffer work
@@ -179,25 +183,47 @@ static int gamepad_release(struct inode *inode, struct file *filp)
 
 // Copy data from input buffer to user space.
 //
-// TODO: support blocking IO
+// TODO: Support blocking IO.
+// TODO: Protect 'next_read' with a mutex to avoid race conditions where
+// several forked processes uses the same file structure.
 static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp)
 { 
   uint32_t next_read;  // next value to read from the input buffer
-  uint32_t copy_count; // number of bytes actually copied into 'buff'
+  int interrupted;
 
-  // if data is available, read one byte into 'buff'
-  down(&my_buffer.sem);
-  next_read = *(uint32_t*)filp->private_data;
-  if(next_read != my_buffer.next_write){
-    *(uint8_t*)buff = my_buffer.data[next_read % my_buffer.size]; 
-    *(uint32_t*)filp->private_data += 1;
-    copy_count = 1;
-  }else{
-    copy_count = 0;
+  // aquire mutex
+  interrupted = down_interruptible(&my_buffer.sem);
+  if(interrupted){
+    return -ERESTARTSYS; // if interrupted, system call must be restarted
   }
-  up(&my_buffer.sem);
 
-  return copy_count;
+  // wait for data to arrive
+  next_read = *(uint32_t*)filp->private_data;
+  while(next_read == my_buffer.next_write){
+
+    // release mutex
+    up(&my_buffer.sem);
+    
+    // wait for data
+    interrupted = wait_event_interruptible(my_buffer.read_queue, (next_read != my_buffer.next_write));
+    if(interrupted){
+      return -ERESTARTSYS; // if interrupted, system call must be restarted
+    }
+
+    // aquire mutex
+    interrupted = down_interruptible(&my_buffer.sem);
+    if(interrupted){
+      return -ERESTARTSYS; // if interrupted, system call must be restarted
+    }
+  }
+
+  // read one byte into 'buff' and increase read pointer
+  *(uint8_t*)buff = my_buffer.data[next_read % my_buffer.size]; 
+  *(uint32_t*)filp->private_data += 1;
+
+  // release mutex
+  up(&my_buffer.sem);
+  return 1;
 } 
 
 
@@ -242,6 +268,9 @@ static void work_tasklet(unsigned long unused)
   my_buffer.data[my_buffer.next_write % my_buffer.size] = my_work_input;
   my_buffer.next_write++;
   up(&my_buffer.sem);
+
+  // wake up blocked readers
+  wake_up_interruptible(&my_buffer.read_queue);
 }
 
 
