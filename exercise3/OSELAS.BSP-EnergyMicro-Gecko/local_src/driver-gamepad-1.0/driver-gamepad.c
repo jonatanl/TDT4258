@@ -1,36 +1,25 @@
-#define DEBUG   // enable pr_debug(), dev_dbg() and friends
+#define DEBUG // enable debugging: pr_debug(), dev_dbg()
 
-#include <linux/kernel.h>
-#include <linux/module.h>
-#include <linux/init.h>
-#include <linux/fs.h>     // alloc_crdev_region, unregister_chrdev_region
-#include <linux/cdev.h>   // cdev_alloc, cdev_init, cdev_add
-#include <linux/err.h>    // IS_ERR
-#include <linux/device.h> // class_create, device_create
-#include <linux/ioport.h> // request_mem_region, ioremap_nocache
-#include <linux/io.h>
-#include <asm-generic/uaccess.h>  // ioread32
-#include "efm32gg.h"
-#include <linux/interrupt.h>
-#include <linux/slab.h>   // kmalloc, kfree
-#include <linux/spinlock.h>
+#include <linux/kernel.h>         // kernel stuff
+#include <linux/module.h>         // module stuff
+#include <linux/init.h>           // module_init(), module_exit()
+#include <linux/fs.h>             // alloc_crdev_region(), unregister_chrdev_region()
+#include <linux/cdev.h>           // cdev_alloc(), cdev_init(), cdev_add()
+#include <linux/err.h>            // IS_ERR(), ERR_PTR(), PTR_ERR()
+#include <linux/device.h>         // class_create(), device_create()
+#include <linux/ioport.h>         // request_mem_region(), ioremap_nocache()
+#include <linux/io.h>             // iowrite*(), ioread*()
+#include <asm-generic/uaccess.h>  // copy_to_user(), copy_from_user()
+#include <linux/interrupt.h>      // request_irq(), free_irq()
+#include <linux/slab.h>           // kmalloc(), kfree()
+#include <linux/spinlock.h>       // init_spin_lock(), spin_lock()
+#include "efm32gg.h"              // efm32gg hardware definitions
 
-
-
-#define DRIVER_NAME "driver-gamepad"
-#define DEVICE_NAME "gamepad"
-#define CLASS_NAME  "gamepad"
-
-// Length of the device in bytes
-#define DEVICE_LENGTH 1
-
-// Platform IRQ numbers
+// platform-specific IRQ numbers
 #define GPIO_EVEN_IRQ 17
 #define GPIO_ODD_IRQ  18
 
-
-
-// necessary function prototypes
+// function prototypes
 static int gamepad_open(struct inode *inode, struct file *filp);
 static int gamepad_release(struct inode *inode, struct file *filp);
 static ssize_t gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp);
@@ -42,21 +31,37 @@ static void work_tasklet(unsigned long unused);
 
 
 
-// class and device structure used when creating device structure
-static struct class *my_class;
-static struct device *my_device;
+////----------------------------------------------------------
+//// Global declarations
+////----------------------------------------------------------
+//
+// Device structure containing data specific to the gamepad device.
+static struct gamepad_device
+{
+  dev_t dev;             // first device number
+  struct cdev cdev;      // char structure
+  struct semaphore sem;
+  int open_count;        // open instances of this device
+} my_gamepad;
+#define DEVICE_NAME "gamepad"
 
-// GPIO memory regions
-struct resource *gpio_pc_region;
-struct resource *gpio_irq_region;
+// A file operations structure with pointers to the driver implementations of
+// the supported file operations.
+static struct file_operations my_fops = {
+  .owner = THIS_MODULE,
+  .open = gamepad_open,
+  .release = gamepad_release,
+  .read = gamepad_read,
+  .llseek = no_llseek,  // seeking is not supported
+};
 
-// GPIO memory pointers
-void *gpio_pc_ptr;
-void *gpio_irq_ptr;
-
-// last error
-static int err = 0;
-
+// A cyclic input buffer used to store subsequent states of GPIO_PC_DIN.
+//
+// data - memory used to store states
+// size - number of states stored in 'data'
+// next_write - a counter increased on each write. The next index to write a
+//              value is calculated as 'next_write % size'.
+// semaphore sem - provides mutual exclusive access to 'data' and 'next_write'.
 static struct input_buffer
 {
   uint8_t *data;
@@ -66,32 +71,35 @@ static struct input_buffer
 } my_buffer;
 #define BT_BUFFER_SIZE 64
 
-// device structure containing global device data
-static struct gamepad_device
-{
-  dev_t dev;     // first device number
-  struct cdev cdev;     // character device
-  struct semaphore sem;
-  int open_count;       // open instances of this device
-  struct input_buffer buf;
-} my_gamepad;
-
-// file operations structure
-static struct file_operations my_fops = {
-  .owner = THIS_MODULE,
-  .open = gamepad_open,
-  .release = gamepad_release,
-  .read = gamepad_read,
-  .llseek = no_llseek,
-};
-
-// work struct and tasklet input
+// Work structure and tasklet input variable, used by the interrupt handler and
+// the scheduled tasklet.
 struct work_struct my_work;
 uint8_t my_work_input;
 
+// Class and device structure used when creating the device file.
+static struct class *my_class;
+static struct device *my_device;
+#define CLASS_NAME  "gamepad-class"
+
+// GPIO memory regions, used when requesting access to GPIO memory.
+struct resource *gpio_pc_region;
+struct resource *gpio_irq_region;
+
+// GPIO memory pointers: For portability, this driver maps GPIO memory into
+// virtual process memory. The virtual memory must be accessed with special
+// pointers.
+void *gpio_pc_ptr;  
+void *gpio_irq_ptr;
+
+// Error variable used to store last error.
+static int err = 0;
 
 
-// initialize device resources on open()
+////----------------------------------------------------------
+//// Implementation of file operations
+////----------------------------------------------------------
+//
+// Initialize device and file resources on open()
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
   dev_dbg(my_device, "Opening device:\n");
@@ -131,7 +139,7 @@ static int gamepad_open(struct inode *inode, struct file *filp)
   return 0;
 } 
 
-// Release device resources
+// Release device and file resources.
 //
 // Called when a user process closes the last open instance of a device file.
 static int gamepad_release(struct inode *inode, struct file *filp)
@@ -169,7 +177,7 @@ static int gamepad_release(struct inode *inode, struct file *filp)
   return 0;
 }
 
-// copy data from input buffer to user space
+// Copy data from input buffer to user space.
 //
 // TODO: support blocking IO
 static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp)
@@ -192,6 +200,12 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   return copy_count;
 } 
 
+
+
+////----------------------------------------------------------
+//// Interrupt handler and tasklet
+////----------------------------------------------------------
+//
 // Interrupt handler for GPIO interrupts.
 //
 // This handler reads GPIO_PC_DIN into 'my_work_input', then schedules a
@@ -202,7 +216,7 @@ static irqreturn_t gpio_handler(int irq, void *dev_id)
 
   // while tasklet is busy, no new interrupts are handled
   if(work_busy(&my_work)){
-    dev_dbg(my_device, "(interrupt missed!)\n", irq);
+    dev_dbg(my_device, "(interrupt missed!)\n");
     iowrite32(0xff, gpio_irq_ptr + GPIO_IFC); // clear interrupts
     return IRQ_NONE;
   }
@@ -218,7 +232,7 @@ static irqreturn_t gpio_handler(int irq, void *dev_id)
   return IRQ_HANDLED;
 }
 
-// tasklet that copies values into the input buffer.
+// Tasklet that copies a value into the input buffer.
 static void work_tasklet(unsigned long unused)
 {
   dev_dbg(my_device, "(buffer tasklet executed)\n");
@@ -230,7 +244,12 @@ static void work_tasklet(unsigned long unused)
   up(&my_buffer.sem);
 }
 
-// initialize the gamepad module and insert it into kernel space
+
+////----------------------------------------------------------
+//// Initialization and exit functions
+////----------------------------------------------------------
+//
+// Initialize the gamepad module and insert it into kernel space.
 static int __init gamepad_init(void)
 {
   pr_debug("Initializing the module:\n");
@@ -265,7 +284,7 @@ static int __init gamepad_init(void)
 	return 0;
 }
 
-// Perform cleanup and remove the gamepad module from kernel space
+// Perform cleanup and remove the gamepad module from kernel space.
 static void __exit gamepad_exit(void)
 {
   pr_debug("Cleaning up the module:\n");
@@ -289,9 +308,9 @@ static void __exit gamepad_exit(void)
 
 
 
-//-----------------------------
-// GPIO setup and cleanup code
-//-----------------------------
+////----------------------------------------------------------
+//// GPIO setup and cleanup functions
+////----------------------------------------------------------
 static int setup_gpio_input(void)
 {
   dev_dbg(my_device, "Setting up GPIO input:\n");
@@ -403,11 +422,13 @@ static void cleanup_gpio_interrupts(void)
 
 
 
+////----------------------------------------------------------
+//// Various: placed at EOF according to convention
+////----------------------------------------------------------
+
 // Tell kernel about init and exit functions
 module_init(gamepad_init);
 module_exit(gamepad_exit);
-
-
 
 // Module metadata
 MODULE_DESCRIPTION("Driver module for a gamepad with eight buttons.");
