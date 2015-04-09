@@ -221,6 +221,10 @@ The function pointer to \texttt{open()} in the \texttt{file\_operations} structu
 \todo{Write about how hardware registers can be accessed with request\_memory\_region() and ioremap\_nocache().}
 
 
+\subsection{Interrupt Handling}\label{sec:interrupt-handling}
+\todo{Write about how interrupt handlers are registered with request\_irq().}
+
+
 \subsection{Advanced I/O Operation}
 \todo{Write about more advanced I/O operation: Asynchronous, Blocking, etc. (see Linux Device Drivers, ch 6)}
 \subsubsection{Polling}
@@ -282,7 +286,10 @@ The target platform used in the exercise was an EFM32GG-DK3750, from here on ref
 The General-Purpose Input/Output (GPIO) pins makes it easy to connect peripherals to the EFM32GG. The pins are organized into ports of 16 pins each, numbered from A to F. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
 
 \subsubsection{Accessing GPIO pins}
-To access the GPIO pins with the gamepad driver, we needed to use a technique called 
+\todo{Write about how GPIO pins are set up}
+
+\subsubsection{Setting up GPIO Interrupts}
+\todo{Write about how GPIO interrupts are set up}
 
 
 \section{PTXdist}\label{sec:ptxdist}
