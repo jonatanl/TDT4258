@@ -101,7 +101,7 @@ Trying to close the gamepad ...
 \subsection{Creating the Device File Automatically}
 So that we would not have to create the device file manually with \texttt{mknod} each time testing the driver, we rewrote the driver so that it would create the device file ``driver-gamepad'' on initialization, as described in section \ref{sec:creating-device-files}.
 
-\subsection{Reading the gamepad buttons}
+\subsection{Reading the Gamepad Buttons}
 In order to receive input from the gamepad buttons, we needed to access the GPIO port to which the gamepad was connected. For a description of the GPIO hardware on the EFM32GG, see section \ref{sec:gpio}. However, we could not access the hardware directly: the Linux operating system manages hardware access through so-called I/O ports. Drivers that want to access hardware must acquire access to that hardware through special kernel calls. A description of I/O ports and hardware access in Linux is found in section \ref{sec:accessing-hardware-registers}.
 
 In our implementation, the function \texttt{setup\_gpio()} would be called during driver initialization. This function would request access to the GPIO registers, map them to memory, and set up the GPIO pins on port C for input. A similar function \texttt{teardown\_gpio} would release the resources on driver exit. On a read, the driver would simply copy the value of \texttt{GPIO\_PC\_DIN} to the user buffer.
@@ -120,6 +120,12 @@ GPIO_PC_DIN: 128
 Trying to close the gamepad ...
 [   20.360000] gamepad_release()
 \end{lstlisting}
+
+\subsection{Implementing the Seek Operation}
+At this point, we implemented the \texttt{llseek} file operation. The \texttt{llseek} file operation is the back-end implementation of the \texttt{lseek} system call, described in section \ref{sec:reading-and-writing-files}. The \texttt{read} operation was also rewritten to update the file offset on read and return \texttt{EOF} on any offset beyond the start of the file. To read the new device without having to call \texttt{lseek} manually each time, the \texttt{pread()} system way used. 
+
+At this point the utility of \texttt{llseek} was not very much. However, it was reasoned that this was a good way to provide access multiple registers.
+
 
 
 \section{Testing}
