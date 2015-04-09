@@ -2,6 +2,7 @@
 
 #include <linux/kernel.h>         // kernel stuff
 #include <linux/module.h>         // module stuff
+#include <linux/sched.h>          // scheduling and sleeping functions
 #include <linux/init.h>           // module_init(), module_exit()
 #include <linux/fs.h>             // alloc_crdev_region(), unregister_chrdev_region()
 #include <linux/cdev.h>           // cdev_alloc(), cdev_init(), cdev_add()
@@ -9,11 +10,11 @@
 #include <linux/device.h>         // class_create(), device_create()
 #include <linux/ioport.h>         // request_mem_region(), ioremap_nocache()
 #include <linux/io.h>             // iowrite*(), ioread*()
-#include <asm-generic/uaccess.h>  // copy_to_user(), copy_from_user()
 #include <linux/interrupt.h>      // request_irq(), free_irq()
 #include <linux/slab.h>           // kmalloc(), kfree()
 #include <linux/spinlock.h>       // init_spin_lock(), spin_lock()
 #include <linux/wait.h>           // wait_queue_head_t
+#include <linux/poll.h>           // poll_table
 #include "efm32gg.h"              // efm32gg hardware definitions
 
 // platform-specific IRQ numbers
@@ -24,6 +25,7 @@
 static int gamepad_open(struct inode *inode, struct file *filp);
 static int gamepad_release(struct inode *inode, struct file *filp);
 static ssize_t gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp);
+static unsigned int gamepad_poll(struct file *filp, poll_table *wait);
 static int gamepad_fasync(int fd, struct file *filp, int mode);
 static int setup_gpio_input(void);
 static int setup_gpio_interrupts(void);
@@ -51,12 +53,13 @@ static struct gamepad_device
 // A file operations structure with pointers to the driver implementations of
 // the supported file operations.
 static struct file_operations my_fops = {
-  .owner = THIS_MODULE,
-  .open = gamepad_open,
+  .owner   = THIS_MODULE,
+  .open    = gamepad_open,
   .release = gamepad_release,
-  .read = gamepad_read,
-  .llseek = no_llseek,  // seeking is not supported
-  .fasync = gamepad_fasync, // asyncronous notification
+  .read    = gamepad_read,
+  .poll    = gamepad_poll,    // polling for available data
+  .fasync  = gamepad_fasync,  // asyncronous notification
+  .llseek  = no_llseek,  // seeking is not supported
 };
 
 // A cyclic input buffer used to store subsequent states of GPIO_PC_DIN.
@@ -234,6 +237,39 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   return 1;
 } 
 
+// Lets user processes wait for some driver operations to become available.
+//
+// A user process calls poll(), select(), or epoll(), specifying a set of
+// operations to wait for on the device file. The user process is then blocked
+// until those operations are available.
+//
+// This driver only supports normal read operations, indicated by the flags
+// POLLIN and POLLRDNORM.
+static unsigned int gamepad_poll(struct file *filp, poll_table *wait)
+{
+  unsigned int mask = 0;
+  uint32_t next_read;
+
+  // aquire buffer mutex
+  down(&my_buffer.sem);
+
+  // specify the wait queue of the operation
+  poll_wait(filp, &my_buffer.read_queue, wait);
+
+  // if data is available, set mask to indicate that a read operation can
+  // succeed without blocking
+  next_read = *(uint32_t*) filp->private_data;
+  if(next_read != my_buffer.next_write){
+    mask |= POLLIN | POLLRDNORM;
+  }
+
+  // release buffer mutex
+  up(&my_buffer.sem);
+
+  return mask;
+}
+
+// Called whenever a user process sets the F_ASYNC bit on the device file.
 static int gamepad_fasync(int fd, struct file *filp, int mode)
 {
   // add or remove a file from the list of asynchronous readers

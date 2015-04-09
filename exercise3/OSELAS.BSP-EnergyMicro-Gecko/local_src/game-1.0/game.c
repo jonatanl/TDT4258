@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdint.h>    // uint16_t
 #include <errno.h>     // errno
+#include <poll.h>
 
 // Hack to fix conflicting 'struct flock' declarations
 #define HAVE_ARCH_STRUCT_FLOCK
@@ -29,13 +30,34 @@ void signal_handler(int signal){
 
   printf("game: Signal received!\n");
 
+
+  // create a pollfd structure used to poll the device file for available data
+  struct pollfd pollfd = {
+    .fd = devfd,
+    .events = POLLIN,
+  };
+
+  // poll the device for available data
+  printf("game: polling the device ... ");
+  poll(&pollfd, // array of all pollfd structures to wait for (only one) 
+      1,        // array length
+      0);       // timeout: 0 -> may return immediately
+  if(pollfd.revents == POLLIN){
+    printf("data is available!\n");
+  }else{
+    printf("something else happened. Timeout?\n");
+  }
+
   // read a value and print it
+  printf("game: reading data ... ");
   count = read(devfd, (void*)&value, sizeof(uint8_t)); // this call might block
   if(count > 0){
-    printf("game: got %d bytes of input: %d\n", count, value);
+    printf("got %d bytes of input: %d\n", count, value);
     if(value >= 128){
       done = 1; // exit the application
     }
+  }else{
+    printf("got no data. Error?\n");
   }
 }
 
