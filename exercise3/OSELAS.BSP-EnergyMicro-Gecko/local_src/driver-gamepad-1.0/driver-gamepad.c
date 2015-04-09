@@ -214,6 +214,11 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
 
     // release buffer mutex
     up(&my_buffer.sem);
+
+    // if IO is nonblocking, return "try again" error
+    if(filp->f_flags & O_NONBLOCK){
+      return -EAGAIN;
+    }
     
     // wait for data
     interrupted = wait_event_interruptible(my_buffer.read_queue, (next_read != my_buffer.next_write));
@@ -229,8 +234,13 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   }
 
   // read one byte into 'buff' and increase read pointer
-  *(uint8_t*)buff = my_buffer.data[next_read % my_buffer.size]; 
-  *(uint32_t*)filp->private_data += 1;
+  err = copy_to_user(buff, &my_buffer.data[next_read % my_buffer.size], 1); 
+  if(err){ // some memory was not copied: an error occurred
+    up(&my_buffer.sem);
+    return -EFAULT;
+  }else{ // everything is okay
+    *(uint32_t*)filp->private_data += 1;
+  }
 
   // release buffer mutex
   up(&my_buffer.sem);

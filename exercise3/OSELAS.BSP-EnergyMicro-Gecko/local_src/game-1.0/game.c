@@ -26,7 +26,7 @@ static int error;     // error variable
 // a simple signal handler
 void signal_handler(int signal){
   uint8_t value;
-  uint32_t count;
+  int count;
 
   printf("game: Signal received!\n");
 
@@ -45,12 +45,12 @@ void signal_handler(int signal){
   if(pollfd.revents == POLLIN){
     printf("data is available!\n");
   }else{
-    printf("something else happened. Timeout?\n");
+    printf("data is not available.\n");
   }
 
   // read a value and print it
   printf("game: reading data ... ");
-  count = read(devfd, (void*)&value, sizeof(uint8_t)); // this call might block
+  count = read(devfd, (void*)&value, sizeof(uint8_t)); // non-blocking IO: this call should never block
   if(count > 0){
     printf("got %d bytes of input: %d\n", count, value);
     if(value >= 128){
@@ -59,14 +59,35 @@ void signal_handler(int signal){
   }else{
     printf("got no data. Error?\n");
   }
+
+  // poll again to verify that polling works with no available data
+  printf("game: polling the device again ... ");
+  poll(&pollfd, 1, 0);      
+  if(pollfd.revents == POLLIN){
+    printf("data is available!\n");
+  }else{
+    printf("data is not available.\n");
+  }
+
+  // read again to verify that nonblocking I/O works with no available data
+  printf("game: reading again immediately to see if -EAGAIN is returned ...\n");
+  count = read(devfd, (void*)&value, sizeof(uint8_t));
+  if(count < 0){
+    printf("game: got: %d, expected: %d (EAGAIN)\n", errno, EAGAIN);
+  }else{
+    printf("game: no error occurred: returned value was %d\n", count);
+  }
+//  if(count < 0 && errno == EAGAIN){
+//    printf("game: EAGAIN was returned as expected!\n");
+//  }
 }
 
 
 int main(int argc, char *argv[])
 {
   // Open device read-write
-  printf("game: Trying to open the gamepad at %s ...\n", DEVICE_PATH);
-  devfd = open(DEVICE_PATH, O_RDWR);
+  printf("game: Trying to open the gamepad with O_NONBLOCK at %s ...\n", DEVICE_PATH);
+  devfd = open(DEVICE_PATH, O_RDWR | O_NONBLOCK);
   if(devfd == -1)
     printf("Error opening file: %d\n", errno);
 
