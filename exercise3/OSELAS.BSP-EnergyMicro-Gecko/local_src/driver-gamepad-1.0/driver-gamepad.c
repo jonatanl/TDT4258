@@ -24,6 +24,7 @@
 static int gamepad_open(struct inode *inode, struct file *filp);
 static int gamepad_release(struct inode *inode, struct file *filp);
 static ssize_t gamepad_read(struct file *filp, char __user *buff, size_t count, loff_t *offp);
+static int gamepad_fasync(int fd, struct file *filp, int mode);
 static int setup_gpio_input(void);
 static int setup_gpio_interrupts(void);
 static void cleanup_gpio_input(void);
@@ -43,6 +44,7 @@ static struct gamepad_device
   struct cdev cdev;      // char structure
   struct semaphore sem;
   int open_count;        // open instances of this device
+  struct fasync_struct *async_queue; // keeps track of processes listening for SIGIO
 } my_gamepad;
 #define DEVICE_NAME "gamepad"
 
@@ -54,6 +56,7 @@ static struct file_operations my_fops = {
   .release = gamepad_release,
   .read = gamepad_read,
   .llseek = no_llseek,  // seeking is not supported
+  .fasync = gamepad_fasync, // asyncronous notification
 };
 
 // A cyclic input buffer used to store subsequent states of GPIO_PC_DIN.
@@ -150,10 +153,15 @@ static int gamepad_release(struct inode *inode, struct file *filp)
 {
   dev_dbg(my_device, "Releasing device:\n");
 
+  // remove this file from the list of active asynchronous readers
+  gamepad_fasync(-1, filp, 0);
+  dev_dbg(my_device, "OK: Removed file from list of asynchronous readers\n");
+
   // destroy private device data
   kfree(filp->private_data);
   dev_dbg(my_device, "OK: Destroyed private device data\n");
 
+  // aquire device mutex
   down(&my_gamepad.sem);
   my_gamepad.open_count--;
 
@@ -191,7 +199,7 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   uint32_t next_read;  // next value to read from the input buffer
   int interrupted;
 
-  // aquire mutex
+  // aquire buffer mutex
   interrupted = down_interruptible(&my_buffer.sem);
   if(interrupted){
     return -ERESTARTSYS; // if interrupted, system call must be restarted
@@ -201,7 +209,7 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   next_read = *(uint32_t*)filp->private_data;
   while(next_read == my_buffer.next_write){
 
-    // release mutex
+    // release buffer mutex
     up(&my_buffer.sem);
     
     // wait for data
@@ -210,7 +218,7 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
       return -ERESTARTSYS; // if interrupted, system call must be restarted
     }
 
-    // aquire mutex
+    // aquire buffer mutex
     interrupted = down_interruptible(&my_buffer.sem);
     if(interrupted){
       return -ERESTARTSYS; // if interrupted, system call must be restarted
@@ -221,11 +229,16 @@ static int gamepad_read(struct file *filp, char __user *buff, size_t count, loff
   *(uint8_t*)buff = my_buffer.data[next_read % my_buffer.size]; 
   *(uint32_t*)filp->private_data += 1;
 
-  // release mutex
+  // release buffer mutex
   up(&my_buffer.sem);
   return 1;
 } 
 
+static int gamepad_fasync(int fd, struct file *filp, int mode)
+{
+  // add or remove a file from the list of asynchronous readers
+  return fasync_helper(fd, filp, mode, &my_gamepad.async_queue);
+}
 
 
 ////----------------------------------------------------------
@@ -261,13 +274,16 @@ static irqreturn_t gpio_handler(int irq, void *dev_id)
 // Tasklet that copies a value into the input buffer.
 static void work_tasklet(unsigned long unused)
 {
-  dev_dbg(my_device, "(buffer tasklet executed)\n");
+  dev_dbg(my_device, "(tasklet started)\n");
 
   // write value to buffer and increase write count
   down(&my_buffer.sem);
   my_buffer.data[my_buffer.next_write % my_buffer.size] = my_work_input;
   my_buffer.next_write++;
   up(&my_buffer.sem);
+
+  // signal asynchronous readers
+  kill_fasync(&my_gamepad.async_queue, SIGIO, POLL_IN);
 
   // wake up blocked readers
   wake_up_interruptible(&my_buffer.read_queue);
@@ -291,11 +307,14 @@ static int __init gamepad_init(void)
   // initialize cdev structure
   cdev_init(&my_gamepad.cdev, &my_fops);
 
-  // initialize remaining device fields
-  //
-  // NOTE: the input buffer is initialized on first open()
+  // initialize mutex and open count
   sema_init(&my_gamepad.sem, 1);
   my_gamepad.open_count = 0;
+
+  // set NULL, or fasync_helper() will think its nonempty
+  my_gamepad.async_queue = NULL;
+
+  // NOTE: the device input buffer is initialized on first open()
 
   // add cdev structure to kernel
   err = cdev_add(&my_gamepad.cdev, my_gamepad.dev, 1);
