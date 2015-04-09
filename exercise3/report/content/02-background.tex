@@ -217,6 +217,10 @@ The function pointer to \texttt{open()} in the \texttt{file\_operations} structu
 \end{description}
 
 
+\subsection{Accessing Hardware Registers}\label{sec:accessing-hardware-registers}
+\todo{Write about how hardware registers can be accessed with request\_memory\_region() and ioremap\_nocache().}
+
+
 \subsection{Advanced I/O Operation}
 \todo{Write about more advanced I/O operation: Asynchronous, Blocking, etc. (see Linux Device Drivers, ch 6)}
 \subsubsection{Polling}
@@ -274,7 +278,7 @@ When a driver registers a facility during initialization, there is no guarantee 
 \section{Overview of EFM32GG-DK3750}
 The target platform used in the exercise was an EFM32GG-DK3750, from here on referenced as EFM32GG, running the uClinux operating system. This section introduces those parts of the hardware that we needed to access directly when writing drivers.
 
-\subsection{General-Purpose Input/Output pins}
+\subsection{General-Purpose Input/Output pins}\label{sec:gpio}
 The General-Purpose Input/Output (GPIO) pins makes it easy to connect peripherals to the EFM32GG. The pins are organized into ports of 16 pins each, numbered from A to F. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
 
 \subsubsection{Accessing GPIO pins}
