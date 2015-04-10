@@ -171,12 +171,61 @@ The previous implementation of \texttt{read()} was in its simplicity safe agains
 \subsubsection{Work scheduling}
 Using semaphores to protect the shared buffer data introduced a new problem: an input handler is not allowed to sleep, but the handler needed to sleep to acquire the buffer semaphore. While this could have been solved by using a spinlock instead, we felt this was a bad idea as lengthy reads might potentially stall the whole system.
 
-To solve the problem we used the technique \emph{work scheduling}, described in section \ref{sec:work-scheduling}. The interrupt handler routine was divided into two halves as described in \cite{linux-device-drivers}. The \emph{top half} would do a minimal amount of work, then schedule the remaining work to run on the \emph{bottom half} as a different process. The work routine would insert the new value into the user buffer, and was scheduled on the global work queue. The kernel would run it later at some safe time, and it would be allowed to sleep to access the semaphores.
+To solve the problem we used the technique \emph{work scheduling}, described in section \ref{sec:work-scheduling}. The interrupt handler routine was divided into two halves as described in \cite{linux-device-drivers}. The \emph{top half} would do a minimal amount of work, then schedule the remaining work to run on the \emph{bottom half} as a different process. The work routine would insert the new value into the user buffer, and was scheduled on the global work queue. The kernel would run it later at some safe time, and it would be allowed to sleep to access the semaphores. For all its glory, this solution had its own little defects, as was discovered afterwards. 
 
-For all its glory, this solution had its own little defects, as was discovered later. If the user pressed buttons in rapid succession, the work routine did not always finish in time to service the interrupt handler on the second interrupt. The consequence of this was that valuable information about the sequence of button presses was lost, which was what the input buffer was supposed to prevent in the first place!
+\subsubsection{Testing the input buffer implementation}
+Having implemented shared access, safe access, and work scheduling, we reused the test code in the game application to test the input buffer implementation. Three important conditions were tested: single reader, multiple readers, and rapid input. With single and multiple readers everything worked as expected. The output from the multiple readers test is shown  listing \ref{lst:buffered-read-multiple-reader}.
+
+\begin{lstlisting}[caption=Buffered read with three readers. The program output was sorted.,label=lst:buffered-read-multiple-reader]
+game: Waiting for button input ... (Press Button 8 to exit)
+game: Waiting for button input ... (Press Button 8 to exit)
+game: Waiting for button input ... (Press Button 8 to exit)
+[   21.050000] gamepad-class gamepad: (interrupt on irq = 17)
+[   21.060000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 4
+game: got input: 4
+game: got input: 4
+[   21.660000] gamepad-class gamepad: (interrupt on irq = 17)
+[   21.680000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 0
+game: got input: 0
+game: got input: 0
+[   26.930000] gamepad-class gamepad: (interrupt on irq = 18)
+[   26.940000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 128
+game: got input: 128
+game: got input: 128
+game: Trying to close the gamepad ...
+game: Trying to close the gamepad ...
+game: Trying to close the gamepad ...
+\end{lstlisting}
+A bug was discovered when testing with rapid input. If the user pressed buttons in rapid succession, the work routine did not always finish in time to service the interrupt handler on the second interrupt. The consequence of this was that valuable information about the sequence of button presses was lost, which was what the input buffer was supposed to prevent in the first place! This is shown in the output of listing \ref{lst:buffered-read-rapid-input}, where two register states are missed (in both cases the register value was 1).
+\begin{lstlisting}[caption=Buffered read with rapid input. The program output was sorted.,label=lst:buffered-read-rapid-input]
+game: Waiting for button input ... (Press Button 8 to exit)
+[  260.680000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.690000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 1
+[  260.770000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.780000] gamepad-class gamepad: (buffer tasklet executed)
+[  260.790000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.790000] gamepad-class gamepad: (interrupt missed!)
+game: got input: 0
+[  260.880000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.890000] gamepad-class gamepad: (buffer tasklet executed)
+[  260.900000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.900000] gamepad-class gamepad: (interrupt missed!)
+game: got input: 0
+[  260.980000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.990000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 0
+\end{lstlisting}
 
 \todo{Did we fix this? Then write about it!}
 
+
+
+%\subsection{General Driver Improvements}
+%After implementing the input buffer
 
 
 \section{Testing}
