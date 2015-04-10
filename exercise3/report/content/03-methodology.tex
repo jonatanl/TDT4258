@@ -127,8 +127,26 @@ At this point, we implemented the \texttt{llseek} file operation. The \texttt{ll
 At this point the utility of \texttt{llseek} was not very much. However, it was reasoned that this was a good way to provide access multiple registers.
 
 \subsection{Registering an Interrupt Handler}
-Currently, the game used polling to discover button presses, a very energy-inefficient solution. A much better alternative is \emph{interrupt-driven I/O} (see section \todo{add reference here}). The first step was to register an interrupt handler, as described in section \ref{sec:interrupt-handling}. Then we needed to set up the hardware to receive interrupts, as described in section \ref{sec:gpio-interrupts}.
-\todo{Complete this section: Write a bit about the implementation}
+Currently, the game used polling to discover button presses, a solution with poor energy-efficiency. A much better alternative was \emph{interrupt-driven I/O}, described in section \todo{add reference here}. The first step was to register an interrupt handler, as described in section \ref{sec:interrupt-handling}. Then we needed to set up the hardware to receive interrupts, as described in section \ref{sec:gpio-interrupts}.
+
+The function \texttt{setup\_gpio()} was extended with setup code that registered the interrupt handler. It would allocate memory for registers, map the memory into process virtual memory, and set up the registers to generate interrupts on both button press and button release. In addition, before enabling interrupts, it would register a simple interrupt handler. This handler would simply print an interrupt count using \texttt{pr\_debug()}, clear the interrupts, and then return. The output is shown in listing \ref{lst:a-simple-interrupt-handler}.
+\begin{lstlisting}[caption=A simple interrupt handler,label=lst:a-simple-interrupt-handler]
+/ # modprobe driver-gamepad
+[   10.370000] Initializing the module:
+[   10.370000] Setting up GPIO ...
+[   10.380000] INTERRUPT: 1
+[   10.390000] OK: No errors setting up GPIO.
+[   10.400000] allocating device numbers ...
+[   10.400000] setting up character device ...
+[   10.410000] creating device file...
+[   10.430000] OK: No errors during module initialization.
+/ # [   17.120000] INTERRUPT: 2
+[   18.730000] INTERRUPT: 3
+[   19.440000] INTERRUPT: 4
+[   20.060000] INTERRUPT: 5
+[   20.660000] INTERRUPT: 6
+[   21.080000] INTERRUPT: 7
+\end{lstlisting}
 
 
 
