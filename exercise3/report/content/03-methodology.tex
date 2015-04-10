@@ -148,6 +148,13 @@ The function \texttt{setup\_gpio()} was extended with setup code that registered
 [   21.080000] INTERRUPT: 7
 \end{lstlisting}
 
+\subsection{Buffering Gamepad Input}
+The gamepad device now worked as a simple hardware interface providing access to a single register. However, we discovered a small problem with this approach. User applications that did not read the device immediately after button input was available would risk that some register states would be overwritten by new ones, thus they might lose valuable information about the exact sequence of button presses. This was especially true when the user pressed two gamepad buttons in rapid succession.
+
+The solution we came up with was to store register states within the driver in a cyclic buffer; processes reading the device would then be able to read the complete sequence of button presses. For more than just four or five button presses, the user (or users) should be unable to generate input at a very high rate. Thus it should be possible to avoid most overflow even with a small buffer size. In the event that overflow should still occur, our buffer would operate on the FIFO principle, overwriting the oldest values first.
+
+With the buffering technique, seeking no longer made sense and support was removed from the device by initializing the field \texttt{llseek} in the \texttt{file\_operations} structure with the helper function \texttt{no\_llseek}.
+
 
 
 \section{Testing}
