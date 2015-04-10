@@ -148,6 +148,11 @@ The function \texttt{setup\_gpio()} was extended with setup code that registered
 [   21.080000] INTERRUPT: 7
 \end{lstlisting}
 
+\subsection{Releasing resources when not needed}
+When a driver needs exclusive access to some resources, it should only claim those resources when absolutely necessary. This way other drivers can access those resources in the meantime and the system becomes more flexible.
+
+Our driver needed exclusive access to two regions of GPIO memory, namely the port C registers and the interrupt registers. To make the driver more flexible, we rewrote it so that it initialized the GPIO hardware when the device was opened for the first time. Similarly, the driver would release the GPIO resources only when a release was called on the last open device instance. The driver needed to keep a count on the number of open device instances, stored in the field \texttt{open\_count} of the \texttt{gamepad\_device} structure.
+
 \subsection{Buffering Gamepad Input}
 The gamepad device now worked as a simple hardware interface providing access to a single register. However, we discovered a small problem with this approach. User applications that did not read the device immediately after button input was available would risk that some register states would be overwritten by new ones, thus they might lose valuable information about the exact sequence of button presses. This was especially true when the user pressed two gamepad buttons in rapid succession.
 
@@ -233,9 +238,6 @@ Having implemented blocking I/O, we reimplemented nonblocking I/O. This was done
 \subsubsection{The poll file operation}
 Any decent driver supporting nonblocking I/O should also support the file operation \texttt{poll} (see section \ref{sec:the-poll-file-operation}). Without \texttt{poll}, the user applications accessing the driver's nonblocking I/O must either resort to busy waiting, or they must implement their own polling scheme, not a satisfying situation. The function \texttt{gamepad\_poll()} specified the input buffer read queue introduced with blocking I/O as poll wait queue. The bit mask returned would contain the bits \texttt{POLLIN} and \texttt{POLLRDNORM} to indicate that data was available for a normal read. The input buffer semaphore was used for synchronization.
 
-
-%\subsubsection{Release hardware resources when not needed}
-%The driver would not initialize the GPIO hardware before the device was actually opened. Similarly, the driver would release the GPIO resources on a release. To avoid multiple initialization, the driver needed to keep a count on the number of open instances.
 
 
 
