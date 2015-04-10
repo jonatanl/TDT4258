@@ -293,17 +293,38 @@ When a driver registers a facility during initialization, there is no guarantee 
 \todo{Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1}
 
 
+
 \section{Overview of EFM32GG-DK3750}
-The target platform used in the exercise was an EFM32GG-DK3750, from here on referenced as EFM32GG, running the uClinux operating system. This section introduces those parts of the hardware that we needed to access directly when writing drivers.
+The target platform used in the exercise was an EFM32GG-DK3750, from here on referenced as EFM32GG, running the uClinux operating system. This section introduces those parts of the hardware that we needed to access directly when writing drivers. When referring to hardware registers, we shall refer to their corresponding names as specified in the EFM32GG Reference Manual, \cite{efm32gg-rm}.
+
 
 \subsection{General-Purpose Input/Output pins}\label{sec:gpio}
 The General-Purpose Input/Output (GPIO) pins makes it easy to connect peripherals to the EFM32GG. The pins are organized into ports of 16 pins each, numbered from A to F. It is possible to configure each pin individually for either input or output, in addition to configuring more advanced features such as drive-strength or pull-up resistors.
 
-\subsubsection{Accessing GPIO pins}\label{sec:gpio-access}
-\todo{Write about how GPIO pins are set up}
+\subsubsection{Setting up Port C for gamepad input}\label{sec:gpio-access}
+To set up GPIO port C to receive input from the gamepad, some of the port C registers needed to be written:
+\begin{description}
+  \item[\texttt{GPIO\_PC\_MODEL}] \hfill \\
+    This register is used to individually configure the mode for each of the lower pins of GPIO port C. The register can configure the pins for either input or output, as well as doing more advanced configuration. To configure the lower pins for gamepad input, the value \texttt{0x33333333} is written to the register.
+  \item[\texttt{GPIO\_PC\_DOUT}] \hfill \\ 
+    This register has a function depending on what is written to \texttt{GPIO\_PC\_MODEL}. To configure the lower pins for gamepad input, the value \texttt{0xff} is written to the register.
+\end{description}
 
-\subsubsection{Setting up GPIO Interrupts}\label{sec:gpio-interrupts}
-\todo{Write about how GPIO interrupts are set up}
+\subsubsection{Setting up gamepad interrupts}\label{sec:gpio-interrupts}
+To set up the GPIO hardware to generate interrupts when a gamepad button is pressed or released, some of the GPIO interrupt registers needed to be written:
+\begin{description}
+  \item[\texttt{GPIO\_EXTIPSELL}] \hfill \\
+    This register selects which of the GPIO low pins should generate interrupts. For each pin number, the register specifies the port that should generate an interrupt on that pin. To set up the port C lower pins to generate interrupts when the gamepad buttons are pressed, the value \texttt{0x22222222} is written to the register.
+  \item[\texttt{GPIO\_EXTIFALL}] \hfill \\
+    This register is used to specify for each low pin whether interrupts should be generated on a transition from 1 to 0. It must be set to \texttt{0xff} to enable interrupt generation on gamepad button presses.
+  \item[\texttt{GPIO\_EXTIRISE}] \hfill \\
+    This register is used to specify for each low pin whether interrupts should be generated on a transition from 0 to 1. It must be set to \texttt{0xff} to enable interrupt generation on gamepad button releases.
+  \item[\texttt{GPIO\_IEN}] \hfill \\
+    This register enables interrupt generation individually for both low and high pins. It must be set to \texttt{0xff} to enable interrupts for each of the low pins.
+  \item[\texttt{GPIO\_IFC}] \hfill \\
+    This register is written to clear interrupt flags. An interrupt handler for the gamepad needs to write to this register to \texttt{0xff} to clear the interrupts.
+\end{description}
+
 
 
 \section{PTXdist}\label{sec:ptxdist}
