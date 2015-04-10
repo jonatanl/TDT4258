@@ -219,13 +219,24 @@ game: got input: 0
 [  260.990000] gamepad-class gamepad: (buffer tasklet executed)
 game: got input: 0
 \end{lstlisting}
-
 \todo{Did we fix this? Then write about it!}
 
+\subsection{Improving Device I/O Capabilities}
+After implementing the input buffer, a number of improvements was made to the drivers I/O capabilities. These mostly consisted of simple changes implementing some standard driver functionality expected by many user applications.
+
+\subsubsection{Blocking I/O}
+Currently, the \texttt{read} operation only performed asynchronous I/O, regardless of the value of the \texttt{O\_NONBLOCK} flag set in the file. This was changed by adding a \texttt{wait\_queue\_head\_t} structure to the input buffer. The \texttt{gamepad\_read} function was rewritten so that a process reading the device would now block on this queue until input was available. Wait queues are described in section \ref{sec:wait-queues}.
+
+\subsubsection{Nonblocking I/O}
+Having implemented blocking I/O, we reimplemented nonblocking I/O. This was done simply by checking the flag \texttt{O\_NONBLOCK} in the read method and returning the error code \texttt{-EAGAIN} if no data was available.
+
+\subsubsection{The poll file operation}
+Any decent driver supporting nonblocking I/O should also support the file operation \texttt{poll} (see section \ref{sec:the-poll-file-operation}). Without \texttt{poll}, the user applications accessing the driver's nonblocking I/O must either resort to busy waiting, or they must implement their own polling scheme, not a satisfying situation. The function \texttt{gamepad\_poll()} specified the input buffer read queue introduced with blocking I/O as poll wait queue. The bit mask returned would contain the bits \texttt{POLLIN} and \texttt{POLLRDNORM} to indicate that data was available for a normal read. The input buffer semaphore was used for synchronization.
 
 
-%\subsection{General Driver Improvements}
-%After implementing the input buffer
+%\subsubsection{Release hardware resources when not needed}
+%The driver would not initialize the GPIO hardware before the device was actually opened. Similarly, the driver would release the GPIO resources on a release. To avoid multiple initialization, the driver needed to keep a count on the number of open instances.
+
 
 
 \section{Testing}
