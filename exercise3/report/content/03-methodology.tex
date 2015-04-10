@@ -82,6 +82,8 @@ The compendium recommended to access the framebuffer through a memory mapping. T
 \section{Part 2: The Driver}
 Having completed the first part of the exercise, it was time to write the gamepad driver. Before continuing, the reader might consider reviewing section \ref{writing-device-drivers-for-linux}, as it introduces theory fundamental to this section.
 
+Our initial aim for the driver was to implement a driver that supported interrupt-driver I/O with asynchronous notification to notify user processes of available data. This was highly recommended in the compendium as a solution with superior energy efficiency to polling. However, the road there was not quite straight, and our driver accumulated several other features along the way.
+
 \subsection{Registering a Character Device}
 Following steps described in the compendium and in \cite{linux-device-drivers}, we wrote a simple driver that requested dynamically allocated device numbers and registered a character device in the kernel on initialization. On exit, the driver would remove the character device from the kernel and then deallocate the device numbers.
 
@@ -147,6 +149,8 @@ The function \texttt{setup\_gpio()} was extended with setup code that registered
 [   20.660000] INTERRUPT: 6
 [   21.080000] INTERRUPT: 7
 \end{lstlisting}
+
+Several more steps were needed to fully implement interrupt-driven I/O. However, we felt that other issues were more pressing and chose to implement interrupt-driven I/O at a later time.
 
 \subsection{Releasing resources when not needed}
 When a driver needs exclusive access to some resources, it should only claim those resources when absolutely necessary. This way other drivers can access those resources in the meantime and the system becomes more flexible.
@@ -238,6 +242,28 @@ Having implemented blocking I/O, we reimplemented nonblocking I/O. This was done
 \subsubsection{The poll file operation}
 Any decent driver supporting nonblocking I/O should also support the file operation \texttt{poll} (see section \ref{sec:the-poll-file-operation}). Without \texttt{poll}, the user applications accessing the driver's nonblocking I/O must either resort to busy waiting, or they must implement their own polling scheme, not a satisfying situation. The function \texttt{gamepad\_poll()} specified the input buffer read queue introduced with blocking I/O as poll wait queue. The bit mask returned would contain the bits \texttt{POLLIN} and \texttt{POLLRDNORM} to indicate that data was available for a normal read. The input buffer semaphore was used for synchronization.
 
+\subsection{Asynchronous Notification}
+Finally we were in a position to complete the interrupt-driven I/O operation with asynchronous notification, our goal all along. The last remaining step was to implement asynchronous notification, as described in sections \ref{sec:asynchronous-signalling} and \ref{sec:asynchronous-notification}.
+
+On the driver-side, the modifications were small. First we needed to implement the \texttt{fasync} file operation used to notify the driver that a process had enabled asynchronous notification on the device file. To keep track of all the asynchronous readers, we wrote the simple function \texttt{gamepad\_fasync} that would simply call the helper function \texttt{fasync\_helper()}. To notify the asynchronous readers that data was available, we rewrote the work tasklet to call the function \texttt{kill\_fasync()} and signal all readers on the \texttt{fasync\_struct} structure that data was available each time after inserting a new value into the input buffer.
+
+To test the driver, we needed to do a few modifications to the game application. We added the necessary code to set up asynchronous signalling, and wrote a signal handler routine that would read once from the device and print the results. The resulting output is shown in listing \ref{lst:reading-with-asynchronous-signalling}.
+\begin{lstlisting}[caption=Reading with asynchronous signalling.,label=lst:reading-with-asynchronous-signalling]
+game: Waiting for button input ... (Press Button 8 to exit)
+[   52.120000] gamepad-class gamepad: (interrupt on irq = 18)
+[   52.130000] gamepad-class gamepad: (tasklet started)
+game: Signal received!
+game: got 1 bytes of input: 32
+[   52.640000] gamepad-class gamepad: (interrupt on irq = 18)
+[   52.650000] gamepad-class gamepad: (tasklet started)
+game: Signal received!
+game: got 1 bytes of input: 0
+[   53.310000] gamepad-class gamepad: (interrupt on irq = 18)
+[   53.320000] gamepad-class gamepad: (tasklet started)
+game: Signal received!
+game: got 1 bytes of input: 128
+game: Trying to close the gamepad ...
+\end{lstlisting}
 
 
 
