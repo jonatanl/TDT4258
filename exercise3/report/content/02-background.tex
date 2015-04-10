@@ -34,20 +34,16 @@ In addition to the concepts described above, several other terms are used in the
 \item[Boot Loader] \hfill \\
 The bootloader is a small program that runs before the operating system starts, and makes the necessary preparations to load the kernel.
 \item[Linux Root Filesystem] \hfill \\
- In Linux, the root filesystem is the filesystem available at the top-level directory. It is denoted with a forward slash, \texttt{/}.
+In Linux, the root filesystem is the filesystem available at the top-level directory. It is denoted with a forward slash, \texttt{/}.
 \end{description}
 
-\todo{Things to consider writing about here: \\
-\indent - The virtual address space of processes}
 
 
 \section{Linux}
-This section is a brief introduction to important low-level concepts of the Linux operating system, such as system calls and certain Linux devices.
+This introduces some relevant concepts of the Linux operating system, such as system calls and certain Linux devices.
 
 \subsection{The Frame Buffer}\label{sec:the-framebuffer}
-The frame buffer device is an abstraction that allows user applications to access the frame buffer of some underlying graphics hardware, and usually appears as \texttt{/dev/fb0}. The pixels displayed on the screen are stored in the frame buffer in a hardware-dependent format, and can be changed by writing to the frame buffer. Frame buffers are \emph{memory devices} and can be mapped into process virtual memory with \texttt{mmap()} as explained in section \ref{mapping-files-to-memory}.
-
-\todo{Add reference to Documentation/fb/framebuffer.txt}
+The frame buffer device is an abstraction that allows user applications to access the frame buffer of some underlying graphics hardware, and usually appears as \texttt{/dev/fb0}. The pixels displayed on the screen are stored in the frame buffer in a hardware-dependent format, and can be changed by writing to the frame buffer. Frame buffers are \emph{memory devices} and can be mapped into process virtual memory with \texttt{mmap()} as explained in section \ref{mapping-files-to-memory}.\cite{linux-kernel-documentation-framebuffer}
 
 
 \subsection{Linux System Calls}
@@ -55,6 +51,7 @@ This section explains a few Linux system calls relevant in this report.
 
 \subsubsection{Reading and writing files}\label{sec:reading-and-writing-files}
 Several system calls in Linux are related to file operations that perform file I/O. This section will introduce some of the most commonly used. The following system calls are available from the headers \texttt{<fcntl.h>} and \texttt{<unistd.h>}.
+\cite{linux-man-pages}
 
 \begin{description}
 \item[\texttt{int open(const char *pathname, int flags);}] \hfill \\
@@ -71,6 +68,7 @@ After an application is done with a file it should call \texttt{close()} to rele
 
 \subsubsection{Mapping files to memory}\label{mapping-files-to-memory}
 Accessing a file in an arbitrary manner using the system calls described in section \ref{sec:reading-and-writing-files} will involve many redundant calls to \texttt{lseek()}. A better alternative then is to map the file into the virtual address space of the process, allowing the file to be accessed with ordinary memory accesses. The following system calls are available from the headers \texttt{<sys/mman.h>} and \texttt{<unistd.h>}.
+\cite{linux-man-pages}
 
 \begin{description}
 \item[\texttt{void *mmap(void *addr, size\_t length, int prot, int flags, int fd, off\_t offset);}]
@@ -90,7 +88,7 @@ After the application is done with the memory map, it may call \texttt{unmap()} 
 
 
 \section{Writing Device Drivers for Linux}\label{writing-device-drivers-for-linux}
-This section is a brief introduction to device driver development for the Linux kernel. It begins by explaining some practical details regarding driver development, then it highlights some important parts of the Linux kernel and common programming constructs, and finally it provides a brief outline on driver design. The main focus is on drivers implemented as kernel modules. For an explanation on the terminology used in this section, see section \ref{basic-terminology}.
+This section is an introduction to device driver development for the Linux kernel. It begins by explaining some practical details regarding driver development, then it highlights some important parts of the Linux kernel and common programming constructs, and finally it provides a brief outline on driver design. The main focus is on drivers implemented as kernel modules. For an explanation on the terminology used in this section, see section \ref{basic-terminology}. This section relies heavily on the book \emph{Linux Device Drivers} (see \cite{linux-device-drivers}) as a source of information on driver programming and the Linux kernel.
 
 \todo{Verify that this is consistent with the rest of the chapter}
 
