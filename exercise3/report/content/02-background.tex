@@ -339,6 +339,7 @@ PTXdist is a build system used to develop userland software for embedded platfor
 \end{itemize}
 PTXdist builds the Linux kernel used along with the userland software.
 
+
 \subsection{Project Setup}
 Setting up a PXTdist project consists of the following steps:
 \begin{itemize}
@@ -346,7 +347,8 @@ Setting up a PXTdist project consists of the following steps:
   \item Selecting a hardware platform.
   \item Selecting a toolchain.
 \end{itemize}
-The userland configuration defines what user programs will be built for the target platform apart from the kernel, and the hardware platform defines the target platform of the build. The toolchain selected is the toolchain PTXdist should use when building. As PTXdist looks for toolchains in the /opt folder, selecting a toolchain is not always necessary.
+The userland configuration defines what user programs will be built for the target platform apart from the kernel, and the hardware platform defines the target platform of the build. The toolchain selected is the toolchain PTXdist should use when building sources. As PTXdist looks for toolchains in the /opt folder, selecting a toolchain is not always necessary.
+
 
 \subsection{Building and Flashing}
 After the project has been setup, the kernel and the user programs can be built with one simple command:
@@ -354,15 +356,16 @@ After the project has been setup, the kernel and the user programs can be built 
 \begin{lstlisting}
 ptxdist go
 \end{lstlisting}
-This will build several filesystem images for the target platform containing the kernel and all userland programs specified by the userland configuration. PTXdist will automatically find out which packages needs to be built, and download them if necessary.
+This will download, extract and compile all needed sources, in addition to installing the sources into a file system for the target located at the host. This command may take some time to execute the first time, but will reuse the installed sources later.
 
-Finally, the images can then be flashed onto the target platform with the command:
+The next step is to generate filesystem images for the target:
 \lstset{style=lststyle-terminal}
 \begin{lstlisting}
 ptxdist images
 \end{lstlisting}
-An illustration of how the PTXdist build process might be for a computer game is shown in figure \ref{fig:ptxdist-build-process}.
+This command will create several filesystems for the target platform containing kernel, bootloader, and all userland programs specified by the userland configuration. 
 
+Finally, the images can then be flashed onto the target platform using platform-specific software, such as eACommander for EFM32GG. An illustration of how the PTXdist build process might be for a computer game is shown in figure \ref{fig:ptxdist-build-process}.
 \begin{figure}[ht]\label{fig:ptxdist-build-process}
   \includegraphics[width=\textwidth]{images/ptxdist_build_process.png}
   \caption{An example overview of a PTXdist build process for a computer game.}
