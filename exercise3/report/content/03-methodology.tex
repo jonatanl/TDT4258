@@ -151,9 +151,31 @@ The function \texttt{setup\_gpio()} was extended with setup code that registered
 \subsection{Buffering Gamepad Input}
 The gamepad device now worked as a simple hardware interface providing access to a single register. However, we discovered a small problem with this approach. User applications that did not read the device immediately after button input was available would risk that some register states would be overwritten by new ones, thus they might lose valuable information about the exact sequence of button presses. This was especially true when the user pressed two gamepad buttons in rapid succession.
 
-The solution we came up with was to store register states within the driver in a cyclic buffer; processes reading the device would then be able to read the complete sequence of button presses. For more than just four or five button presses, the user (or users) should be unable to generate input at a very high rate. Thus it should be possible to avoid most overflow even with a small buffer size. In the event that overflow should still occur, our buffer would operate on the FIFO principle, overwriting the oldest values first.
+The solution we came up with was to store register states within the driver in a cyclic buffer; processes reading the device would then be able to read the complete sequence of button presses. For more than just four or five button presses, the user (or users) should be unable to generate input at a very high rate. Thus it should be possible to avoid most overflow even with a small buffer size. In the event that overflow should still occur, the buffer would operate on the FIFO principle, overwriting the oldest values first.
 
 With the buffering technique, seeking no longer made sense and support was removed from the device by initializing the field \texttt{llseek} in the \texttt{file\_operations} structure with the helper function \texttt{no\_llseek}.
+
+\subsection{Implementing the Input Buffer}
+A first version of the buffer was quickly implemented, and the interrupt handler was rewritten so that it would fill the buffer with values. The buffer was initialized and destroyed together with the GPIO hardware in the functions \texttt{gamepad\_open()} and \texttt{gamepad\_release()}. The only remaining step was to rewrite the \texttt{gamepad\_read()} function so that it would take its values from the buffer instead of directly reading them from the register. 
+
+\subsubsection{Sharing the device among multiple processes}
+Before we could implement the \texttt{read()} function, we needed to make a decision regarding the driver design. The previous driver could be shared among multiple processes: they would simply read the same register, accessing it using individual file offsets. But in the first input buffer implementation the readers shared a global pointer to the oldest unread element, and multiple readers would compete for the gamepad input, an unfortunate situation.
+
+As described in \cite{linux-device-drivers}, one solution would be to make the gamepad device \emph{single-open}, only allowing a single open device file instance at any time. Any call to \texttt{open()} other than the first would fail with the error code \texttt{EBUSY}.
+
+Another solution described in \cite{linux-device-drivers} was to create a private copy of the device on each call to \texttt{open()}. We opted for this approach, as we felt it was both more correct and interesting. To solve the problem with input being consumed, an individual read pointer was associated with each open file instance, stored in the field \texttt{private\_data} of the \texttt{file} structure (see section \ref{sec:file-structure}).
+
+\subsubsection{Concurrency and safe access}
+The previous implementation of \texttt{read()} was in its simplicity safe against race conditions: there was simply no way a serious race condition could occur. With the input buffer, however, the input handler would need to increment a pointer to the newest element, a pointer that might be read at exactly the same time by a process in the \texttt{read()} function. To avoid problems, the \texttt{semaphore} structure was used to achieve mutual exclusion between all regions of code accessing the write pointer. The kernel synchronization mechanisms and concurrency are described in section \ref{sec:synchronization-mechanisms}.
+
+\subsubsection{Work scheduling}
+Using semaphores to protect the shared buffer data introduced a new problem: an input handler is not allowed to sleep, but the handler needed to sleep to acquire the buffer semaphore. While this could have been solved by using a spinlock instead, we felt this was a bad idea as lengthy reads might potentially stall the whole system.
+
+To solve the problem we used the technique \emph{work scheduling}, described in section \ref{sec:work-scheduling}. The interrupt handler routine was divided into two halves as described in \cite{linux-device-drivers}. The \emph{top half} would do a minimal amount of work, then schedule the remaining work to run on the \emph{bottom half} as a different process. The work routine would insert the new value into the user buffer, and was scheduled on the global work queue. The kernel would run it later at some safe time, and it would be allowed to sleep to access the semaphores.
+
+For all its glory, this solution had its own little defects, as was discovered later. If the user pressed buttons in rapid succession, the work routine did not always finish in time to service the interrupt handler on the second interrupt. The consequence of this was that valuable information about the sequence of button presses was lost, which was what the input buffer was supposed to prevent in the first place!
+
+\todo{Did we fix this? Then write about it!}
 
 
 
