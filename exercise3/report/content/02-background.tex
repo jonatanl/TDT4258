@@ -217,24 +217,21 @@ The function pointer to \texttt{open()} in the \texttt{file\_operations} structu
 \end{description}
 
 
-\subsection{Accessing Hardware}\label{sec:accessing-hardware-registers}
-In Linux, access to the registers of peripheral devices is managed through so-called \emph{I/O ports}. Any process that wishes to access registers must first acquire exclusive access to I/O ports corresponding to those registers. Allocating and releasing I/O ports is done with the functions \texttt{request\_region} and \texttt{release\_region} from \texttt{<linux/ioport.h>}:
-\begin{description}
-  \item \texttt{struct resource *request\_region(unsigned long first, unsigned long n, \hfill \\ const char *name);} \hfill \\
-  This will allocate \texttt{n} I/O ports, starting at the address \texttt{first} in the I/O address space. \texttt{name} is the name of the device that wants to use the ports.
-  \item \texttt{struct resource *release\_region(unsigned long first, unsigned long n);} \hfill \\
-  This will release a region previously allocated with \texttt{request\_region}.
-\end{description}
-The file \texttt{/proc/ioports} lists all allocated I/O ports together with the name of the device that allocated them.  
+\subsection{Accessing Hardware Registers}\label{sec:accessing-hardware-registers}
+Linux uses the concept of \emph{I/O ports} to manage access to peripheral devices. To access a set of registers, a process must first allocate the corresponding I/O ports through the special kernel call \texttt{request\_region()}, defined in \texttt{<linux/ioports.h>}. When done, the process should release the I/O ports with \texttt{release\_region()}.
 
-Although the concept of I/O ports was originally conceived for processors with a separate memory space for I/O devices, it is now supported also on processors that use memory-mapped I/O. On these processors, the I/O address range specified when allocating ports corresponds to physical memory addresses.
+To read and write registers directly, the kernel defines the functions such as \texttt{inb()} and \texttt{outb()} to read or write a register of a specific size. The I/O port is passed as a parameter to specify the target register.  
+
+Registers can also be mapped directly into physical memory using \texttt{ioremap()}. This function will return a pointer to a memory region that corresponds directly to the hardware registers. The similar function \texttt{ioremap\_nocache()} can be used to turn off caching of the memory region. To release a memory-mapped region, the function \texttt{unmap()} should be called.
+
+Code optimizations may be an issue when writing to registers. Specifically, memory operations might be reordered by either compiler or hardware, changing the order the registers are written and causing unwanted side-effects. To impose ordering on memory operations, the programmer should call kernel functions that act as memory barriers, such as \texttt{barrier()} (compiler memory barrier) and \texttt{mb()} (hardware memory barrier).
+
 
 
 \subsection{Interrupt Handling}\label{sec:interrupt-handling}
 \todo{Write about how interrupt handlers are registered with request\_irq().}
 \todo{Write about special concerns regarding interrupt handlers (not allowed to sleep, must be fast, etc.)}
 \todo{Write about work scheduling and tasklets.}
-
 
 \subsection{Wait Queues}\label{sec:wait-queues}
 \todo{Write about wait queues (wait\_queue\_head\_t and such, see LDD ch. 6: Simple Sleeping (p. 149)).}
