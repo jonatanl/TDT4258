@@ -217,8 +217,17 @@ The function pointer to \texttt{open()} in the \texttt{file\_operations} structu
 \end{description}
 
 
-\subsection{Accessing Hardware Registers}\label{sec:accessing-hardware-registers}
-\todo{Write about how hardware registers can be accessed with request\_memory\_region() and ioremap\_nocache().}
+\subsection{Accessing Hardware}\label{sec:accessing-hardware-registers}
+In Linux, access to the registers of peripheral devices is managed through so-called \emph{I/O ports}. Any process that wishes to access registers must first acquire exclusive access to I/O ports corresponding to those registers. Allocating and releasing I/O ports is done with the functions \texttt{request\_region} and \texttt{release\_region} from \texttt{<linux/ioport.h>}:
+\begin{description}
+  \item \texttt{struct resource *request\_region(unsigned long first, unsigned long n, \hfill \\ const char *name);} \hfill \\
+  This will allocate \texttt{n} I/O ports, starting at the address \texttt{first} in the I/O address space. \texttt{name} is the name of the device that wants to use the ports.
+  \item \texttt{struct resource *release\_region(unsigned long first, unsigned long n);} \hfill \\
+  This will release a region previously allocated with \texttt{request\_region}.
+\end{description}
+The file \texttt{/proc/ioports} lists all allocated I/O ports together with the name of the device that allocated them.  
+
+Although the concept of I/O ports was originally conceived for processors with a separate memory space for I/O devices, it is now supported also on processors that use memory-mapped I/O. On these processors, the I/O address range specified when allocating ports corresponds to physical memory addresses.
 
 
 \subsection{Interrupt Handling}\label{sec:interrupt-handling}
