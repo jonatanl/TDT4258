@@ -111,12 +111,12 @@ static int err = 0;
 // Initialize device and file resources on open()
 static int gamepad_open(struct inode *inode, struct file *filp)
 {
-  dev_dbg(my_device, "Opening device:\n");
+  dev_dbg(my_device, "Opening device ...\n");
 
   // initialize device on first open
   down(&my_gamepad.sem);
   if(my_gamepad.open_count == 0){
-    dev_dbg(my_device, "No open instances. Initialize device data:\n");
+    dev_dbg(my_device, "No open instances. Initializing device ...\n");
 
     // initialize input buffer
     my_buffer.data = (uint8_t*) kmalloc(BT_BUFFER_SIZE, GFP_KERNEL);
@@ -135,6 +135,7 @@ static int gamepad_open(struct inode *inode, struct file *filp)
     if(err){ return -1; } // TODO: Handle error
     err = setup_gpio_interrupts();
     if(err){ return -1; } // TODO: Handle error
+    dev_dbg(my_device, "DONE: No errors initializing device\n");
   }
   my_gamepad.open_count++;
   up(&my_gamepad.sem);
@@ -154,7 +155,7 @@ static int gamepad_open(struct inode *inode, struct file *filp)
 // Called when a user process closes the last open instance of a device file.
 static int gamepad_release(struct inode *inode, struct file *filp)
 {
-  dev_dbg(my_device, "Releasing device:\n");
+  dev_dbg(my_device, "Releasing device file ...\n");
 
   // remove this file from the list of active asynchronous readers
   gamepad_fasync(-1, filp, 0);
@@ -170,7 +171,7 @@ static int gamepad_release(struct inode *inode, struct file *filp)
 
   // shut down device on last close
   if(my_gamepad.open_count == 0){
-    dev_dbg(my_device, "No other open instances. Shutting down device:\n");
+    dev_dbg(my_device, "No other open instances. Shutting down device ...\n");
 
     // release GPIO interrupt resources
     cleanup_gpio_interrupts();
@@ -188,7 +189,7 @@ static int gamepad_release(struct inode *inode, struct file *filp)
   }
   up(&my_gamepad.sem);
 
-  dev_dbg(my_device, "DONE: No errors releasing device\n");
+  dev_dbg(my_device, "DONE: No errors releasing device file\n");
   return 0;
 }
 
@@ -343,7 +344,7 @@ static void work_tasklet(unsigned long unused)
 // Initialize the gamepad module and insert it into kernel space.
 static int __init gamepad_init(void)
 {
-  pr_debug("Initializing the module:\n");
+  pr_debug("Initializing the module ...\n");
 
   // allocate device numbers
   err = alloc_chrdev_region(&my_gamepad.dev, 0, 1, DEVICE_NAME);
@@ -365,14 +366,14 @@ static int __init gamepad_init(void)
   // add cdev structure to kernel
   err = cdev_add(&my_gamepad.cdev, my_gamepad.dev, 1);
   if(err){ return -1; } // TODO: Handle error
-  pr_debug("OK: Added cdev structure to kernel\n");
+  pr_debug("OK: Added cdev structure to the kernel\n");
 
   // create a device file
   my_class = class_create(THIS_MODULE, CLASS_NAME);
   if(IS_ERR(my_class)){ return -1; } // TODO: Handle error
   my_device = device_create(my_class, NULL, my_gamepad.dev, NULL, DEVICE_NAME);
   if(IS_ERR(my_device)){ return -1; } // TODO: Handle error
-  pr_debug("OK: Device file created\n");
+  pr_debug("OK: Created device file\n");
 
   pr_debug("DONE: No errors initializing the module\n");
 	return 0;
@@ -381,12 +382,12 @@ static int __init gamepad_init(void)
 // Perform cleanup and remove the gamepad module from kernel space.
 static void __exit gamepad_exit(void)
 {
-  pr_debug("Cleaning up the module:\n");
+  pr_debug("Cleaning up the module ...\n");
 
   // destroy structures used to create the device file
   device_destroy(my_class, my_gamepad.dev);
   class_destroy(my_class);
-	pr_debug("OK: Destroyed structures used to create the device file\n");
+	pr_debug("OK: Destroyed device file\n");
 
   // remove cdev structure from the kernel
   cdev_del(&my_gamepad.cdev);
@@ -407,7 +408,7 @@ static void __exit gamepad_exit(void)
 ////----------------------------------------------------------
 static int setup_gpio_input(void)
 {
-  dev_dbg(my_device, "Setting up GPIO input:\n");
+  dev_dbg(my_device, "Setting up GPIO input ...\n");
 
   // allocate memory region for port C registers
   gpio_pc_region = request_mem_region(GPIO_PC_BASE, GPIO_PC_LENGTH, DEVICE_NAME);
@@ -430,7 +431,7 @@ static int setup_gpio_input(void)
 
 static void cleanup_gpio_input(void)
 {
-  dev_dbg(my_device, "Cleaning up GPIO input:\n");
+  dev_dbg(my_device, "Cleaning up GPIO input ...\n");
 
   // reset input registers
   iowrite32(0x00000000, gpio_pc_ptr + GPIO_PC_MODEL);
@@ -450,7 +451,7 @@ static void cleanup_gpio_input(void)
 
 static int setup_gpio_interrupts(void)
 {
-  dev_dbg(my_device, "Setting up GPIO interrupts:\n");
+  dev_dbg(my_device, "Setting up GPIO interrupts ...\n");
 
   // allocate memory region for interrupt registers
   gpio_irq_region = request_mem_region(GPIO_IRQ_BASE, GPIO_IRQ_LENGTH, DEVICE_NAME);
@@ -486,7 +487,7 @@ static int setup_gpio_interrupts(void)
 
 static void cleanup_gpio_interrupts(void)
 {
-  dev_dbg(my_device, "Cleaning up GPIO interrupts:\n");
+  dev_dbg(my_device, "Cleaning up GPIO interrupts ...\n");
 
   // disable interrupts
   iowrite32(0x0, gpio_irq_ptr + GPIO_IEN);
