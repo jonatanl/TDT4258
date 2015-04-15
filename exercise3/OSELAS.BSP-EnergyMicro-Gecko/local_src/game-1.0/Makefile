@@ -13,10 +13,10 @@ LDFLAGS +=
 
 all: game
 	
-game: input.o logic.o draw.o
+game: draw.o input.o logic.o
 
-*.o: *.c
-	arm-cortexm3-uclinuxeabi-gcc -c $@
+%.o: %.c
+	arm-cortexm3-uclinuxeabi-gcc -c $(CFLAGS) $@
 
 clean:
 	-rm -f game
