@@ -1,95 +1,37 @@
-#include <sys/types.h> // write(), open(), close()
-#include <sys/stat.h>  //
-#include <fcntl.h>     //
-#include <unistd.h>    // pread(), fcntl(), getpid()
+#include <fcntl.h> 
 #include <signal.h>
-
+#include <poll.h>
+#include <unistd.h> // getpid()
+#include <errno.h>  // errno
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>    // uint16_t
-#include <errno.h>     // errno
-#include <poll.h>
+#include <stdint.h> // uint16_t
 
 // Hack to fix conflicting 'struct flock' declarations
 #define HAVE_ARCH_STRUCT_FLOCK
 #include <asm-generic/fcntl.h> // F_SETOWN
 
-
+// Path to device file
 #define DEVICE_PATH "/dev/gamepad"
 
-
-int devfd;  // device file descriptor
-static int done = 0;  // set to 1 when application should exit
-static int error;     // error variable
-
-
-// a simple signal handler
-void signal_handler(int signal){
-  uint8_t value;
-  int count;
-
-  printf("game: Signal received!\n");
+// Global variables
+static int devfd; // device file descriptor
+static int error; // error variable
 
 
-  // create a pollfd structure used to poll the device file for available data
-  struct pollfd pollfd = {
-    .fd = devfd,
-    .events = POLLIN,
-  };
-
-  // poll the device for available data
-  printf("game: polling the device ... ");
-  poll(&pollfd, // array of all pollfd structures to wait for (only one) 
-      1,        // array length
-      0);       // timeout: 0 -> may return immediately
-  if(pollfd.revents == POLLIN){
-    printf("data is available!\n");
-  }else{
-    printf("data is not available.\n");
-  }
-
-  // read a value and print it
-  printf("game: reading data ... ");
-  count = read(devfd, (void*)&value, sizeof(uint8_t)); // non-blocking IO: this call should never block
-  if(count > 0){
-    printf("got %d bytes of input: %d\n", count, value);
-    if(value >= 128){
-      done = 1; // exit the application
-    }
-  }else{
-    printf("got no data. Error?\n");
-  }
-
-  // poll again to verify that polling works with no available data
-  printf("game: polling the device again ... ");
-  poll(&pollfd, 1, 0);      
-  if(pollfd.revents == POLLIN){
-    printf("data is available!\n");
-  }else{
-    printf("data is not available.\n");
-  }
-
-  // read again to verify that nonblocking I/O works with no available data
-  printf("game: reading again immediately to see if -EAGAIN is returned ...\n");
-  count = read(devfd, (void*)&value, sizeof(uint8_t));
-  if(count < 0){
-    printf("game: got: %d, expected: %d (EAGAIN)\n", errno, EAGAIN);
-  }else{
-    printf("game: no error occurred: returned value was %d\n", count);
-  }
-//  if(count < 0 && errno == EAGAIN){
-//    printf("game: EAGAIN was returned as expected!\n");
-//  }
+void signal_handler(int signal)
+{
+  // TODO: Implement a signal handler
 }
 
 
-int main(int argc, char *argv[])
+void init_game()
 {
-  // Open device read-write
-  printf("game: Trying to open the gamepad with O_NONBLOCK at %s ...\n", DEVICE_PATH);
+  // Open the gamepad device read-write with nonblocking IO
+  printf("game: Opening gamepad device %s ...\n", DEVICE_PATH);
   devfd = open(DEVICE_PATH, O_RDWR | O_NONBLOCK);
   if(devfd == -1)
-    printf("Error opening file: %d\n", errno);
+    printf("Error opening gamepad device: %d\n", errno);
 
   // Set signal handler for the SIGIO signal
   signal(SIGIO, &signal_handler);
@@ -100,18 +42,22 @@ int main(int argc, char *argv[])
   // Enable asynchronous notification on the device file
   int flags = fcntl(devfd, F_GETFL) | FASYNC;
   fcntl(devfd, F_SETFL, flags);
+}
 
-  // Spin until a SIGIO signal is received
-  printf("game: Waiting for button input ... (Press Button 8 to exit)\n");
-  while(!done){
-    // Do nothing
-  }
 
-  // Close framebuffer file
-  printf("game: Trying to close the gamepad ...\n");
+void exit_game()
+{
+  // Close the gamepad device
+  printf("game: Closing gamepad device ...\n");
   error = close(devfd);
   if(error == -1)
-    printf("game: Error closing file: %d\n", errno);
+    printf("game: Error closing gamepad device: %d\n", errno);
+}
+
+
+int main(int argc, char *argv[])
+{
+  // TODO: Implement game loop
 
 	exit(EXIT_SUCCESS);
 }
