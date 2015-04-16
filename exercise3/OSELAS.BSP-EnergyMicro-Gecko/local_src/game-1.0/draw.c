@@ -1,3 +1,12 @@
 #include "draw.h"
 
-// Implementation of the draw module
+
+int init_draw(struct gamestate* gamestate)
+{
+  // TODO
+}
+
+int teardown_draw()
+{
+  // TODO
+}
