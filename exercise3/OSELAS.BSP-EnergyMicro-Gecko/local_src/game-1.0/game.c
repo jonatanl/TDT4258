@@ -14,13 +14,14 @@
 #define HAVE_ARCH_STRUCT_FLOCK
 #include <asm-generic/fcntl.h> // F_SETOWN
 
-
 #define DEVICE_PATH "/dev/gamepad"
 
 
 int devfd;  // device file descriptor
 static int done = 0;  // set to 1 when application should exit
 static int error;     // error variable
+
+static struct gamestate game;
 
 
 // a simple signal handler
