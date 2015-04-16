@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include "util.h"
 #include "logic.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -14,7 +15,14 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-extern struct gamestate game;
+struct gamestate game;
+
+void do_logic(uint8_t input){
+
+    update_ship(&(game.ship), input);
+    update_gamestate(&game);
+    // Check collisions
+}
 
 void update_gamestate(gamestate* game){
     game->ship.x_pos += game->ship.x_speed;
@@ -26,21 +34,16 @@ void update_gamestate(gamestate* game){
     }
 }
 
-void update_ship(ship_object* ship, input input){
-    if(input.turn_left){
+void update_ship(ship_object* ship, uint8_t input){
+    if(CHECK_LEFT(input)){
         ship->orientation++;
     }
-    else if(input.turn_right){
+    else if(CHECK_RIGHT(input)){
         ship->orientation--;
     }
-    if(input.accelerate){
+    if(CHECK_ACC(input)){
         // TODO: Update speeds
     }
-}
-
-
-void update_asteroid(asteroid* asteroid){
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,17 +58,19 @@ void update_asteroid(asteroid* asteroid){
 
 
 // Allocate and return an asteroid object
-//struct asteroid* make_asteroid(int16_t x_speed, int16_t y_speed){
-asteroid* make_asteroid(void){ 
+asteroid* make_asteroid(uint16_t n_vertices, uint16_t* x_vertices, uint16_t* y_vertices){ 
     asteroid* new_asteroid = malloc(sizeof(asteroid));
-    //asteroid->x_speed = x_speed;
-    //asteroid->y_speed = y_speed;
+    
     new_asteroid->x_speed = 10;
     new_asteroid->y_speed = 10;
     new_asteroid->x_pos = 100;
     new_asteroid->y_pos = 100;
     
-    // Make asteroid poly
+    // Initialize the asteroids polygon
+    new_asteroid->real_poly.n_vertices = n_vertices;
+    new_asteroid->real_poly.x_vertices = x_vertices;
+    new_asteroid->real_poly.y_vertices = y_vertices;
+
     return new_asteroid;
 }
 
@@ -77,7 +82,13 @@ ship_object make_ship(void){
     new_ship.y_pos = 100;
     new_ship.orientation = 0;
 
-    // Make ship poly
+    // these values are probably pretty bad
+    // TODO rethink this
+    new_ship.real_poly.n_vertices = 3;
+    uint16_t x_vertices[] = {0, 5, 10};
+    uint16_t y_vertices[] = {0, 10, 0};
+    new_ship.real_poly.x_vertices = x_vertices;
+    new_ship.real_poly.y_vertices = y_vertices;
 
     return new_ship;
 }
@@ -87,6 +98,10 @@ void init_logic(uint16_t n_asteroids, gamestate* game){
     game->ship = make_ship();
     game->asteroids = malloc(sizeof(asteroid*));
     for(int i = 0; i < n_asteroids; i++){
-        game->asteroids[i] = make_asteroid();
+
+        // TODO rethink this
+        uint16_t x_vertices[] = {0, 5, 10};
+        uint16_t y_vertices[] = {0, 10, 0};
+        game->asteroids[i] = make_asteroid(3, x_vertices, y_vertices);
     }
 }
