@@ -9,6 +9,6 @@
 int init_draw(struct gamestate* gamestate);
 
 // Release resources
-int teardown_draw();
+void teardown_draw();
 
 #endif // !_DRAW_H
