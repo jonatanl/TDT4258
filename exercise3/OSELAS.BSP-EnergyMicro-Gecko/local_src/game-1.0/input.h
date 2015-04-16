@@ -1,3 +1,6 @@
+// Include guard
+#ifndef _INPUT_H
+#define _INPUT_H
 
 // Defines the meaning of the bits in processed input
 #define SHOOT         (1 << 0)
@@ -7,3 +10,5 @@
 
 // Return the processed gamepad input as a bitfield of actions
 uint8_t get_processed_input();
+
+#endif // !_INPUT_H

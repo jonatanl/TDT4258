@@ -1,3 +1,8 @@
+// Include guard
+#ifndef _DEBUG_H
+#define _DEBUG_H
+
+// Headers
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -16,3 +21,5 @@
   #define game_debug(...)
   #define game_error(...)
 #endif
+
+#endif // !_DEBUG_H

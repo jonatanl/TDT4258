@@ -1,3 +1,7 @@
+// Include guard
+#ifndef _LOGIC_H
+#define _LOGIC_H
+
 #define SHOOT         (1 << 0)
 #define ROTATE_LEFT   (1 << 1)
 #define ACCELERATE    (1 << 2)
@@ -62,3 +66,5 @@ struct asteroid* init_asteroid(void);
 void rotate_polygon(struct polygon poly, int16_t degrees);
 void update_ship(struct ship_object* ship, struct input input);
 void init_logic(uint16_t n_asteroids, struct gamestate* game);
+
+#endif // !_LOGIC_H
