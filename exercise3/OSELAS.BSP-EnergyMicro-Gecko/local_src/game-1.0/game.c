@@ -24,11 +24,6 @@ static gamestate my_gamestate; // used to pass gamestates around
 static int devfd; // device file descriptor
 static int error; // error variable
 
-void signal_handler(int signal)
-{
-  // TODO: Implement a signal handler
-}
-
 int close_game()
 {
   game_debug("Closing the game ...\n");
@@ -50,11 +45,11 @@ int close_game()
 int main(int argc, char *argv[])
 {
   // Initialize the game
-  error = init_game();
-  if(error){
-    game_error("Error initializing game. Exiting now.\n");
-    exit(EXIT_FAILURE);
-  }
+  //error = init_game();
+  //if(error){
+  //  game_error("Error initializing game. Exiting now.\n");
+  //  exit(EXIT_FAILURE);
+  //}
 
   // Initialize draw module
   // TODO: Initialize the gamestate first!
