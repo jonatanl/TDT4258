@@ -2,6 +2,8 @@
 #ifndef _INPUT_H
 #define _INPUT_H
 
+#include <stdint.h>
+
 // Defines the meaning of the bits in processed input
 #define SHOOT         (1 << 0)
 #define ROTATE_LEFT   (1 << 1)

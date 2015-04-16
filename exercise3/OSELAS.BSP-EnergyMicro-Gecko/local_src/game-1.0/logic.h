@@ -2,6 +2,8 @@
 #ifndef _LOGIC_H
 #define _LOGIC_H
 
+#include <stdint.h>
+
 #define SHOOT         (1 << 0)
 #define ROTATE_LEFT   (1 << 1)
 #define ACCELERATE    (1 << 2)
