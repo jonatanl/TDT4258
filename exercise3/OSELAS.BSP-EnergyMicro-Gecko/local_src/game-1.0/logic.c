@@ -17,7 +17,7 @@ void do_logic(struct input);
 struct ship_object init_ship(void);
 struct asteroid* init_asteroid(void);
 void rotate_polygon(struct polygon poly, int16_t degrees);
-void update_trajectory(struct ship_object* ship, struct input input);
+void update_ship(struct ship_object* ship, struct input input);
 void init_logic(uint16_t n_asteroids, struct gamestate* game);
 
 
@@ -75,9 +75,6 @@ struct gamestate{
     struct asteroid** asteroids;
 };
 
-
-
-
 typedef struct vertice vertice;
 typedef struct ship_object ship_object;
 typedef struct gamestate gamestate;
@@ -107,7 +104,7 @@ void update_gamestate(gamestate* game){
     }
 }
 
-void update_trajectory(ship_object* ship, input input){
+void update_ship(ship_object* ship, input input){
     if(input.turn_left){
         ship->orientation++;
     }
@@ -117,6 +114,11 @@ void update_trajectory(ship_object* ship, input input){
     if(input.accelerate){
         // TODO: Update speeds
     }
+}
+
+
+void update_asteroid(asteroid* asteroid){
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
