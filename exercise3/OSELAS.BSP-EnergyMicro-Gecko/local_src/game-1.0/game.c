@@ -1,3 +1,7 @@
+// Hack to fix conflicting 'struct flock' declarations
+#define HAVE_ARCH_STRUCT_FLOCK
+#include <asm-generic/fcntl.h> // F_SETOWN
+
 #include <fcntl.h> 
 #include <signal.h>
 #include <poll.h>
@@ -6,10 +10,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h> // uint16_t
+#include <string.h>
 
-// Hack to fix conflicting 'struct flock' declarations
-#define HAVE_ARCH_STRUCT_FLOCK
-#include <asm-generic/fcntl.h> // F_SETOWN
+#define DEBUG
+#include "debug.h"
 
 // Path to device file
 #define DEVICE_PATH "/dev/gamepad"
@@ -25,39 +29,86 @@ void signal_handler(int signal)
 }
 
 
-void init_game()
+int init_game()
 {
+  game_debug("Initializing the game ...\n");
+
   // Open the gamepad device read-write with nonblocking IO
-  printf("game: Opening gamepad device %s ...\n", DEVICE_PATH);
   devfd = open(DEVICE_PATH, O_RDWR | O_NONBLOCK);
-  if(devfd == -1)
-    printf("Error opening gamepad device: %d\n", errno);
+  if(devfd < 0){
+    game_error("Error opening gamepad device at %s: %s\n", DEVICE_PATH, strerror(errno));
+    return -1; // TODO: Handle error
+  }
+  game_debug("OK: Gamepad device opened at %s\n", DEVICE_PATH);
 
   // Set signal handler for the SIGIO signal
-  signal(SIGIO, &signal_handler);
+  error = signal(SIGIO, &signal_handler);
+  if(error == SIG_ERR){
+    game_error("Error setting a signal handler: %s\n", strerror(errno));
+    return -1;
+  }
+  game_debug("OK: Set signal handler for SIGIO\n");
 
   // This process should receive SIGIO (and SIGURG) signals for events on the device file
-  fcntl(devfd, F_SETOWN, getpid());
+  error = fcntl(devfd, F_SETOWN, getpid());
+  if(error < 0){
+    game_error("Error setting owner of SIGIO and SIGURG signals: %s\n", strerror(errno));
+    return -1;
+  }
+  game_debug("OK: Set owner for SIGIO signals on gamepad device\n");
 
   // Enable asynchronous notification on the device file
   int flags = fcntl(devfd, F_GETFL) | FASYNC;
-  fcntl(devfd, F_SETFL, flags);
+  error = fcntl(devfd, F_SETFL, flags);
+  error = fcntl(devfd, F_SETOWN, getpid());
+  if(error < 0){
+    game_error("Error setting asynchronous notification on device: %s\n", strerror(errno));
+    return -1;
+  }
+  game_debug("OK: Enabled asynchronous notification for gamepad device\n");
+
+  // No errors
+  game_debug("DONE: No errors initializing the game\n");
+  return 0;
 }
 
 
-void exit_game()
+int close_game()
 {
+  game_debug("Closing the game ...\n");
+
   // Close the gamepad device
-  printf("game: Closing gamepad device ...\n");
   error = close(devfd);
-  if(error == -1)
-    printf("game: Error closing gamepad device: %d\n", errno);
+  if(error < 0){
+    game_error("Error closing gamepad device: %s\n", strerror(errno));
+    return -1; // TODO: Handle error
+  }
+  game_debug("OK: Gamepad device closed\n");
+
+  // No errors
+  game_debug("DONE: No errors closing the game\n");
+  return 0;
 }
 
 
 int main(int argc, char *argv[])
 {
+  // Initialize the game
+  error = init_game();
+  if(error){
+    game_error("Error initializing game. Exiting now.\n");
+    exit(EXIT_FAILURE);
+  }
+
   // TODO: Implement game loop
 
+  // Close the game
+  error = close_game();
+  if(error){
+    game_error("Error closing game. Exiting now.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Exit successfully
 	exit(EXIT_SUCCESS);
 }
