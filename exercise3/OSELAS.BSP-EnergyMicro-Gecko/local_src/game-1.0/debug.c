@@ -10,5 +10,6 @@ void game_print(FILE* outstream, const char* fmt, ...)
   // initialize va_list and call vfprintf to print the formatted message
   va_start(ap, fmt);
   vfprintf(outstream, fmt, ap);
+  fflush(outstream);
   va_end(ap);
 }
