@@ -14,14 +14,15 @@
 
 #define DEBUG
 #include "debug.h"
+#include "draw.h"
 
 // Path to device file
 #define DEVICE_PATH "/dev/gamepad"
 
 // Global variables
+static gamestate my_gamestate; // used to pass gamestates around
 static int devfd; // device file descriptor
 static int error; // error variable
-
 
 void signal_handler(int signal)
 {
@@ -100,7 +101,14 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
+  // Initialize draw module
+  // TODO: Initialize the gamestate first!
+  error = init_draw(&my_gamestate);
+
   // TODO: Implement game loop
+  
+  // Release draw module resources
+  teardown_draw();
 
   // Close the game
   error = close_game();
