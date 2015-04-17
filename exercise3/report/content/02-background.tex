@@ -228,10 +228,26 @@ Code optimizations may be an issue when writing to registers. Specifically, memo
 
 
 
-\subsection{Interrupt Handling}\label{sec:interrupt-handling}
-\todo{Write about how interrupt handlers are registered with request\_irq().}
-\todo{Write about special concerns regarding interrupt handlers (not allowed to sleep, must be fast, etc.)}
-\todo{Write about work scheduling and tasklets.}
+\subsection{Handling Interrupts}\label{sec:interrupt-handling}
+To communicate efficiently with hardware, the driver must make use of hardware-generated interrupts. 
+
+\subsubsection{Setting up interrupts}
+Setting up interrupts is done in two steps. The driver requests an interrupt channel with the function \texttt{request\_irq()}, specifying a handler routine that should be called to handle interrupts:
+\begin{verbatim}
+int request_irq(unsigned int irq,
+  irqreturn_t (*handler)(int, void *, struct pt_regs *),
+  unsigned long flags, const char *dev_name, void *dev_id);
+\end{verbatim}
+Here \texttt{irq} is the platform-specific irq number of the interrupt channel, and \texttt{handler} is the handler routine that should handle interrupts. After a handler is registered and the driver is ready to receive interrupts, the driver should enable interrupt-generation in the hardware.\cite{linux-device-drivers}
+
+\subsubsection{Considerations when writing an interrupt handler}
+There are some special considerations when writing an interrupt handler. An interrupt handler should finish quickly. This avoids missing interrupts, but also avoids stalling the system in a handler that has disabled interrupts. In addition, because interrupt handlers do not run in the context of a process, interrupt handlers cannot transfer data to or from user space, and cannot do anything that would cause them to sleep, like locking semaphores.
+
+An interrupt handler that needs to perform a lengthy amount of work, or some work that might require sleeping, should be split into \emph{top and bottom halves}. The top half would finish quickly, scheduling the rest of the work to run in a \emph{tasklet} or \emph{workqueue} function at a safer time.\cite{linux-device-drivers}
+
+\subsubsection{Monitoring Interrupts}
+Interrupts on a system can be monitored in the file \texttt{/proc/interrupts}.
+
 
 \subsection{Wait Queues}\label{sec:wait-queues}
 \todo{Write about wait queues (wait\_queue\_head\_t and such, see LDD ch. 6: Simple Sleeping (p. 149)).}
