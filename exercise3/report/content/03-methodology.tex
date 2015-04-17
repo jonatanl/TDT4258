@@ -276,6 +276,21 @@ Before starting development, we needed a game concept. To save the work of devel
 Asteroids is a 1979 video game released by Atari in which the player maneuvers a small spaceship in space amidst asteroids and hostile ufos. The objective of the game is to use the spaceship's frontal cannon to eliminate all the asteroids, upon which the player will advance to the next level. At its release, the game was acclaimed for its use of vector graphics.
 
 
+\subsection{A Minimal Implementation}
+First we created a minimal implementation of the game. In the minimal implementation, the spaceship was positioned at the middle of the screen, and the player could use the gamepad to rotate the spaceship. \todo{Verify consistency}
+
+
+\subsection{Program Modules}
+To be able to manage a growing code base, we divided our program into five modules, each with a distinct area of responsibility:
+\begin{description}
+\item[Game] \quad The application starting point. It initializes modules on startup, and shuts them down on exit. It also contains the game loop and does game updates. See \texttt{game.h} and \texttt{game.c}.
+\item[Logic] \quad The game logic. It is responsible for manipulating the internal state of the game. It moves the spaceship, asteroids, bullets and ufos, in addition to computing collisions. See \texttt{logic.h} and \texttt{logic.c}.
+\item[Input] \quad The input processing module. It is responsible for interfacing with the gamepad driver, and provides a clean interface for the rest of the game modules. See \texttt{input.h} and \texttt{input.c}.
+\item[Draw] \quad The graphics module. It is responsible for updating the frame buffer, and for rendering various objects of the game model. See \texttt{draw.h} and \texttt{draw.c}.
+\item[Debug] \quad Supplies some debugging tools, most notably the macros \texttt{game\_debug()} and \texttt{game\_error()}. The debug statements are enabled by defining the macro \texttt{DEBUG} before including the module header. See \texttt{debug.h} and \texttt{debug.c}.
+\end{description}
+
+
 
 \section{Testing}
 % Add content in this section that describes how you tested and verified the
