@@ -27,10 +27,11 @@
 #define FB_COLOR_BLUE  color( 0,  0, 31)
 
 // Function prototypes
-void draw_line_octant1(int x, int y, int ex, int ey, int dx, int dy);
-void draw_line_octant2(int x, int y, int ex, int ey, int dx, int dy);
-void draw_line_octant3(int x, int y, int ex, int ey, int dx, int dy);
-void draw_line_octant8(int x, int y, int ex, int ey, int dx, int dy);
+void do_draw_line(int sx, int sy, int ex, int ey);
+void draw_line_octant1(int is, int ie, int dx, int dy);
+void draw_line_octant2(int is, int ie, int dx, int dy);
+void draw_line_octant3(int is, int ie, int dx, int dy);
+void draw_line_octant8(int is, int ie, int dx, int dy);
 void test_draw();
 
 // Global variables
@@ -104,14 +105,21 @@ static void inline set_pixel(int x, int y)
   fbmem[x + y * FB_DISPLAY_WIDTH] = FB_COLOR_GRAY;
 }
 
+static int inline get_index(int x, int y)
+{
+  return x + y * FB_DISPLAY_WIDTH; 
+}
+
 void draw_line(int sx, int sy, int ex, int ey)
 {
-  do_draw_line(sx, sy, ex, ey, FB_COLOR_GRAY);
+  draw_color = FB_COLOR_GRAY;
+  do_draw_line(sx, sy, ex, ey);
 }
 
 void clear_line(int sx, int sy, int ex, int ey)
 {
-  do_draw_line(sx, sy, ex, ey, FB_COLOR_BLACK);
+  draw_color = FB_COLOR_BLACK;
+  do_draw_line(sx, sy, ex, ey);
 }
 
 // This function calls one of four line rasterization functions based on which
@@ -130,14 +138,12 @@ void clear_line(int sx, int sy, int ex, int ey)
 #define OCTANT_6 14
 #define OCTANT_7 12
 #define OCTANT_8  8
-void do_draw_line(int sx, int sy, int ex, int ey, uint16_t color)
+void do_draw_line(int sx, int sy, int ex, int ey)
 {
   int dx = ex - sx;
   int dy = ey - sy;
   int octant_code = 0;
-
-  // set color
-  draw_color = color;
+  int i_begin, i_end;
 
   // identify the octant of the point (dx, dy)
   octant_code |= (dx - dy < 0) << 0;
@@ -148,110 +154,126 @@ void do_draw_line(int sx, int sy, int ex, int ey, uint16_t color)
   // depending on the octant, draw the line
   switch(octant_code){
     case OCTANT_8:
-      draw_line_octant8(sx, sy, ex, ey, dx, dy);
+      i_begin = get_index(sx, sy);
+      i_end   = get_index(ex, ey);
+      draw_line_octant8(i_begin, i_end, dx, dy);
       break;
     case OCTANT_1:
-      draw_line_octant1(sx, sy, ex, ey, dx, dy);
+      i_begin = get_index(sx, sy);
+      i_end   = get_index(ex, ey);
+      draw_line_octant1(i_begin, i_end, dx, dy);
       break;
     case OCTANT_2:
-      draw_line_octant2(sx, sy, ex, ey, dx, dy);
+      i_begin = get_index(sx, sy);
+      i_end   = get_index(ex, ey);
+      draw_line_octant2(i_begin, i_end, dx, dy);
       break;
     case OCTANT_3:
-      draw_line_octant3(sx, sy, ex, ey, dx, dy);
+      i_begin = get_index(sx, sy);
+      i_end   = get_index(ex, ey);
+      draw_line_octant3(i_begin, i_end, dx, dy);
       break;
     case OCTANT_4:
-      draw_line_octant8(ex, ey, sx, sy, -dx, -dy);
+      i_begin = get_index(ex, ey);
+      i_end   = get_index(sx, sy);
+      draw_line_octant8(i_begin, i_end, -dx, -dy);
       break;
     case OCTANT_5:
-      draw_line_octant1(ex, ey, sx, sy, -dx, -dy);
+      i_begin = get_index(ex, ey);
+      i_end   = get_index(sx, sy);
+      draw_line_octant1(i_begin, i_end, -dx, -dy);
       break;
     case OCTANT_6:
-      draw_line_octant2(ex, ey, sx, sy, -dx, -dy);
+      i_begin = get_index(ex, ey);
+      i_end   = get_index(sx, sy);
+      draw_line_octant2(i_begin, i_end, -dx, -dy);
       break;
     case OCTANT_7:
-      draw_line_octant3(ex, ey, sx, sy, -dx, -dy);
+      i_begin = get_index(ex, ey);
+      i_end   = get_index(sx, sy);
+      draw_line_octant3(i_begin, i_end, -dx, -dy);
       break;
     default:
       game_error("Illegal octant code: %d\n", octant_code);
   }
 }
 
-void draw_line_octant1(int x, int y, int ex, int ey, int dx, int dy)
+void draw_line_octant1(int i, int i_end, int dx, int dy)
 {
-  // Leap decision variable keeps track of when to increment y.
+  // Leap decision variable keeps track of when to increment y
   int e = -(dx >> 1);
 
-  // Draw pixels. Stop when (ex, ey) is reached.
-  while(x <= ex){
-    set_pixel(x, y);
+  do{
+    // Draw next pixel
+    fbmem[i] = draw_color;
     
-    // update current coordinate
-    x += 1;
+    // Update coordinates
+    i += 1;
     e += dy;
     if(e >= 0){
-      y += 1;
+      i += FB_DISPLAY_WIDTH;
       e -= dx;
     }
-  }
+  }while(i != i_end);
 }
 
-void draw_line_octant2(int x, int y, int ex, int ey, int dx, int dy)
+void draw_line_octant2(int i, int i_end, int dx, int dy)
 {
   // Leap decision variable keeps track of when to increment y.
   int e = -(dy >> 1);
 
-  // Draw pixels. Stop when (ex, ey) is reached.
-  while(y <= ey){
-    set_pixel(x, y);
+  do{
+    // Draw next pixel
+    fbmem[i] = draw_color;
     
-    // update current coordinate
-    y += 1;
+    // Update coordinates
+    i += FB_DISPLAY_WIDTH;
     e += dx;
     if(e >= 0){
-      x += 1;
+      i += 1;
       e -= dy;
     }
-  }
+  }while(i != i_end);
 }
 
-void draw_line_octant3(int x, int y, int ex, int ey, int dx, int dy)
+void draw_line_octant3(int i, int i_end, int dx, int dy)
 {
   // Leap decision variable keeps track of when to increment y.
   int e = -(dy >> 1);
   dx = -dx;
 
-  // Draw pixels. Stop when (ex, ey) is reached.
-  while(y <= ey){
-    set_pixel(x, y);
+  do{
+    // Draw next pixel
+    fbmem[i] = draw_color;
     
-    // update current coordinate
-    y += 1;
+    // Update coordinates
+    i += FB_DISPLAY_WIDTH;
     e += dx;
     if(e >= 0){
-      x -= 1;
+      i -= 1;
       e -= dy;
     }
-  }
+  }while(i != i_end);
 }
 
-void draw_line_octant8(int x, int y, int ex, int ey, int dx, int dy)
+void draw_line_octant8(int i, int i_end, int dx, int dy)
 {
   // Leap decision variable keeps track of when to increment y.
   int e = -(dx >> 1);
   dy = -dy;
 
-  // Draw pixels. Stop when (ex, ey) is reached.
-  while(x <= ex){
-    set_pixel(x, y);
+  do{
+    // Draw next pixel
+    fbmem[i] = draw_color;
     
-    // update current coordinate
-    x += 1;
+    // Update coordinates
+    i += 1;
     e += dy;
     if(e >= 0){
-      y -= 1;
+      i -= FB_DISPLAY_WIDTH;
       e -= dx;
     }
-  }
+  }while(i != i_end);
 }
 
 void test_draw()
