@@ -17,4 +17,10 @@ void draw_line(int sx, int sy, int ex, int ey);
 // Clear a line in the display
 void clear_line(int sx, int sy, int ex, int ey); 
 
+// Draw a polygon to the display
+void draw_polygon(struct polygon* pol);
+
+// Clear a polygon in the display
+void clear_polygon(struct polygon* pol);
+
 #endif // !_DRAW_H
