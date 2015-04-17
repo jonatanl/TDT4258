@@ -19,7 +19,7 @@ struct gamestate game;
 
 void do_logic(uint8_t input){
 
-    update_ship(&(game.ship), input);
+    update_ship(&(game.ship));
     update_gamestate(&game);
     // Check collisions
 }

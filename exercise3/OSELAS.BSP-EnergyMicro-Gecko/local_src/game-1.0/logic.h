@@ -6,7 +6,6 @@
 
 #define MAX_AMOUNT_ASTEROIDS 40
 
-
 struct polygon{
     uint16_t n_vertices;
     uint16_t* x_vertices;
@@ -53,7 +52,7 @@ void update_gamestate(struct gamestate* game);
 struct ship_object init_ship(void);
 struct asteroid* init_asteroid(void);
 void rotate_polygon(struct polygon poly, int16_t degrees);
-void update_ship(struct ship_object* ship, uint8_t input);
+void update_ship(struct ship_object* ship);
 void init_logic(uint16_t n_asteroids, struct gamestate* game);
 asteroid* make_asteroid(uint16_t n_vertices, uint16_t* x_vertices, uint16_t* y_vertices);
 void do_shoot(void);
