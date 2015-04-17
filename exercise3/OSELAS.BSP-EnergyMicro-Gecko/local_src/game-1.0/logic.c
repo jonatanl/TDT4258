@@ -15,6 +15,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+// Might be removed by some mathemagical formula
+extern uint8_t[360] sine_LUT;
+
 struct gamestate game;
 
 void do_logic(uint8_t input){
@@ -42,16 +45,28 @@ void update_ship(ship_object* ship){
         // Do pause
     }
 
-    // If both left and right is pressed the ship does nothing, else it obviosuly turns
+    // If both left and right is pressed the ship does nothing
+    // if else, check if turn, do roation, and normalize
     if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){   
         if(CHECK_LEFT(input)){
             ship->orientation++;
+            if(ship->orientation > 359){
+                ship->orientation -= 360;
+            }
         }
         else if(CHECK_RIGHT(input)){
             ship->orientation--;
+            if(ship->orientation < 0){
+                ship->orientation += 360;
+            }
         }
     }
     if(CHECK_ACC(input)){
+        uint16_t x_acc = sine_LUT[ship->orientation]
+        if(orientation > 280){
+
+        }
+
         // TODO: Update speeds
     }
     // Decrements the gun cooldown, or checks if shoot is pressed and fires a shot
@@ -62,6 +77,7 @@ void update_ship(ship_object* ship){
         do_shoot();
     }
 }
+
 
 void do_shoot(void){
 
@@ -118,9 +134,11 @@ ship_object make_ship(void){
 // Initializes the game struct
 void init_logic(uint16_t n_asteroids, gamestate* game){
     game->ship = make_ship();
-    game->asteroids = malloc(sizeof(asteroid*));
+    game->asteroids = malloc(sizeof(asteroid*)*MAX_AMOUNT_ASTEROIDS);
+    game->n_asteroids = 0;
+    game->projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
+    game->n_projectiles = 0;
     for(int i = 0; i < n_asteroids; i++){
-
         // TODO rethink this
         uint16_t x_vertices[] = {0, 5, 10};
         uint16_t y_vertices[] = {0, 10, 0};

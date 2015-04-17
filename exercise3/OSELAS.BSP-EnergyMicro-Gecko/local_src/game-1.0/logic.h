@@ -4,7 +4,8 @@
 
 #include <stdint.h>
 
-#define MAX_AMOUNT_ASTEROIDS 40
+#define MAX_AMOUNT_ASTEROIDS    40
+#define MAX_AMOUNT_PROJECTILES  10
 
 struct polygon{
     uint16_t n_vertices;
@@ -14,7 +15,7 @@ struct polygon{
 
 // Struct for ship properties. Only one(two?) should ever exist.
 struct ship_object{
-    uint16_t orientation; // Could be float? Currently should be something like 0 - 360
+    uint16_t orientation;   // Rotation, measured in degrees
     int16_t x_speed;
     int16_t y_speed;
     uint16_t x_pos;
@@ -38,6 +39,16 @@ struct gamestate{
     struct ship_object ship;
     uint16_t n_asteroids;
     struct asteroid** asteroids;
+    uint16_t n_projectiles;
+    struct projctile** projectiles;
+};
+
+// Lacks a polygon at the moment    
+struct projectile{
+    int16_t x_speed;
+    int16_t y_speed;
+    uint16_t x_pos;
+    uint16_t y_pos;
 };
 
 typedef struct vertice vertice;
