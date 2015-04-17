@@ -298,7 +298,7 @@ When a driver registers a facility during initialization, there is no guarantee 
 
 
 
-\section{Overview of EFM32GG-DK3750}
+\section{Accessing the EFM32GG-DK3750 Hardware}
 The target platform used in the exercise was an EFM32GG-DK3750, from here on referenced as EFM32GG, running the uClinux operating system. This section introduces those parts of the hardware that we needed to access directly when writing drivers. When referring to hardware registers, we shall refer to their corresponding names as specified in the EFM32GG Reference Manual, \cite{efm32gg-rm}.
 
 
@@ -328,6 +328,15 @@ To set up the GPIO hardware to generate interrupts when a gamepad button is pres
   \item[\texttt{GPIO\_IFC}] \hfill \\
     This register is written to clear interrupt flags. An interrupt handler for the gamepad needs to write to this register to \texttt{0xff} to clear the interrupts.
 \end{description}
+
+
+\subsection{The TFT-LCD Display}
+The EFM32GG has a 3.5-inch TFT-LCD display with 320x240 pixels that we will use for our game. The display can be driven by the integrated SSD2119 controller. 
+
+\subsubsection{The TFT-LCD Display Driver}
+We will access the display through a driver written by Asbjørn Djupdal in 2013. This driver is very simple: apart from the default ioctl calls it only implements a single ioctl call to update a rectangular area of the screen. It actually implements file operations to perform several other drawing operations that would be useful for applications needing faster graphics, but these have no ioctl and therefore cannot be used.
+
+For a description of general use of Linux framebuffers, see section \ref{sec:the-framebuffer}.
 
 
 
