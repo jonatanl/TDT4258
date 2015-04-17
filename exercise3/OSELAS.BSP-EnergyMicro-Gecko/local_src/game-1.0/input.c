@@ -26,7 +26,6 @@ uint8_t sanitize_input_buffer(uint8_t n_input, uint8_t* input_buffer);
 #define DEVICE_PATH "/dev/gamepad"
 
 // To keep track of whether a read is needed or not.
-static uint16_t new_input = 0;
 static uint8_t input_feed = 0;
 
 static int devfd; // device file descriptor
@@ -34,7 +33,7 @@ static int error; // error variable
 
 int init_input(){
   // Open the gamepad device read-write with nonblocking IO
-  devfd = open(DEVICE_PATH, O_RDWR | O_NONBLOCK);
+  devfd = open(DEVICE_PATH, O_RDONLY | O_NONBLOCK);
   if(devfd < 0){
     game_error("Error opening gamepad device at %s: %s\n", DEVICE_PATH, strerror(errno));
     return -1; // TODO: Handle error
@@ -72,44 +71,15 @@ int init_input(){
   return 0;
 }
 
-// When a signal arrives a flag for input read is set
-void signal_handler(int signal){new_input++;}
-
-// Reads a single input and sanitizes it
-uint8_t read_input(){
-  // TODO implement actual read
-  uint8_t some_input = 8;
-  return sanitize_input(some_input);
-}
-
-// Just a demo, makes sure if left and rght turn is held down right is always preferred
-uint8_t sanitize_input(uint8_t raw_input){
-  if(CHECK_LEFT(raw_input) && CHECK_RIGHT(raw_input)){
-    return new_input = FLIP_LEFT(raw_input);
+// When a signal arrives input_feed is updated
+void signal_handler(int signal){
+  int count = read(devfd, (void*)&input_feed, sizeof(uint8_t));
+  if(count){
+    game_debug("read recieved input\n");
   }
-  return raw_input;
+  game_debug("read recieved no input\n");
 }
 
-// Reads a list of buffers
-uint8_t read_input_buffer(){
-  // TOTO implement actual buffer read
-  uint8_t n_input_buffer = 4;
-  uint8_t* input_buffer = malloc(sizeof(uint8_t)*n_input_buffer);
-  return sanitize_input_buffer(n_input_buffer, input_buffer);
-}
-
-// TODO reimplement with actual details
-uint8_t sanitize_input_buffer(uint8_t n_input, uint8_t* input_buffer){
-  for(int i = 0; i < n_input; i++){
-    // TODO some cool logic sanitizing input
-  }
-}
-
-// Modifies input_feed if necessary and returns it.
 uint8_t get_input(){
-  if(new_input){
-    new_input = 0;
-    input_feed = read_input();
-  }
-  return input_feed;
+  return ~input_feed;
 }

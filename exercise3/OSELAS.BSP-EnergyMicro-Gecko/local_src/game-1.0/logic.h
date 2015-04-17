@@ -20,6 +20,7 @@ struct ship_object{
     int16_t y_speed;
     uint16_t x_pos;
     uint16_t y_pos;
+    uint16_t gun_cooldown;
     struct polygon real_poly;
     // struct polygon current_poly;
 };
@@ -55,5 +56,6 @@ void rotate_polygon(struct polygon poly, int16_t degrees);
 void update_ship(struct ship_object* ship, uint8_t input);
 void init_logic(uint16_t n_asteroids, struct gamestate* game);
 asteroid* make_asteroid(uint16_t n_vertices, uint16_t* x_vertices, uint16_t* y_vertices);
+void do_shoot(void);
 
 #endif // !_LOGIC_H

@@ -34,16 +34,37 @@ void update_gamestate(gamestate* game){
     }
 }
 
-void update_ship(ship_object* ship, uint8_t input){
-    if(CHECK_LEFT(input)){
-        ship->orientation++;
+// Handles input
+void update_ship(ship_object* ship){
+    uint8_t input = get_input();
+
+    if(CHECK_PAUSE(input)){
+        // Do pause
     }
-    else if(CHECK_RIGHT(input)){
-        ship->orientation--;
+
+    // If both left and right is pressed the ship does nothing, else it obviosuly turns
+    if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){   
+        if(CHECK_LEFT(input)){
+            ship->orientation++;
+        }
+        else if(CHECK_RIGHT(input)){
+            ship->orientation--;
+        }
     }
     if(CHECK_ACC(input)){
         // TODO: Update speeds
     }
+    // Decrements the gun cooldown, or checks if shoot is pressed and fires a shot
+    if(ship->gun_cooldown){
+        ship->gun_cooldown--;
+    }
+    else if(CHECK_SHOOT(input)){
+        do_shoot();
+    }
+}
+
+void do_shoot(void){
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +102,7 @@ ship_object make_ship(void){
     new_ship.x_pos = 100;
     new_ship.y_pos = 100;
     new_ship.orientation = 0;
+    new_ship.gun_cooldown = 0;
 
     // these values are probably pretty bad
     // TODO rethink this
