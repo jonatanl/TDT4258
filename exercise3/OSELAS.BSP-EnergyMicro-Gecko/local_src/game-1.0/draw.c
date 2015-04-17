@@ -27,6 +27,7 @@
 #define FB_COLOR_BLUE  color( 0,  0, 31)
 
 // Function prototypes
+void do_draw_polyline(struct vertice* points, int n_points);
 void do_draw_line(int sx, int sy, int ex, int ey);
 void draw_line_octant1(int is, int ie, int dx, int dy);
 void draw_line_octant2(int is, int ie, int dx, int dy);
@@ -109,6 +110,39 @@ static int inline get_index(int x, int y)
 {
   return x + y * FB_DISPLAY_WIDTH; 
 }
+
+
+
+void draw_polygon(struct polygon* pol)
+{
+  draw_color = FB_COLOR_GRAY;
+  do_draw_polyline(pol->vertices, pol->n_vertices);
+}
+
+void clear_polygon(struct polygon* pol)
+{
+  draw_color = FB_COLOR_BLACK;
+  do_draw_polyline(pol->vertices, pol->n_vertices);
+}
+
+void do_draw_polyline(struct vertice* points, int n_points)
+{
+  int x1 = points[0].x_pos;
+  int y1 = points[0].y_pos;
+  int x2;
+  int y2;
+
+  // Draw the polygon edges
+  for(int i=1; i<n_points; i++){
+    x2 = points[i].x_pos;
+    y2 = points[i].y_pos;
+    do_draw_line(x1, y1, x2, y2);
+    x1 = x2;
+    y1 = y1;
+  }
+}
+
+
 
 void draw_line(int sx, int sy, int ex, int ey)
 {
