@@ -1,11 +1,39 @@
 #include "input.h"
+#include "logic.h"
+#include "util.h"
+#include <fcntl.h> 
+#include <signal.h>
+#include <poll.h>
+#include <stdbool.h>
+#include <unistd.h> // getpid()
+#include <errno.h>  // errno
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h> // uint16_t
+#include <string.h>
+
+#define HAVE_ARCH_STRUCT_FLOCK
+#include <asm-generic/fcntl.h>
+
+#define DEBUG
+#include "debug.h"
 	
 int init_input();
+uint8_t get_input();
+void signal_handler(int signal);
+uint8_t sanitize_input_buffer(uint8_t n_input, uint8_t* input_buffer);
 
+#define DEVICE_PATH "/dev/gamepad"
+
+// To keep track of whether a read is needed or not.
+static uint8_t input_feed = 0;
+
+static int devfd; // device file descriptor
+static int error; // error variable
 
 int init_input(){
   // Open the gamepad device read-write with nonblocking IO
-  devfd = open(DEVICE_PATH, O_RDWR | O_NONBLOCK);
+  devfd = open(DEVICE_PATH, O_RDONLY | O_NONBLOCK);
   if(devfd < 0){
     game_error("Error opening gamepad device at %s: %s\n", DEVICE_PATH, strerror(errno));
     return -1; // TODO: Handle error
@@ -43,3 +71,15 @@ int init_input(){
   return 0;
 }
 
+// When a signal arrives input_feed is updated
+void signal_handler(int signal){
+  int count = read(devfd, (void*)&input_feed, sizeof(uint8_t));
+  if(count){
+    game_debug("read recieved input\n");
+  }
+  game_debug("read recieved no input\n");
+}
+
+uint8_t get_input(){
+  return ~input_feed;
+}
