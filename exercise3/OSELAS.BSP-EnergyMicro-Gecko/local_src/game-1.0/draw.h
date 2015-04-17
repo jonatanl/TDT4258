@@ -9,6 +9,12 @@
 int init_draw(struct gamestate* gamestate);
 
 // Release resources
-void teardown_draw();
+int teardown_draw();
+
+// Draw a line to the display
+void draw_line(int sx, int sy, int ex, int ey); 
+
+// Clear a line in the display
+void clear_line(int sx, int sy, int ex, int ey); 
 
 #endif // !_DRAW_H
