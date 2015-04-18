@@ -26,9 +26,6 @@ typedef uint32_t ifloat;
 
 #define FRAMES_PER_SECOND       30
 
-#define MAX_AMOUNT_ASTEROIDS    40
-#define MAX_AMOUNT_PROJECTILES  10
-
 // All coordinates are relative to the logical game dimensions 
 // rather than actual screen size
 struct polygon{
@@ -85,14 +82,10 @@ typedef struct asteroid asteroid;
 typedef struct projectile projectile;
 
 
-void do_logic(uint8_t input);
-void update_gamestate(struct gamestate* game);
-void init_ship(ship_object* ship);
-struct asteroid* init_asteroid(void);
-void update_ship(struct ship_object* ship);
+// Initializes the logic module
 gamestate* init_logic(int n_asteroids);
-asteroid* make_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords);
-void do_shoot(void);
 
+// Updates the state of the game
+void update_gamestate();
 
 #endif // !_LOGIC_H

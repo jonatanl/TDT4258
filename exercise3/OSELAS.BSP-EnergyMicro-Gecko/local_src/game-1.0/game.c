@@ -21,7 +21,7 @@
 #define DEVICE_PATH "/dev/gamepad"
 
 // Global variables
-static gamestate my_gamestate; // used to pass gamestates around
+static gamestate* my_gamestate; // used to pass gamestates around
 static int devfd; // device file descriptor
 static int error; // error variable
 
@@ -54,7 +54,8 @@ int main(int argc, char *argv[])
 
   // Initialize draw module
   // TODO: Initialize the gamestate first!
-  error = init_draw(&my_gamestate);
+  my_gamestate = init_logic();
+  error = init_draw(my_gamestate);
 
   // TODO: Implement game loop
   

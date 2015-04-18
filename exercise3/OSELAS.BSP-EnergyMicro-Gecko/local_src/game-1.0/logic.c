@@ -21,6 +21,18 @@
 #define FRAMES_TO_CROSS_SCREEN ((FRAMES_PER_SECOND * MILLISECONDS_TO_CROSS_SCREEN) / 1000)
 #define DEFAULT_ACCELERATION (DEFAULT_WORLD_X_DIM / (FRAMES_TO_CROSS_SCREEN * (FRAMES_TO_CROSS_SCREEN + 1)))
 
+#define MAX_AMOUNT_ASTEROIDS    40
+#define MAX_AMOUNT_PROJECTILES  10
+
+// Function prototypes
+void do_logic(uint8_t input);
+void update_ship(struct ship_object* ship);
+void do_shoot(void);
+asteroid* make_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords);
+void init_ship(ship_object* ship);
+struct asteroid* init_asteroid(void);
+
+// Global variables
 struct gamestate game;
 
 void do_logic(uint8_t input){
@@ -133,7 +145,7 @@ void init_ship(ship_object* ship){
 }
 
 // Initializes the game struct
-gamestate* init_logic(int n_asteroids){
+gamestate* init_logic(){
     init_ship(&game.ship);
     game.asteroids = malloc(sizeof(asteroid*)*MAX_AMOUNT_ASTEROIDS);
     game.n_asteroids = 0;
