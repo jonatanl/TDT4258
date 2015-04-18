@@ -9,18 +9,12 @@
 int init_draw(struct gamestate* gamestate);
 
 // Release resources
-int teardown_draw();
+int teardown_draw(void);
 
-// Draw a line to the display
-void draw_line(int sx, int sy, int ex, int ey); 
+// Draw asteroids and spaceship to the framebuffer
+void draw_all(void);
 
-// Clear a line in the display
-void clear_line(int sx, int sy, int ex, int ey); 
-
-// Draw a polygon to the display
-void draw_polygon(struct polygon* pol);
-
-// Clear a polygon in the display
-void clear_polygon(struct polygon* pol);
+// Clear asteroids and spaceship from the framebuffer
+void clear_all(void);
 
 #endif // !_DRAW_H

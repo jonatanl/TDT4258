@@ -110,9 +110,9 @@ asteroid* make_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords){
     new_asteroid->y_pos = int_to_ifloat(100);
     
     // Initialize the asteroids polygon
-    new_asteroid->real_poly.n_vertices = n_coords;
-    new_asteroid->real_poly.x_coords = x_coords;
-    new_asteroid->real_poly.y_coords = y_coords;
+    new_asteroid->poly.n_vertices = n_coords;
+    new_asteroid->poly.x_coords = x_coords;
+    new_asteroid->poly.y_coords = y_coords;
 
     return new_asteroid;
 }
@@ -128,7 +128,7 @@ void init_ship(ship_object* ship){
 
     // these values are probably pretty bad
     // TODO rethink this
-    ship->real_poly.n_vertices = 3;
+    ship->poly.n_vertices = 3;
     ifloat* x_coords = malloc(sizeof(ifloat)*3);
     ifloat* y_coords = malloc(sizeof(ifloat)*3);
     
@@ -140,8 +140,8 @@ void init_ship(ship_object* ship){
     y_coords[1] = int_to_ifloat(10);
     y_coords[2] = int_to_ifloat(0);
 
-    ship->real_poly.x_coords = x_coords;
-    ship->real_poly.y_coords = y_coords;
+    ship->poly.x_coords = x_coords;
+    ship->poly.y_coords = y_coords;
 }
 
 // Initializes the game struct
@@ -153,7 +153,7 @@ gamestate* init_logic(){
     game.n_projectiles = 0;
     game.world_x_dim = DEFAULT_WORLD_X_DIM;  // TODO set
     game.world_y_dim = DEFAULT_WORLD_Y_DIM;  // TODO set
-    for(int i = 0; i < n_asteroids; i++){
+    for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){
         
         // TODO rethink this
         ifloat* x_coords = malloc(sizeof(ifloat)*3);

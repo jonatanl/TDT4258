@@ -27,13 +27,14 @@
 #define FB_COLOR_BLUE  color( 0,  0, 31)
 
 // Function prototypes
+void do_draw_all(void);
 void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points);
 void do_draw_line(int sx, int sy, int ex, int ey);
 void draw_line_octant1(int is, int ie, int dx, int dy);
 void draw_line_octant2(int is, int ie, int dx, int dy);
 void draw_line_octant3(int is, int ie, int dx, int dy);
 void draw_line_octant8(int is, int ie, int dx, int dy);
-void test_draw();
+void test_draw(void);
 
 // Global variables
 static int fbfd;
@@ -41,6 +42,7 @@ static uint16_t* fbmem;
 static int error;
 static struct fb_copyarea rect;
 static uint16_t draw_color; // current color for drawing
+static struct gamestate* my_gamestate;
 
 int init_draw(struct gamestate* gamestate)
 {
@@ -68,6 +70,8 @@ int init_draw(struct gamestate* gamestate)
     return -1;
   }
   game_debug("OK: Mapped framebuffer device to memory\n");
+
+  my_gamestate = gamestate;
 
   test_draw(); // TODO: Remove this call in later implementations
 
@@ -101,6 +105,37 @@ int teardown_draw()
   return 0;
 }
 
+void draw_all(void)
+{
+  draw_color = FB_COLOR_GRAY;
+  do_draw_all();
+}
+
+void clear_all(void)
+{
+  draw_color = FB_COLOR_BLACK;
+  do_draw_all();
+}
+
+void do_draw_all(void)
+{
+  const int num_asteroids = my_gamestate->n_asteroids;
+  struct asteroid** asteroids = my_gamestate->asteroids;
+  struct polygon* pol;
+
+  // Draw all asteroids
+  for(int i=0; i<num_asteroids; i++){
+    pol = &(asteroids[i]->poly); 
+    do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
+  } 
+
+  // Draw spaceship
+  pol = &(my_gamestate->ship.poly);
+  do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
+
+  // TODO: Draw bullets
+}
+
 static void inline set_pixel(int x, int y)
 {
   fbmem[x + y * FB_DISPLAY_WIDTH] = FB_COLOR_GRAY;
@@ -109,19 +144,6 @@ static void inline set_pixel(int x, int y)
 static int inline get_index(int x, int y)
 {
   return x + y * FB_DISPLAY_WIDTH; 
-}
-
-
-void draw_polygon(struct polygon* pol)
-{
-  draw_color = FB_COLOR_GRAY;
-  do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
-}
-
-void clear_polygon(struct polygon* pol)
-{
-  draw_color = FB_COLOR_BLACK;
-  do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
 }
 
 void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points)
@@ -139,20 +161,6 @@ void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points)
     x1 = x2;
     y1 = y1;
   }
-}
-
-
-
-void draw_line(int sx, int sy, int ex, int ey)
-{
-  draw_color = FB_COLOR_GRAY;
-  do_draw_line(sx, sy, ex, ey);
-}
-
-void clear_line(int sx, int sy, int ex, int ey)
-{
-  draw_color = FB_COLOR_BLACK;
-  do_draw_line(sx, sy, ex, ey);
 }
 
 // This function calls one of four line rasterization functions based on which
@@ -329,19 +337,22 @@ void test_draw()
   }
   game_debug("OK: Removed Tux (some people have spheniscidaeaphobia)\n");
 
+  // set drawing color
+  draw_color = FB_COLOR_GREEN;
+
   // draw the rectangle
-  draw_line(rx         , ry         , rx + rw - 1, ry         );
-  draw_line(rx + rw - 1, ry         , rx + rw - 1, ry + rh - 1);
-  draw_line(rx + rw - 1, ry + rh - 1, rx         , ry + rh - 1);
-  draw_line(rx         , ry + rh - 1, rx         , ry         );
+  do_draw_line(rx         , ry         , rx + rw - 1, ry         );
+  do_draw_line(rx + rw - 1, ry         , rx + rw - 1, ry + rh - 1);
+  do_draw_line(rx + rw - 1, ry + rh - 1, rx         , ry + rh - 1);
+  do_draw_line(rx         , ry + rh - 1, rx         , ry         );
 
   // draw lines from the center of the rectangle to the edges
   int lines = 10;
   for(int i=0; i<lines; i++){
-    draw_line(cx, cy, rx + (rw * i / lines), ry);
-    draw_line(cx, cy, rx + (rw * i / lines), ry + rh - 1);
-    draw_line(cx, cy, rx, ry + (rh * i / lines));
-    draw_line(cx, cy, rx + rw - 1, ry + (rh * i / lines));
+    do_draw_line(cx, cy, rx + (rw * i / lines), ry);
+    do_draw_line(cx, cy, rx + (rw * i / lines), ry + rh - 1);
+    do_draw_line(cx, cy, rx, ry + (rh * i / lines));
+    do_draw_line(cx, cy, rx + rw - 1, ry + (rh * i / lines));
   }
   game_debug("OK: Wrote lines to the framebuffer\n");
 

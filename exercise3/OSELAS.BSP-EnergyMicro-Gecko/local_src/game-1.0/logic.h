@@ -42,8 +42,8 @@ struct ship_object{
     ifloat y_speed;
     ifloat x_orientation;
     ifloat y_orientation;
-    uint16_t gun_cooldown;
-    struct polygon real_poly;
+    int gun_cooldown;
+    struct polygon poly;
     // struct polygon current_poly;
 };
 
@@ -53,15 +53,15 @@ struct asteroid{
     ifloat y_pos;
     ifloat x_speed;
     ifloat y_speed;
-    struct polygon real_poly;
+    struct polygon poly;
 }; 
 
 // Implementation of the logic module
 struct gamestate{
     struct ship_object ship;
-    uint16_t n_asteroids;
+    int n_asteroids;
     struct asteroid** asteroids;
-    uint16_t n_projectiles;
+    int n_projectiles;
     struct projctile** projectiles;
     ifloat world_x_dim;
     ifloat world_y_dim; 
@@ -83,7 +83,7 @@ typedef struct projectile projectile;
 
 
 // Initializes the logic module
-gamestate* init_logic(int n_asteroids);
+gamestate* init_logic();
 
 // Updates the state of the game
 void update_gamestate();
