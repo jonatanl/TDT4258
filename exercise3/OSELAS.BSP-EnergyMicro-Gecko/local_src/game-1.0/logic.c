@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "util.h"
 #include "logic.h"
+#include "input.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,7 +17,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 // Might be removed by some mathemagical formula
-extern uint8_t[360] sine_LUT;
+extern int8_t sine_LUT[360];
 
 struct gamestate game;
 
@@ -62,8 +63,8 @@ void update_ship(ship_object* ship){
         }
     }
     if(CHECK_ACC(input)){
-        uint16_t x_acc = sine_LUT[ship->orientation]
-        if(orientation > 280){
+        uint16_t x_acc = sine_LUT[ship->orientation];
+        if(ship->orientation > 280){
 
         }
 

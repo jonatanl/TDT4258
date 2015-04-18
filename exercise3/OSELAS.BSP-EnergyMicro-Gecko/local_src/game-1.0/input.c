@@ -19,7 +19,6 @@
 #include "debug.h"
 	
 int init_input();
-uint8_t get_input();
 void signal_handler(int signal);
 uint8_t sanitize_input_buffer(uint8_t n_input, uint8_t* input_buffer);
 

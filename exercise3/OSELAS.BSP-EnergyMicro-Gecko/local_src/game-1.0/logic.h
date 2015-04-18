@@ -56,6 +56,7 @@ typedef struct ship_object ship_object;
 typedef struct gamestate gamestate;
 typedef struct polygon polygon;
 typedef struct asteroid asteroid;
+typedef struct projectile projectile;
 
 
 void do_logic(uint8_t input);

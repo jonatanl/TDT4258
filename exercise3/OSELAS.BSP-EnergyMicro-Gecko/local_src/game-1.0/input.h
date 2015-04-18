@@ -15,4 +15,6 @@
 // Return the processed gamepad input as a bitfield of actions
 uint8_t get_processed_input();
 
+uint8_t get_input();
+
 #endif // !_INPUT_H
