@@ -4,39 +4,47 @@
 
 #include <stdint.h>
 
-#define MAX_AMOUNT_ASTEROIDS    40
-#define MAX_AMOUNT_PROJECTILES  10
+// This module implements floating point values as 32-bit signed integers. The
+// lower 20 bits specify the floating point part..
+typedef uint32_t ifloat;
+#define FLOATING_DIGITS 20  // NOTE: Must be even!
 
-// World size
-#define DEFAULT_WORLD_X_DIM     (20 << 25)
-#define DEFAULT_WORLD_Y_DIM     (15 << 25)
+// Functions that perform coordinate arithmetic
+#define add(f1, f2)       (f1 + f2)
+#define subtract(f1, f2)  (f1 + f2)
+#define divide(f1, f2)    (f1 / f2)
+#define multiply(f1, f2)  ((f1 >> (FLOATING_DIGITS / 2)) * (f2 >> (FLOATING_DIGITS / 2)))
+#define int_to_ifloat(n)  (n << FLOATING_DIGITS)
+#define ifloat_to_int(f)  (f >> FLOATING_DIGITS)
 
-// Constant to translate world coordinates to screen coordinates 
-#define WORLD_TO_SCREEN_RATIO   (1  << 21)
+// Ratio to translate world coordinates to screen coordinates 
+#define SCREEN_TO_FLOAT_RATIO   (1 << FLOATING_DIGITS)
+
+// World size in ifloats
+#define DEFAULT_WORLD_X_DIM     (320 * SCREEN_TO_FLOAT_RATIO)
+#define DEFAULT_WORLD_Y_DIM     (240 * SCREEN_TO_FLOAT_RATIO)
+
 #define FRAMES_PER_SECOND       30
 
-// Used to calculate length of acceleration vector
-#define SECONDS_TO_CROSS_SCREEN 3
-
-#define FRAMES_TO_CROSS_SCREEN
-
+#define MAX_AMOUNT_ASTEROIDS    40
+#define MAX_AMOUNT_PROJECTILES  10
 
 // All coordinates are relative to the logical game dimensions 
 // rather than actual screen size
 struct polygon{
-    uint16_t n_vertices;
-    uint16_t* x_coords;
-    uint16_t* y_coords;
+    int n_vertices;
+    ifloat* x_coords;
+    ifloat* y_coords;
 };
 
 // Struct for ship properties. Only one(two?) should ever exist.
 struct ship_object{
-    int16_t x_orientation;
-    int16_t y_orientation;
-    int16_t x_speed;
-    int16_t y_speed;
-    uint16_t x_pos;
-    uint16_t y_pos;
+    ifloat x_pos;
+    ifloat y_pos;
+    ifloat x_speed;
+    ifloat y_speed;
+    ifloat x_orientation;
+    ifloat y_orientation;
     uint16_t gun_cooldown;
     struct polygon real_poly;
     // struct polygon current_poly;
@@ -44,10 +52,10 @@ struct ship_object{
 
 // Struct for asteroid properties
 struct asteroid{
-    int16_t x_speed;
-    int16_t y_speed;
-    uint16_t x_pos;
-    uint16_t y_pos;
+    ifloat x_pos;
+    ifloat y_pos;
+    ifloat x_speed;
+    ifloat y_speed;
     struct polygon real_poly;
 }; 
 
@@ -58,16 +66,16 @@ struct gamestate{
     struct asteroid** asteroids;
     uint16_t n_projectiles;
     struct projctile** projectiles;
-    int32_t world_x_dim;
-    int32_t world_y_dim; 
+    ifloat world_x_dim;
+    ifloat world_y_dim; 
 };
 
 // Lacks a polygon at the moment    
 struct projectile{
-    int16_t x_speed;
-    int16_t y_speed;
-    uint16_t x_pos;
-    uint16_t y_pos;
+    ifloat x_pos;
+    ifloat y_pos;
+    ifloat x_speed;
+    ifloat y_speed;
 };
 
 typedef struct ship_object ship_object;
@@ -81,10 +89,10 @@ void do_logic(uint8_t input);
 void update_gamestate(struct gamestate* game);
 void init_ship(ship_object* ship);
 struct asteroid* init_asteroid(void);
-void rotate_polygon(struct polygon poly, int16_t degrees);
 void update_ship(struct ship_object* ship);
-void init_logic(uint16_t n_asteroids, struct gamestate* game);
-asteroid* make_asteroid(uint16_t n_vertices, uint16_t* x_vertices, uint16_t* y_vertices);
+gamestate* init_logic(int n_asteroids);
+asteroid* make_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords);
 void do_shoot(void);
+
 
 #endif // !_LOGIC_H

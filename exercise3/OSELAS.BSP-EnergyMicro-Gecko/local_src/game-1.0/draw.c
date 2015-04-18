@@ -27,7 +27,7 @@
 #define FB_COLOR_BLUE  color( 0,  0, 31)
 
 // Function prototypes
-void do_draw_polyline(uint16_t* x_coords, uint16_t* y_coords, int n_points);
+void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points);
 void do_draw_line(int sx, int sy, int ex, int ey);
 void draw_line_octant1(int is, int ie, int dx, int dy);
 void draw_line_octant2(int is, int ie, int dx, int dy);
@@ -124,17 +124,17 @@ void clear_polygon(struct polygon* pol)
   do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
 }
 
-void do_draw_polyline(uint16_t* x_coords, uint16_t* y_coords, int n_points)
+void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points)
 {
-  int x1 = x_coords[0];
-  int y1 = y_coords[0];
+  int x1 = ifloat_to_int(x_coords[0]);
+  int y1 = ifloat_to_int(y_coords[0]);
   int x2;
   int y2;
 
   // Draw the polyline edges
   for(int i=1; i<n_points; i++){
-    x2 = x_coords[i];
-    y2 = y_coords[i];
+    x2 = ifloat_to_int(x_coords[i]);
+    y2 = ifloat_to_int(y_coords[i]);
     do_draw_line(x1, y1, x2, y2);
     x1 = x2;
     y1 = y1;
