@@ -132,13 +132,13 @@ void init_ship(ship_object* ship){
     ifloat* x_coords = malloc(sizeof(ifloat)*3);
     ifloat* y_coords = malloc(sizeof(ifloat)*3);
     
-    x_coords[0] = int_to_ifloat(0);
-    x_coords[1] = int_to_ifloat(5);
-    x_coords[2] = int_to_ifloat(10);
+    x_coords[0] = add(ship->x_pos, int_to_ifloat(0));
+    x_coords[1] = add(ship->x_pos, int_to_ifloat(5));
+    x_coords[2] = add(ship->x_pos, int_to_ifloat(10));
 
-    y_coords[0] = int_to_ifloat(0);
-    y_coords[1] = int_to_ifloat(10);
-    y_coords[2] = int_to_ifloat(0);
+    y_coords[0] = add(ship->y_pos, int_to_ifloat(0));
+    y_coords[1] = add(ship->y_pos, int_to_ifloat(5));
+    y_coords[2] = add(ship->y_pos, int_to_ifloat(10));
 
     ship->poly.x_coords = x_coords;
     ship->poly.y_coords = y_coords;

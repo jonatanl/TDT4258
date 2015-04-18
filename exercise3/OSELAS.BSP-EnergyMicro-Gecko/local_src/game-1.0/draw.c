@@ -59,12 +59,12 @@ int init_draw(struct gamestate* gamestate)
 
   // Map the framebuffer device to memory
   fbmem = (uint16_t*)mmap(
-      NULL,                              // let kernel decide physical memory address
+      NULL,                               // let kernel decide physical memory address
       FB_DISPLAY_SIZE * sizeof(uint16_t), // framebuffer size
-      PROT_READ | PROT_WRITE,            // memory is read-write
-      MAP_SHARED,                        // updates are carried immediately
-      fbfd,                              // the mapped file
-      0);                                // offset
+      PROT_READ | PROT_WRITE,             // memory is read-write
+      MAP_SHARED,                         // updates are carried immediately
+      fbfd,                               // the mapped file
+      0);                                 // offset
   if(fbmem == MAP_FAILED){
     game_error("Error mapping file to memory: %s\n", strerror(errno));
     return -1;
@@ -73,7 +73,7 @@ int init_draw(struct gamestate* gamestate)
 
   my_gamestate = gamestate;
 
-  test_draw(); // TODO: Remove this call in later implementations
+//  test_draw(); // TODO: Remove this call in later implementations
 
   // No errors
   game_debug("DONE: No errors initializing the draw module\n");
@@ -103,6 +103,16 @@ int teardown_draw()
   // No errors
   game_debug("DONE: No errors releasing module resources\n");
   return 0;
+}
+
+void update_display(void)
+{
+  // update the display
+  rect.dx = 0;
+  rect.dy = 0;
+  rect.width  = FB_DISPLAY_WIDTH;
+  rect.height = FB_DISPLAY_HEIGHT;
+  ioctl(fbfd, 0x4680, &rect);
 }
 
 void draw_all(void)

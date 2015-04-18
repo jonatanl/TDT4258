@@ -25,20 +25,15 @@ static gamestate* my_gamestate; // used to pass gamestates around
 static int devfd; // device file descriptor
 static int error; // error variable
 
+int init_game()
+{
+  // TODO
+  return 0;
+}
+
 int close_game()
 {
-  game_debug("Closing the game ...\n");
-
-  // Close the gamepad device
-  error = close(devfd);
-  if(error < 0){
-    game_error("Error closing gamepad device: %s\n", strerror(errno));
-    return -1; // TODO: Handle error
-  }
-  game_debug("OK: Gamepad device closed\n");
-
-  // No errors
-  game_debug("DONE: No errors closing the game\n");
+  // TODO
   return 0;
 }
 
@@ -46,21 +41,31 @@ int close_game()
 int main(int argc, char *argv[])
 {
   // Initialize the game
-  //error = init_game();
-  //if(error){
-  //  game_error("Error initializing game. Exiting now.\n");
-  //  exit(EXIT_FAILURE);
-  //}
+  error = init_game();
+  if(error){
+    game_error("Error initializing game. Exiting now.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  ///////////////
+  // TEST CODE:
+  ///////////////
+  
+  // Initialize logic module
+  my_gamestate = init_logic();
 
   // Initialize draw module
-  // TODO: Initialize the gamestate first!
-  my_gamestate = init_logic();
   error = init_draw(my_gamestate);
+
+  draw_all();
+  update_display();
 
   // TODO: Implement game loop
   
   // Release draw module resources
   teardown_draw();
+
+  // TODO: Release module resources
 
   // Close the game
   error = close_game();

@@ -31,6 +31,7 @@ static int devfd; // device file descriptor
 static int error; // error variable
 
 int init_input(){
+  // TODO: Fix ouput statements
   // Open the gamepad device read-write with nonblocking IO
   devfd = open(DEVICE_PATH, O_RDONLY | O_NONBLOCK);
   if(devfd < 0){
@@ -69,6 +70,26 @@ int init_input(){
   game_debug("DONE: No errors initializing the game\n");
   return 0;
 }
+
+
+int teardown_input()
+{
+  // TODO: Fix ouput statements
+  game_debug("Closing the game ...\n");
+
+  // Close the gamepad device
+  error = close(devfd);
+  if(error < 0){
+    game_error("Error closing gamepad device: %s\n", strerror(errno));
+    return -1; // TODO: Handle error
+  }
+  game_debug("OK: Gamepad device closed\n");
+
+  // No errors
+  game_debug("DONE: No errors closing the game\n");
+  return 0;
+}
+
 
 // When a signal arrives input_feed is updated
 void signal_handler(int signal){
