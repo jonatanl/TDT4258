@@ -16,9 +16,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-// Might be removed by some mathemagical formula
-extern int8_t sine_LUT[360];
-
 struct gamestate game;
 
 void do_logic(uint8_t input){
@@ -50,23 +47,14 @@ void update_ship(ship_object* ship){
     // if else, check if turn, do roation, and normalize
     if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){   
         if(CHECK_LEFT(input)){
-            ship->orientation++;
-            if(ship->orientation > 359){
-                ship->orientation -= 360;
-            }
+            // TODO rotation
         }
         else if(CHECK_RIGHT(input)){
-            ship->orientation--;
-            if(ship->orientation < 0){
-                ship->orientation += 360;
-            }
+            // TODO rotation
         }
     }
     if(CHECK_ACC(input)){
-        uint16_t x_acc = sine_LUT[ship->orientation];
-        if(ship->orientation > 280){
-
-        }
+            // TODO orientation
 
         // TODO: Update speeds
     }
@@ -106,43 +94,62 @@ asteroid* make_asteroid(uint16_t n_vertices, uint16_t* x_vertices, uint16_t* y_v
     
     // Initialize the asteroids polygon
     new_asteroid->real_poly.n_vertices = n_vertices;
-    new_asteroid->real_poly.x_vertices = x_vertices;
-    new_asteroid->real_poly.y_vertices = y_vertices;
+    new_asteroid->real_poly.x_coords = x_vertices;
+    new_asteroid->real_poly.y_coords = y_vertices;
 
     return new_asteroid;
 }
 
-ship_object make_ship(void){
-    ship_object new_ship;
-    new_ship.x_speed = 0;
-    new_ship.y_speed = 0;
-    new_ship.x_pos = 100;
-    new_ship.y_pos = 100;
-    new_ship.orientation = 0;
-    new_ship.gun_cooldown = 0;
+void init_ship(ship_object* ship){
+    ship->x_speed = 0;
+    ship->y_speed = 0;
+    ship->x_pos = 100;
+    ship->y_pos = 100;
+    ship->x_orientation = 0;
+    ship->y_orientation = 0;
+    ship->gun_cooldown = 0;
 
     // these values are probably pretty bad
     // TODO rethink this
-    new_ship.real_poly.n_vertices = 3;
-    uint16_t x_vertices[] = {0, 5, 10};
-    uint16_t y_vertices[] = {0, 10, 0};
-    new_ship.real_poly.x_vertices = x_vertices;
-    new_ship.real_poly.y_vertices = y_vertices;
+    ship->real_poly.n_vertices = 3;
+    uint16_t* x_coords = malloc(sizeof(uint16_t)*3);
+    uint16_t* y_coords = malloc(sizeof(uint16_t)*3);
+    
+    x_coords[0] = 0;
+    x_coords[1] = 5;
+    x_coords[2] = 10;
 
-    return new_ship;
+    y_coords[0] = 0;
+    y_coords[1] = 10;
+    y_coords[2] = 0;
+
+    ship->real_poly.x_coords = x_coords;
+    ship->real_poly.y_coords = y_coords;
 }
 
 // Initializes the game struct
 void init_logic(uint16_t n_asteroids, gamestate* game){
-    game->ship = make_ship();
+    init_ship(&game->ship);
     game->asteroids = malloc(sizeof(asteroid*)*MAX_AMOUNT_ASTEROIDS);
     game->n_asteroids = 0;
     game->projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
     game->n_projectiles = 0;
+    game->world_x_dim = DEFAULT_WORLD_X_DIM;  // TODO set
+    game->world_y_dim = DEFAULT_WORLD_Y_DIM;  // TODO set
     for(int i = 0; i < n_asteroids; i++){
+        
         // TODO rethink this
-        uint16_t x_vertices[] = {0, 5, 10};
-        uint16_t y_vertices[] = {0, 10, 0};
-        game->asteroids[i] = make_asteroid(3, x_vertices, y_vertices);
+        uint16_t* x_coords = malloc(sizeof(uint16_t)*3);
+        uint16_t* y_coords = malloc(sizeof(uint16_t)*3);
+        
+        x_coords[0] = 0;
+        x_coords[1] = 5;
+        x_coords[2] = 10;
+
+        y_coords[0] = 0;
+        y_coords[1] = 10;
+        y_coords[2] = 0;
+
+        game->asteroids[i] = make_asteroid(3, x_coords, y_coords);
     }
 }
