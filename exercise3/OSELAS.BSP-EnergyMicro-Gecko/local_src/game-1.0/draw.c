@@ -194,18 +194,21 @@ void draw_line_octant1(int i, int i_end, int dx, int dy)
   // Leap decision variable keeps track of when to increment y
   int e = -(dx >> 1);
 
-  do{
-    // Draw next pixel
-    fbmem[i] = draw_color;
+  // Draw first pixel
+  fbmem[i] = draw_color;
+
+  // Draw remaining pixels
+  while(i != i_end){
     
-    // Update coordinates
+    // Update indexes and draw pixel
     i += 1;
     e += dy;
     if(e >= 0){
       i += FB_DISPLAY_WIDTH;
       e -= dx;
     }
-  }while(i != i_end);
+    fbmem[i] = draw_color;
+  }
 }
 
 void draw_line_octant2(int i, int i_end, int dx, int dy)
@@ -213,18 +216,21 @@ void draw_line_octant2(int i, int i_end, int dx, int dy)
   // Leap decision variable keeps track of when to increment y.
   int e = -(dy >> 1);
 
-  do{
-    // Draw next pixel
-    fbmem[i] = draw_color;
+  // Draw first pixel
+  fbmem[i] = draw_color;
+
+  // Draw remaining pixels
+  while(i != i_end){
     
-    // Update coordinates
+    // Update indexes and draw pixel
     i += FB_DISPLAY_WIDTH;
     e += dx;
     if(e >= 0){
       i += 1;
       e -= dy;
     }
-  }while(i != i_end);
+    fbmem[i] = draw_color;
+  }
 }
 
 void draw_line_octant3(int i, int i_end, int dx, int dy)
@@ -233,18 +239,21 @@ void draw_line_octant3(int i, int i_end, int dx, int dy)
   int e = -(dy >> 1);
   dx = -dx;
 
-  do{
-    // Draw next pixel
-    fbmem[i] = draw_color;
+  // Draw first pixel
+  fbmem[i] = draw_color;
+
+  // Draw remaining pixels
+  while(i != i_end){
     
-    // Update coordinates
+    // Update indexes and draw pixel
     i += FB_DISPLAY_WIDTH;
     e += dx;
     if(e >= 0){
       i -= 1;
       e -= dy;
     }
-  }while(i != i_end);
+    fbmem[i] = draw_color;
+  }
 }
 
 void draw_line_octant8(int i, int i_end, int dx, int dy)
@@ -253,18 +262,21 @@ void draw_line_octant8(int i, int i_end, int dx, int dy)
   int e = -(dx >> 1);
   dy = -dy;
 
-  do{
-    // Draw next pixel
-    fbmem[i] = draw_color;
+  // Draw first pixel
+  fbmem[i] = draw_color;
+
+  // Draw remaining pixels
+  while(i != i_end){
     
-    // Update coordinates
+    // Update indexes and draw pixel
     i += 1;
     e += dy;
     if(e >= 0){
       i -= FB_DISPLAY_WIDTH;
       e -= dx;
     }
-  }while(i != i_end);
+    fbmem[i] = draw_color;
+  }
 }
 
 void test_draw()
@@ -345,6 +357,7 @@ int init_draw(struct gamestate* gamestate)
   for(int i=0; i<FB_DISPLAY_SIZE; i++){
     fbmem[i] = FB_COLOR_BLACK;
   }
+  update_display();
   game_debug("OK: Removed Tux (some people have spheniscidaeaphobia)\n");
 
   // No errors
