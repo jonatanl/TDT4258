@@ -36,13 +36,13 @@ void rotate_coordinate(ifloat* xPosition, ifloat* yPosition, ifloat xCenter, ifl
 		cosine = counterWiseCosine;
 	}
 
-	ifloat xRotated = cosine * xPosition
-					- sine * yPosition
-					+ xCenter -xCenter * cosine + yCenter * sine;
+	ifloat xRotated = add(subtract(multiply(cosine, xPosition),
+					multiply(sine, yPosition)),
+					subtract(xCenter, add(multiply(xCenter, cosine), multiply(yCenter, sine))));
 
-	ifloat yRotated = sine * xPosition
-					+ cosine * yPosition
-					+ yCenter - xCenter * sine - yCenter * cosine;
+	ifloat yRotated = add(multiply(sine, xPosition),
+					add(multiply(cosine, yPosition),
+					subtract(yCenter, subtract(multiply(xCenter, sine), multiply(yCenter, cosine)))));
 
 	*xPosition = xRotated;
 	*yPosition = yRotated;
