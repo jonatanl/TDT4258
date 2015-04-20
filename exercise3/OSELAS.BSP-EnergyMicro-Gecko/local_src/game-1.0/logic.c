@@ -28,7 +28,7 @@
 // Function prototypes
 void init_ship(struct ship_object* ship);
 void init_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords, struct asteroid* asteroid);
-void do_logic(uint8_t input);
+void do_logic();
 void do_shoot(void);
 void update_ship();
 
@@ -37,10 +37,10 @@ struct gamestate game;
 struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
 struct projectile my_projectiles[MAX_AMOUNT_PROJECTILES];
 
-void do_logic(uint8_t input){
+void do_logic(){
 
-    update_ship(&game.ship);
-    update_gamestate(&game);
+    update_ship();
+    update_gamestate();
     // Check collisions
 }
 
@@ -62,10 +62,34 @@ void update_ship(){
         // Do pause
     }
 
+    // DEBUG STUFF
+
+    static uint8_t prev_input = 0;
+    if(input != prev_input){
+        prev_input = input;
+        game_debug("Input registered, %d\n", input);
+
+        if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){ 
+            game_debug("Registered no left/right conflict\n");
+
+            if(CHECK_LEFT(input)){
+                game_debug("Registered left turn\n");
+            }
+            else if(CHECK_RIGHT(input)){
+                game_debug("registered right turn\n");
+            }
+        }
+        if(CHECK_ACC(input)){
+            game_debug("Registered acceleration\n");
+        }
+    }
+
+    // END DEBUG STUFF
 
     // If both left and right is pressed the ship does nothing
     // if else, check if turn, do roation, and normalize
     if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){   
+        
         if(CHECK_LEFT(input)){
             // TODO rotation
         }

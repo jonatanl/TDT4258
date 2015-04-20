@@ -51,7 +51,9 @@ int main(int argc, char *argv[])
 
   // The game loop
   while(!error){
-    // TODO
+    do_logic();
+    //draw_all();
+    //update_display();
 
     // Sleep until the next frame.
     //
