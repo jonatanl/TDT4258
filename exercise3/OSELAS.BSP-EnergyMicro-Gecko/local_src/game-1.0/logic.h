@@ -15,7 +15,7 @@ typedef int32_t ifloat;
 #define divide(f1, f2)      (f1 / f2)
 #define multiply(f1, f2)    ((f1 >> (FLOATING_DIGITS / 2)) * (f2 >> (FLOATING_DIGITS / 2)))
 #define int_to_ifloat(n)    (n << FLOATING_DIGITS)
-#define float_to_ifloat(f)  (((int32_t)(f << FLOATING_DIGITS)) >> FLOATING_DIGITS)
+#define float_to_ifloat(f)  (((int32_t)(f * (1 << FLOATING_DIGITS))) >> FLOATING_DIGITS)
 #define ifloat_to_int(f)    (f >> FLOATING_DIGITS)
 
 // Ratio to translate world coordinates to screen coordinates 
