@@ -67,20 +67,20 @@ void update_ship(){
     static uint8_t prev_input = 0;
     if(input != prev_input){
         prev_input = input;
-        game_debug("Input registered, %d", input);
+        game_debug("Input registered, %d\n", input);
 
         if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){ 
-            game_debug("Registered no left/right conflict");
+            game_debug("Registered no left/right conflict\n");
 
             if(CHECK_LEFT(input)){
-                game_debug("Registered left turn");
+                game_debug("Registered left turn\n");
             }
             else if(CHECK_RIGHT(input)){
-                game_debug("registered right turn");
+                game_debug("registered right turn\n");
             }
         }
         if(CHECK_ACC(input)){
-            game_debug("Registered acceleration");
+            game_debug("Registered acceleration\n");
         }
     }
 

@@ -42,9 +42,10 @@ int main(int argc, char *argv[])
   // The game loop
   // TODO: Implement it
   while(true){
-    draw_all();
-    update_display();
-    break;
+    do_logic();
+    //draw_all();
+    //update_display();
+    //break;
   }
 
   // Close the game
