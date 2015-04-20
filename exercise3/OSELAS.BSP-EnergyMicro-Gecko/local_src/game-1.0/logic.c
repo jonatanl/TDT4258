@@ -31,6 +31,7 @@ void init_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords, struct aste
 void do_logic();
 void do_shoot(void);
 void update_ship();
+void update_gamestate();
 
 // Global variables
 struct gamestate game;
@@ -49,8 +50,8 @@ void update_gamestate(){
     game.ship.y_pos = add(game.ship.y_pos, game.ship.y_speed);
 
     for(int i = 0; i < game.n_asteroids; i++){
-        game.asteroids[i].x_pos += add(game.asteroids[i].x_pos, game.asteroids[i].x_speed);
-        game.asteroids[i].y_pos += add(game.asteroids[i].y_pos, game.asteroids[i].y_speed);
+        game.asteroids[i].x_pos = add(game.asteroids[i].x_pos, game.asteroids[i].x_speed);
+        game.asteroids[i].y_pos = add(game.asteroids[i].y_pos, game.asteroids[i].y_speed);
     }
 }
 
@@ -159,12 +160,11 @@ void init_ship(struct ship_object* ship){
     ifloat* y_coords = malloc(sizeof(ifloat)*3);
     
     x_coords[0] = add(ship->x_pos, int_to_ifloat(0));
-    x_coords[1] = add(ship->x_pos, int_to_ifloat(5));
-    x_coords[2] = add(ship->x_pos, int_to_ifloat(10));
-
     y_coords[0] = add(ship->y_pos, int_to_ifloat(0));
-    y_coords[1] = add(ship->y_pos, int_to_ifloat(5));
-    y_coords[2] = add(ship->y_pos, int_to_ifloat(10));
+    x_coords[1] = add(ship->x_pos, int_to_ifloat(-20));
+    y_coords[1] = add(ship->y_pos, int_to_ifloat(-20));
+    x_coords[2] = add(ship->x_pos, int_to_ifloat(-20));
+    y_coords[2] = add(ship->y_pos, int_to_ifloat(0));
 
     ship->poly.x_coords = x_coords;
     ship->poly.y_coords = y_coords;
@@ -190,12 +190,12 @@ int init_logic(struct gamestate** gamestate_ptr){
       // Initialize polygon vertices
       ifloat* x_coords = malloc(sizeof(ifloat)*3);
       ifloat* y_coords = malloc(sizeof(ifloat)*3);
-      x_coords[0] = int_to_ifloat(0);
-      x_coords[1] = int_to_ifloat(5);
-      x_coords[2] = int_to_ifloat(10);
-      y_coords[0] = int_to_ifloat(0);
-      y_coords[1] = int_to_ifloat(10);
-      y_coords[2] = int_to_ifloat(0);
+      x_coords[0] = add(game.asteroids[i].x_pos, int_to_ifloat(0));
+      y_coords[0] = add(game.asteroids[i].y_pos, int_to_ifloat(0));
+      x_coords[1] = add(game.asteroids[i].x_pos, int_to_ifloat(40));
+      y_coords[1] = add(game.asteroids[i].y_pos, int_to_ifloat(40));
+      x_coords[2] = add(game.asteroids[i].x_pos, int_to_ifloat(0));
+      y_coords[2] = add(game.asteroids[i].y_pos, int_to_ifloat(40));
 
       init_asteroid(3, x_coords, y_coords, &game.asteroids[i]);
   }
