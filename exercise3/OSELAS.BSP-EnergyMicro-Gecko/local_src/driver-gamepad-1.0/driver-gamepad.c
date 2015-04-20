@@ -308,7 +308,7 @@ static irqreturn_t gpio_handler(int irq, void *dev_id)
   }
 
   // read GPIO_PC_DIN into 'button_state'
-  my_work_input = ioread8(gpio_pc_ptr + GPIO_PC_DIN) ^ 0xff;
+  my_work_input = ioread8(gpio_pc_ptr + GPIO_PC_DIN);
 
   // schedule tasklet to copy register for us
   schedule_work(&my_work);

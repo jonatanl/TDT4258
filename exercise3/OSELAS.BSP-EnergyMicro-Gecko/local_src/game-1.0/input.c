@@ -42,7 +42,7 @@ void signal_handler(int signal){
 }
 
 uint8_t get_input(){
-  return ~input_feed;
+  return input_feed;
 }
 
 int init_input(){
