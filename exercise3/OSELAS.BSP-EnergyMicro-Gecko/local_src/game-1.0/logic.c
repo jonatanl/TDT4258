@@ -1,11 +1,16 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "util.h"
 #include "logic.h"
 #include "input.h"
 #define DEBUG
 #include "debug.h"
+
+#define PRINT_POSITION  false
+#define PRINT_INPUT     true
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,6 +37,7 @@ void do_logic();
 void do_shoot(void);
 void update_ship();
 void update_gamestate();
+void do_wrap(ifloat* x_pos, ifloat* y_pos);
 
 // Global variables
 struct gamestate game;
@@ -48,6 +54,11 @@ void do_logic(){
 void update_gamestate(){
     game.ship.x_pos = add(game.ship.x_pos, game.ship.x_speed);
     game.ship.y_pos = add(game.ship.y_pos, game.ship.y_speed);
+    do_wrap(&game.ship.x_pos, &game.ship.y_pos);
+
+    if(PRINT_POSITION){
+        game_debug("ship xpos: %d, ship ypos: %d\n", game.ship.x_pos, game.ship.y_speed);
+    }
 
     for(int i = 0; i < game.n_asteroids; i++){
         game.asteroids[i].x_pos = add(game.asteroids[i].x_pos, game.asteroids[i].x_speed);
@@ -62,29 +73,28 @@ void update_ship(){
     if(CHECK_PAUSE(input)){
         // Do pause
     }
+    
+    if(PRINT_INPUT){
+        static uint8_t prev_input = 0;
+        if(input != prev_input){
+            prev_input = input;
+            game_debug("Input registered, %d\n", input);
 
-    // DEBUG STUFF
+            if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){ 
+                game_debug("Registered no left/right conflict\n");
 
-    static uint8_t prev_input = 0;
-    if(input != prev_input){
-        prev_input = input;
-        game_debug("Input registered, %d\n", input);
-
-        if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){ 
-            game_debug("Registered no left/right conflict\n");
-
-            if(CHECK_LEFT(input)){
-                game_debug("Registered left turn\n");
+                if(CHECK_LEFT(input)){
+                    game_debug("Registered left turn\n");
+                }
+                else if(CHECK_RIGHT(input)){
+                    game_debug("registered right turn\n");
+                }
             }
-            else if(CHECK_RIGHT(input)){
-                game_debug("registered right turn\n");
+            if(CHECK_ACC(input)){
+                game_debug("Registered acceleration\n");
             }
-        }
-        if(CHECK_ACC(input)){
-            game_debug("Registered acceleration\n");
-        }
+        }        
     }
-
     // END DEBUG STUFF
 
     // If both left and right is pressed the ship does nothing
@@ -99,10 +109,10 @@ void update_ship(){
         }
     }
     if(CHECK_ACC(input)){
-            // TODO orientation
-
-        // TODO: Update speeds
+        // TODO orientation
     }
+
+    // TODO: Update speeds
     // Decrements the gun cooldown, or checks if shoot is pressed and fires a shot
     if(game.ship.gun_cooldown){
         game.ship.gun_cooldown--;
@@ -112,6 +122,20 @@ void update_ship(){
     }
 }
 
+void do_wrap(ifloat* x_pos, ifloat* y_pos){
+    if(*x_pos >= DEFAULT_WORLD_X_DIM){
+        *x_pos -= DEFAULT_WORLD_X_DIM; 
+    }
+    else if(*x_pos < 0){
+        *x_pos += DEFAULT_WORLD_X_DIM;
+    }
+    if(*y_pos >= DEFAULT_WORLD_Y_DIM){
+        *y_pos -= DEFAULT_WORLD_Y_DIM; 
+    }
+    else if(*y_pos < 0){
+        *y_pos += DEFAULT_WORLD_Y_DIM;
+    }
+}
 
 void do_shoot(void){
 
