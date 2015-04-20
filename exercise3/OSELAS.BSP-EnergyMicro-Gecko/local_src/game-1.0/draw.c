@@ -111,6 +111,11 @@ void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points)
     x1 = x2;
     y1 = y2;
   }
+
+  // Draw a line from the last to the first point
+  x2 = ifloat_to_int(x_coords[0]);
+  y2 = ifloat_to_int(y_coords[0]);
+  do_draw_line(x1, y1, x2, y2);
 }
 
 // This function calls one of four line rasterization functions based on which
