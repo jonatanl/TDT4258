@@ -1,10 +1,11 @@
-// #include "input.h"
-
 #include <stdlib.h>
 #include <stdint.h>
+
 #include "util.h"
 #include "logic.h"
 #include "input.h"
+#define DEBUG
+#include "debug.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,34 +146,50 @@ void init_ship(struct ship_object* ship){
     ship->poly.y_coords = y_coords;
 }
 
-// Initializes the gamestate struct
+// Initializes the module
 int init_logic(struct gamestate** gamestate_ptr){
-    init_ship(&game.ship);
-    game.asteroids = &my_asteroids[0];
-    game.n_asteroids = 0;
-    game.projectiles = &my_projectiles[0];
-    game.n_projectiles = 0;
-    game.world_x_dim = DEFAULT_WORLD_X_DIM;
-    game.world_y_dim = DEFAULT_WORLD_Y_DIM;
+  game_debug("Initializing the logic module ...\n");
 
-    // Initialize all asteroids
-    // TODO: rethink this
-    for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){
-        
-        // Initialize polygon vertices
-        ifloat* x_coords = malloc(sizeof(ifloat)*3);
-        ifloat* y_coords = malloc(sizeof(ifloat)*3);
-        x_coords[0] = int_to_ifloat(0);
-        x_coords[1] = int_to_ifloat(5);
-        x_coords[2] = int_to_ifloat(10);
-        y_coords[0] = int_to_ifloat(0);
-        y_coords[1] = int_to_ifloat(10);
-        y_coords[2] = int_to_ifloat(0);
+  // Initialize the gamestate struct
+  init_ship(&game.ship);
+  game.asteroids = &my_asteroids[0];
+  game.n_asteroids = 0;
+  game.projectiles = &my_projectiles[0];
+  game.n_projectiles = 0;
+  game.world_x_dim = DEFAULT_WORLD_X_DIM;
+  game.world_y_dim = DEFAULT_WORLD_Y_DIM;
 
-        init_asteroid(3, x_coords, y_coords, &game.asteroids[i]);
-    }
-    *gamestate_ptr = &game;
+  // Initialize all asteroids
+  // TODO: rethink this
+  for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){
+      
+      // Initialize polygon vertices
+      ifloat* x_coords = malloc(sizeof(ifloat)*3);
+      ifloat* y_coords = malloc(sizeof(ifloat)*3);
+      x_coords[0] = int_to_ifloat(0);
+      x_coords[1] = int_to_ifloat(5);
+      x_coords[2] = int_to_ifloat(10);
+      y_coords[0] = int_to_ifloat(0);
+      y_coords[1] = int_to_ifloat(10);
+      y_coords[2] = int_to_ifloat(0);
 
-    // No errors
-    return 0;
+      init_asteroid(3, x_coords, y_coords, &game.asteroids[i]);
+  }
+  *gamestate_ptr = &game;
+
+  // No errors
+  game_debug("DONE: No errors initializing the logic module\n");
+  return 0;
+}
+
+// Initializes the module
+int release_logic(){
+  game_debug("Releasing the logic module ...\n");
+
+  // TODO: Relase module resources:
+  //  - dynamically allocated polygons
+
+  // No errors
+  game_debug("DONE: No errors releasing the logic module\n");
+  return 0;
 }

@@ -44,66 +44,6 @@ static struct fb_copyarea rect;
 static uint16_t draw_color; // current color for drawing
 static struct gamestate* my_gamestate;
 
-int init_draw(struct gamestate* gamestate)
-{
-  game_debug("Initializing draw module ...\n");
-
-  // Open framebuffer device with read-write permissions.
-  //
-  // NOTE: read-write is needed for mmap()
-  fbfd = open(FB_DEVICE_PATH, O_RDWR);
-  if(fbfd < 0){
-    game_error("Error opening framebuffer device: %s\n", strerror(errno));
-  }
-  game_debug("OK: Opened framebuffer device %s\n", FB_DEVICE_PATH);
-
-  // Map the framebuffer device to memory
-  fbmem = (uint16_t*)mmap(
-      NULL,                               // let kernel decide physical memory address
-      FB_DISPLAY_SIZE * sizeof(uint16_t), // framebuffer size
-      PROT_READ | PROT_WRITE,             // memory is read-write
-      MAP_SHARED,                         // updates are carried immediately
-      fbfd,                               // the mapped file
-      0);                                 // offset
-  if(fbmem == MAP_FAILED){
-    game_error("Error mapping file to memory: %s\n", strerror(errno));
-    return -1;
-  }
-  game_debug("OK: Mapped framebuffer device to memory\n");
-
-  my_gamestate = gamestate;
-
-//  test_draw(); // TODO: Remove this call in later implementations
-
-  // No errors
-  game_debug("DONE: No errors initializing the draw module\n");
-  return 0;
-}
-
-int teardown_draw()
-{
-  game_debug("Releasing draw module resources ...\n");
-
-  // Unmap framebuffer device from memory
-  error = munmap((void*)fbmem, FB_DISPLAY_SIZE * sizeof(uint16_t));
-  if(error < 0){
-    game_error("Error unmapping device file from memory: %s\n", strerror(errno));
-    return -1;
-  }
-  game_error("OK: Unmapped device file from memory\n");
-
-  // Close framebuffer device
-  error = close(fbfd);
-  if(error < 0){
-    game_error("Error closing framebuffer device: %s\n", strerror(errno));
-    return -1;
-  }
-  game_debug("OK: Closed framebuffer device\n");
-
-  // No errors
-  game_debug("DONE: No errors releasing module resources\n");
-  return 0;
-}
 
 void update_display(void)
 {
@@ -130,12 +70,12 @@ void clear_all(void)
 void do_draw_all(void)
 {
   const int num_asteroids = my_gamestate->n_asteroids;
-  struct asteroid** asteroids = my_gamestate->asteroids;
+  struct asteroid* asteroids = my_gamestate->asteroids;
   struct polygon* pol;
 
   // Draw all asteroids
   for(int i=0; i<num_asteroids; i++){
-    pol = &(asteroids[i]->poly); 
+    pol = &(asteroids[i].poly); 
     do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
   } 
 
@@ -341,12 +281,6 @@ void test_draw()
   int cx = rx + (rw / 2);
   int cy = ry + (rh / 2);
 
-  // clear the display
-  for(int i=0; i<FB_DISPLAY_SIZE; i++){
-    fbmem[i] = FB_COLOR_BLACK;
-  }
-  game_debug("OK: Removed Tux (some people have spheniscidaeaphobia)\n");
-
   // set drawing color
   draw_color = FB_COLOR_GREEN;
 
@@ -375,4 +309,70 @@ void test_draw()
   game_debug("OK: Updated the display\n");
 
   game_debug("DONE: Drawing test completed. Can you see lines on the display?\n");
+}
+
+int init_draw(struct gamestate* gamestate)
+{
+  game_debug("Initializing draw module ...\n");
+
+  // Remember the gamestate
+  my_gamestate = gamestate;
+
+  // Open framebuffer device with read-write permissions.
+  //
+  // NOTE: read-write is needed for mmap()
+  fbfd = open(FB_DEVICE_PATH, O_RDWR);
+  if(fbfd < 0){
+    game_error("Error opening framebuffer device: %s\n", strerror(errno));
+  }
+  game_debug("OK: Opened framebuffer device %s\n", FB_DEVICE_PATH);
+
+  // Map the framebuffer device to memory
+  fbmem = (uint16_t*)mmap(
+      NULL,                               // let kernel decide physical memory address
+      FB_DISPLAY_SIZE * sizeof(uint16_t), // framebuffer size
+      PROT_READ | PROT_WRITE,             // memory is read-write
+      MAP_SHARED,                         // updates are carried immediately
+      fbfd,                               // the mapped file
+      0);                                 // offset
+  if(fbmem == MAP_FAILED){
+    game_error("Error mapping file to memory: %s\n", strerror(errno));
+    return -1;
+  }
+  game_debug("OK: Mapped framebuffer device to memory\n");
+
+  // Clear the display
+  for(int i=0; i<FB_DISPLAY_SIZE; i++){
+    fbmem[i] = FB_COLOR_BLACK;
+  }
+  game_debug("OK: Removed Tux (some people have spheniscidaeaphobia)\n");
+
+  // No errors
+  game_debug("DONE: No errors initializing the draw module\n");
+  return 0;
+}
+
+int release_draw()
+{
+  game_debug("Releasing draw module ...\n");
+
+  // Unmap framebuffer device from memory
+  error = munmap((void*)fbmem, FB_DISPLAY_SIZE * sizeof(uint16_t));
+  if(error < 0){
+    game_error("Error unmapping device file from memory: %s\n", strerror(errno));
+    return -1;
+  }
+  game_error("OK: Unmapped device file from memory\n");
+
+  // Close framebuffer device
+  error = close(fbfd);
+  if(error < 0){
+    game_error("Error closing framebuffer device: %s\n", strerror(errno));
+    return -1;
+  }
+  game_debug("OK: Closed framebuffer device\n");
+
+  // No errors
+  game_debug("DONE: No errors releasing module\n");
+  return 0;
 }

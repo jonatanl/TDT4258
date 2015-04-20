@@ -81,9 +81,9 @@ typedef struct polygon polygon;
 typedef struct asteroid asteroid;
 typedef struct projectile projectile;
 
-
-// Initializes the logic module
+// Initialize and release module
 int init_logic(struct gamestate** gamestate_ptr);
+int release_logic();
 
 // Updates the state of the game
 void update_gamestate();

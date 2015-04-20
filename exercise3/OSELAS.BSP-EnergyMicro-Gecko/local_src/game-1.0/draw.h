@@ -9,7 +9,7 @@
 int init_draw(struct gamestate* gamestate);
 
 // Release resources
-int teardown_draw(void);
+int release_draw(void);
 
 // Draw asteroids and spaceship to the framebuffer
 void draw_all(void);

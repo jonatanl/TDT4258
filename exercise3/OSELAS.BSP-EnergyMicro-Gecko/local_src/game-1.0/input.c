@@ -1,6 +1,3 @@
-#include "input.h"
-#include "logic.h"
-#include "util.h"
 #include <fcntl.h> 
 #include <signal.h>
 #include <poll.h>
@@ -17,6 +14,9 @@
 
 #define DEBUG
 #include "debug.h"
+#include "input.h"
+#include "logic.h"
+#include "util.h"
 	
 int init_input();
 void signal_handler(int signal);
@@ -30,19 +30,34 @@ static uint8_t input_feed = 0;
 static int devfd; // device file descriptor
 static int error; // error variable
 
+
+
+// When a signal arrives input_feed is updated
+void signal_handler(int signal){
+  int count = read(devfd, (void*)&input_feed, sizeof(uint8_t));
+  if(count){
+    game_debug("read recieved input\n");
+  }
+  game_debug("read recieved no input\n");
+}
+
+uint8_t get_input(){
+  return ~input_feed;
+}
+
 int init_input(){
-  // TODO: Fix ouput statements
+  game_debug("Initializing the input module ...\n");
+
   // Open the gamepad device read-write with nonblocking IO
   devfd = open(DEVICE_PATH, O_RDONLY | O_NONBLOCK);
   if(devfd < 0){
     game_error("Error opening gamepad device at %s: %s\n", DEVICE_PATH, strerror(errno));
     return -1; // TODO: Handle error
   }
-  game_debug("OK: Gamepad device opened at %s\n", DEVICE_PATH);
+  game_debug("OK: Opened gamepad device at %s\n", DEVICE_PATH);
 
   // Set signal handler for the SIGIO signal
-  error = signal(SIGIO, &signal_handler);
-  if(error == SIG_ERR){
+  if(signal(SIGIO, &signal_handler) == SIG_ERR){
     game_error("Error setting a signal handler: %s\n", strerror(errno));
     return -1;
   }
@@ -67,15 +82,13 @@ int init_input(){
   game_debug("OK: Enabled asynchronous notification for gamepad device\n");
 
   // No errors
-  game_debug("DONE: No errors initializing the game\n");
+  game_debug("DONE: No errors initializing the input module\n");
   return 0;
 }
 
-
-int teardown_input()
+int release_input()
 {
-  // TODO: Fix ouput statements
-  game_debug("Closing the game ...\n");
+  game_debug("Releasing the input module ...\n");
 
   // Close the gamepad device
   error = close(devfd);
@@ -86,20 +99,6 @@ int teardown_input()
   game_debug("OK: Gamepad device closed\n");
 
   // No errors
-  game_debug("DONE: No errors closing the game\n");
+  game_debug("DONE: No errors releasing the input module\n");
   return 0;
-}
-
-
-// When a signal arrives input_feed is updated
-void signal_handler(int signal){
-  int count = read(devfd, (void*)&input_feed, sizeof(uint8_t));
-  if(count){
-    game_debug("read recieved input\n");
-  }
-  game_debug("read recieved no input\n");
-}
-
-uint8_t get_input(){
-  return ~input_feed;
 }
