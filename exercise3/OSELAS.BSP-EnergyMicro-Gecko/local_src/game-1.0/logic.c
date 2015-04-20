@@ -145,7 +145,7 @@ void init_ship(ship_object* ship){
 }
 
 // Initializes the game struct
-gamestate* init_logic(){
+int init_logic(struct gamestate** gamestate_ptr){
     init_ship(&game.ship);
     game.asteroids = malloc(sizeof(asteroid*)*MAX_AMOUNT_ASTEROIDS);
     game.n_asteroids = 0;
@@ -169,5 +169,8 @@ gamestate* init_logic(){
 
         game.asteroids[i] = make_asteroid(3, x_coords, y_coords);
     }
-    return &game;
+    *gamestate_ptr = &game;
+
+    // No errors
+    return 0;
 }

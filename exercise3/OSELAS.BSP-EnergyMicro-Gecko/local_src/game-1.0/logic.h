@@ -83,7 +83,7 @@ typedef struct projectile projectile;
 
 
 // Initializes the logic module
-gamestate* init_logic();
+int init_logic(struct gamestate** gamestate_ptr);
 
 // Updates the state of the game
 void update_gamestate();

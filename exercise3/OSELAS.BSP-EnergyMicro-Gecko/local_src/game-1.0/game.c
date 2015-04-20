@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
   ///////////////
   
   // Initialize logic module
-  my_gamestate = init_logic();
+  error = init_logic(&my_gamestate);
 
   // Initialize draw module
   error = init_draw(my_gamestate);
