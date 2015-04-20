@@ -109,7 +109,7 @@ void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points)
     y2 = ifloat_to_int(y_coords[i]);
     do_draw_line(x1, y1, x2, y2);
     x1 = x2;
-    y1 = y1;
+    y1 = y2;
   }
 }
 
