@@ -31,6 +31,7 @@ void init_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords, struct aste
 void do_logic();
 void do_shoot(void);
 void update_ship();
+void update_gamestate();
 void do_wrap(ifloat* x_pos, ifloat* y_pos);
 
 // Global variables
