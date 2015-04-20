@@ -33,6 +33,10 @@ struct polygon{
     int n_vertices;
     ifloat* x_coords;
     ifloat* y_coords;
+    ifloat x_left_upper;
+    ifloat y_left_upper;
+    ifloat x_right_lower;
+    ifloat y_right_lower;
 };
 
 // Struct for ship properties. Only one(two?) should ever exist.
