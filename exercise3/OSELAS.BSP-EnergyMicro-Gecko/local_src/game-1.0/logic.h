@@ -6,7 +6,7 @@
 
 // This module implements floating point values as 32-bit signed integers. The
 // lower 20 bits specify the floating point part..
-typedef uint32_t ifloat;
+typedef int32_t ifloat;
 #define FLOATING_DIGITS 20  // NOTE: Must be even!
 
 // Functions that perform coordinate arithmetic
@@ -15,7 +15,7 @@ typedef uint32_t ifloat;
 #define divide(f1, f2)      (f1 / f2)
 #define multiply(f1, f2)    ((f1 >> (FLOATING_DIGITS / 2)) * (f2 >> (FLOATING_DIGITS / 2)))
 #define int_to_ifloat(n)    (n << FLOATING_DIGITS)
-#define float_to_ifloat(f)  (((int)(f << FLOATING_DIGITS)) >> FLOATING_DIGITS)
+#define float_to_ifloat(f)  (((int32_t)(f << FLOATING_DIGITS)) >> FLOATING_DIGITS)
 #define ifloat_to_int(f)    (f >> FLOATING_DIGITS)
 
 // Ratio to translate world coordinates to screen coordinates 
