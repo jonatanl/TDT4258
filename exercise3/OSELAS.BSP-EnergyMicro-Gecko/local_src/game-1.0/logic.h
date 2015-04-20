@@ -60,9 +60,9 @@ struct asteroid{
 struct gamestate{
     struct ship_object ship;
     int n_asteroids;
-    struct asteroid** asteroids;
+    struct asteroid* asteroids;
     int n_projectiles;
-    struct projctile** projectiles;
+    struct projctile* projectiles;
     ifloat world_x_dim;
     ifloat world_y_dim; 
 };

@@ -25,40 +25,40 @@
 #define MAX_AMOUNT_PROJECTILES  10
 
 // Function prototypes
+void init_ship(struct ship_object* ship);
+void init_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords, struct asteroid* asteroid);
 void do_logic(uint8_t input);
-void update_ship(struct ship_object* ship);
 void do_shoot(void);
-asteroid* make_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords);
-void init_ship(ship_object* ship);
-struct asteroid* init_asteroid(void);
+void update_ship();
 
 // Global variables
 struct gamestate game;
 
 void do_logic(uint8_t input){
 
-    update_ship(&(game.ship));
+    update_ship(&game.ship);
     update_gamestate(&game);
     // Check collisions
 }
 
-void update_gamestate(gamestate* game){
-    game->ship.x_pos = add(game->ship.x_pos, game->ship.x_speed);
-    game->ship.y_pos = add(game->ship.y_pos, game->ship.y_speed);
+void update_gamestate(){
+    game.ship.x_pos = add(game.ship.x_pos, game.ship.x_speed);
+    game.ship.y_pos = add(game.ship.y_pos, game.ship.y_speed);
 
-    for(int i = 0; i < game->n_asteroids; i++){
-        game->asteroids[i]->x_pos += add(game->asteroids[i]->x_pos, game->asteroids[i]->x_speed);
-        game->asteroids[i]->y_pos += add(game->asteroids[i]->y_pos, game->asteroids[i]->y_speed);
+    for(int i = 0; i < game.n_asteroids; i++){
+        game.asteroids[i].x_pos += add(game.asteroids[i].x_pos, game.asteroids[i].x_speed);
+        game.asteroids[i].y_pos += add(game.asteroids[i].y_pos, game.asteroids[i].y_speed);
     }
 }
 
 // Handles input
-void update_ship(ship_object* ship){
+void update_ship(){
     uint8_t input = get_input();
 
     if(CHECK_PAUSE(input)){
         // Do pause
     }
+
 
     // If both left and right is pressed the ship does nothing
     // if else, check if turn, do roation, and normalize
@@ -76,8 +76,8 @@ void update_ship(ship_object* ship){
         // TODO: Update speeds
     }
     // Decrements the gun cooldown, or checks if shoot is pressed and fires a shot
-    if(ship->gun_cooldown){
-        ship->gun_cooldown--;
+    if(game.ship.gun_cooldown){
+        game.ship.gun_cooldown--;
     }
     else if(CHECK_SHOOT(input)){
         do_shoot();
@@ -100,24 +100,23 @@ void do_shoot(void){
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// Allocate and return an asteroid object
-asteroid* make_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords){ 
-    asteroid* new_asteroid = malloc(sizeof(asteroid));
-    
-    new_asteroid->x_speed = int_to_ifloat(10);
-    new_asteroid->y_speed = int_to_ifloat(10);
-    new_asteroid->x_pos = int_to_ifloat(100);
-    new_asteroid->y_pos = int_to_ifloat(100);
-    
-    // Initialize the asteroids polygon
-    new_asteroid->poly.n_vertices = n_coords;
-    new_asteroid->poly.x_coords = x_coords;
-    new_asteroid->poly.y_coords = y_coords;
-
-    return new_asteroid;
+// Initialize an asteroid
+void init_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords, struct asteroid* new_asteroid){ 
+  
+  // Set speed and position
+  new_asteroid->x_pos = int_to_ifloat(100);
+  new_asteroid->y_pos = int_to_ifloat(100);
+  new_asteroid->x_speed = int_to_ifloat(10);
+  new_asteroid->y_speed = int_to_ifloat(10);
+  
+  // Initialize the asteroid polygon
+  new_asteroid->poly.n_vertices = n_coords;
+  new_asteroid->poly.x_coords = x_coords;
+  new_asteroid->poly.y_coords = y_coords;
 }
 
-void init_ship(ship_object* ship){
+// Initialize a spaceship
+void init_ship(struct ship_object* ship){
     ship->x_speed = 0;
     ship->y_speed = 0;
     ship->x_pos = DEFAULT_WORLD_X_DIM / 2;
@@ -144,30 +143,31 @@ void init_ship(ship_object* ship){
     ship->poly.y_coords = y_coords;
 }
 
-// Initializes the game struct
+// Initializes the gamestate struct
 int init_logic(struct gamestate** gamestate_ptr){
     init_ship(&game.ship);
-    game.asteroids = malloc(sizeof(asteroid*)*MAX_AMOUNT_ASTEROIDS);
+    game.asteroids = malloc(sizeof(struct asteroid) * MAX_AMOUNT_ASTEROIDS);
     game.n_asteroids = 0;
-    game.projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
+    game.projectiles = malloc(sizeof(struct projectile) * MAX_AMOUNT_PROJECTILES);
     game.n_projectiles = 0;
-    game.world_x_dim = DEFAULT_WORLD_X_DIM;  // TODO set
-    game.world_y_dim = DEFAULT_WORLD_Y_DIM;  // TODO set
+    game.world_x_dim = DEFAULT_WORLD_X_DIM;
+    game.world_y_dim = DEFAULT_WORLD_Y_DIM;
+
+    // Initialize all asteroids
+    // TODO: rethink this
     for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){
         
-        // TODO rethink this
+        // Initialize polygon vertices
         ifloat* x_coords = malloc(sizeof(ifloat)*3);
         ifloat* y_coords = malloc(sizeof(ifloat)*3);
-        
         x_coords[0] = int_to_ifloat(0);
         x_coords[1] = int_to_ifloat(5);
         x_coords[2] = int_to_ifloat(10);
-
         y_coords[0] = int_to_ifloat(0);
         y_coords[1] = int_to_ifloat(10);
         y_coords[2] = int_to_ifloat(0);
 
-        game.asteroids[i] = make_asteroid(3, x_coords, y_coords);
+        init_asteroid(3, x_coords, y_coords, &game.asteroids[i]);
     }
     *gamestate_ptr = &game;
 
