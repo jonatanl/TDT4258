@@ -31,6 +31,7 @@ void init_asteroid(int n_coords, ifloat* x_coords, ifloat* y_coords, struct aste
 void do_logic();
 void do_shoot(void);
 void update_ship();
+void do_wrap(ifloat* x_pos, ifloat* y_pos);
 
 // Global variables
 struct gamestate game;
@@ -43,6 +44,8 @@ void do_logic(){
     update_gamestate();
     // Check collisions
 }
+
+
 
 void update_gamestate(){
     game.ship.x_pos = add(game.ship.x_pos, game.ship.x_speed);
@@ -61,7 +64,6 @@ void update_ship(){
     if(CHECK_PAUSE(input)){
         // Do pause
     }
-
     // DEBUG STUFF
 
     static uint8_t prev_input = 0;
@@ -98,10 +100,10 @@ void update_ship(){
         }
     }
     if(CHECK_ACC(input)){
-            // TODO orientation
-
-        // TODO: Update speeds
+        // TODO orientation
     }
+
+    // TODO: Update speeds
     // Decrements the gun cooldown, or checks if shoot is pressed and fires a shot
     if(game.ship.gun_cooldown){
         game.ship.gun_cooldown--;
@@ -111,6 +113,20 @@ void update_ship(){
     }
 }
 
+void do_wrap(ifloat* x_pos, ifloat* y_pos){
+    if(*x_pos >= DEFAULT_WORLD_X_DIM){
+        *x_pos -= DEFAULT_WORLD_X_DIM; 
+    }
+    else if(*x_pos < 0){
+        *x_pos += DEFAULT_WORLD_X_DIM;
+    }
+    if(*y_pos >= DEFAULT_WORLD_Y_DIM){
+        *y_pos -= DEFAULT_WORLD_Y_DIM; 
+    }
+    else if(*y_pos < 0){
+        *y_pos += DEFAULT_WORLD_Y_DIM;
+    }
+}
 
 void do_shoot(void){
 
