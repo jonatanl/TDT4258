@@ -8,12 +8,12 @@
 #
 CFLAGS += -O2 -g -Wall -std=c99 #-Wsign-compare -Wfloat-equal -Wformat-security #-Werror
 CPPFLAGS +=
-LDFLAGS +=
+LDFLAGS += -lrt
 
 
 all: game
 	
-game: draw.o input.o logic.o debug.o
+game: draw.o input.o logic.o debug.o spaceship.o
 
 %.o: %.c
 	arm-cortexm3-uclinuxeabi-gcc $(CFLAGS) -c $<
