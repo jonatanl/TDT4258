@@ -1,11 +1,16 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "util.h"
 #include "logic.h"
 #include "input.h"
 #define DEBUG
 #include "debug.h"
+
+#define PRINT_POSITION  false
+#define PRINT_INPUT     true
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,15 +51,19 @@ void do_logic(){
     // Check collisions
 }
 
-
-
 void update_gamestate(){
     game.ship.x_pos = add(game.ship.x_pos, game.ship.x_speed);
     game.ship.y_pos = add(game.ship.y_pos, game.ship.y_speed);
+    do_wrap(&game.ship.x_pos, &game.ship.y_pos);
+
+    if(PRINT_POSITION){
+        game_debug("ship xpos: %d, ship ypos: %d\n", game.ship.x_pos, game.ship.y_speed);
+    }
 
     for(int i = 0; i < game.n_asteroids; i++){
         game.asteroids[i].x_pos += add(game.asteroids[i].x_pos, game.asteroids[i].x_speed);
         game.asteroids[i].y_pos += add(game.asteroids[i].y_pos, game.asteroids[i].y_speed);
+        do_wrap(&game.asteroids[i].x_pos, &game.asteroids[i].y_pos);
     }
 }
 
@@ -65,28 +74,28 @@ void update_ship(){
     if(CHECK_PAUSE(input)){
         // Do pause
     }
-    // DEBUG STUFF
+    
+    if(PRINT_INPUT){
+        static uint8_t prev_input = 0;
+        if(input != prev_input){
+            prev_input = input;
+            game_debug("Input registered, %d\n", input);
 
-    static uint8_t prev_input = 0;
-    if(input != prev_input){
-        prev_input = input;
-        game_debug("Input registered, %d\n", input);
+            if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){ 
+                game_debug("Registered no left/right conflict\n");
 
-        if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){ 
-            game_debug("Registered no left/right conflict\n");
-
-            if(CHECK_LEFT(input)){
-                game_debug("Registered left turn\n");
+                if(CHECK_LEFT(input)){
+                    game_debug("Registered left turn\n");
+                }
+                else if(CHECK_RIGHT(input)){
+                    game_debug("registered right turn\n");
+                }
             }
-            else if(CHECK_RIGHT(input)){
-                game_debug("registered right turn\n");
+            if(CHECK_ACC(input)){
+                game_debug("Registered acceleration\n");
             }
-        }
-        if(CHECK_ACC(input)){
-            game_debug("Registered acceleration\n");
-        }
+        }        
     }
-
     // END DEBUG STUFF
 
     // If both left and right is pressed the ship does nothing
