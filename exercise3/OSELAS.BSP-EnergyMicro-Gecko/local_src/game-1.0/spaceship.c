@@ -1,3 +1,4 @@
+#include "logic.h"
 
 // Pre calculated sine and cosine to rotate 12 degrees clockwise
 static ifloat clockWiseSine		= float_to_ifloat(0.97815);
