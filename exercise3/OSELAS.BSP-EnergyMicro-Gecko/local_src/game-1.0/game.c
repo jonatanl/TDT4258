@@ -52,21 +52,22 @@ int main(int argc, char *argv[])
   // The game loop
   while(!error){
     do_logic();
-    //draw_all();
-    //update_display();
+    draw_all();
+    update_display();
 
     // Sleep until the next frame.
     //
     // NOTE: We would prefer using clock_nanosleep(), but it doesn't seem to be
     // defined in our version of the c standard library.
     next_frame.tv_sec = 0;
-    next_frame.tv_nsec = NANOSECONDS_PER_FRAME;
+    next_frame.tv_nsec = 0;//NANOSECONDS_PER_FRAME;
     while(nanosleep(&next_frame, &remaining)){
 
       if(errno == EINTR){
 
         // Interrupted by signal: Decrease sleep time and sleep again
-        next_frame.tv_sec = remaining.tv_nsec;
+        game_debug("(frame sleep interrupted)\n");
+        next_frame.tv_nsec = remaining.tv_nsec;
         continue;
       }else{
 
