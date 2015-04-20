@@ -10,12 +10,13 @@ typedef uint32_t ifloat;
 #define FLOATING_DIGITS 20  // NOTE: Must be even!
 
 // Functions that perform coordinate arithmetic
-#define add(f1, f2)       (f1 + f2)
-#define subtract(f1, f2)  (f1 + f2)
-#define divide(f1, f2)    (f1 / f2)
-#define multiply(f1, f2)  ((f1 >> (FLOATING_DIGITS / 2)) * (f2 >> (FLOATING_DIGITS / 2)))
-#define int_to_ifloat(n)  (n << FLOATING_DIGITS)
-#define ifloat_to_int(f)  (f >> FLOATING_DIGITS)
+#define add(f1, f2)         (f1 + f2)
+#define subtract(f1, f2)    (f1 + f2)
+#define divide(f1, f2)      (f1 / f2)
+#define multiply(f1, f2)    ((f1 >> (FLOATING_DIGITS / 2)) * (f2 >> (FLOATING_DIGITS / 2)))
+#define int_to_ifloat(n)    (n << FLOATING_DIGITS)
+#define float_to_ifloat(f)  (((int)(f << FLOATING_DIGITS)) >> FLOATING_DIGITS)
+#define ifloat_to_int(f)    (f >> FLOATING_DIGITS)
 
 // Ratio to translate world coordinates to screen coordinates 
 #define SCREEN_TO_FLOAT_RATIO   (1 << FLOATING_DIGITS)
