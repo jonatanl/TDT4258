@@ -62,7 +62,7 @@ struct gamestate{
     int n_asteroids;
     struct asteroid* asteroids;
     int n_projectiles;
-    struct projctile* projectiles;
+    struct projectile* projectiles;
     ifloat world_x_dim;
     ifloat world_y_dim; 
 };

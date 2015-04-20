@@ -33,6 +33,8 @@ void update_ship();
 
 // Global variables
 struct gamestate game;
+struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
+struct projectile my_projectiles[MAX_AMOUNT_PROJECTILES];
 
 void do_logic(uint8_t input){
 
@@ -146,9 +148,9 @@ void init_ship(struct ship_object* ship){
 // Initializes the gamestate struct
 int init_logic(struct gamestate** gamestate_ptr){
     init_ship(&game.ship);
-    game.asteroids = malloc(sizeof(struct asteroid) * MAX_AMOUNT_ASTEROIDS);
+    game.asteroids = &my_asteroids[0];
     game.n_asteroids = 0;
-    game.projectiles = malloc(sizeof(struct projectile) * MAX_AMOUNT_PROJECTILES);
+    game.projectiles = &my_projectiles[0];
     game.n_projectiles = 0;
     game.world_x_dim = DEFAULT_WORLD_X_DIM;
     game.world_y_dim = DEFAULT_WORLD_Y_DIM;
