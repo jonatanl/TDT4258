@@ -79,5 +79,6 @@ int release_logic();
 // Updates the state of the game
 // void update_gamestate();
 void do_logic();
+void do_logic_input(uint8_t input);
 
 #endif // !_LOGIC_H

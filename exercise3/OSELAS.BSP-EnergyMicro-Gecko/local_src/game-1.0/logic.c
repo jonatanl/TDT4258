@@ -241,3 +241,74 @@ int release_logic(){
   game_debug("DONE: No errors releasing the logic module\n");
   return 0;
 }
+
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////
+////////////    DEBUG
+////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+
+void do_logic_input(uint8_t input){
+    // Handles input
+    void update_ship(){
+    // uint8_t input = get_input();
+
+    if(CHECK_PAUSE(input)){
+        // Do pause
+    }
+    
+    if(PRINT_INPUT){
+        static uint8_t prev_input = 0;
+        if(input != prev_input){
+            prev_input = input;
+            game_debug("Input registered, %d\n", input);
+
+            if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){ 
+                game_debug("Registered no left/right conflict\n");
+
+                if(CHECK_LEFT(input)){
+                    game_debug("Registered left turn\n");
+                }
+                else if(CHECK_RIGHT(input)){
+                    game_debug("registered right turn\n");
+                }
+            }
+            if(CHECK_ACC(input)){
+                game_debug("Registered acceleration\n");
+            }
+        }        
+    }
+    // END DEBUG STUFF
+
+    // If both left and right is pressed the ship does nothing
+    // if else, check if turn, do roation, and normalize
+    if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){   
+        
+        if(CHECK_LEFT(input)){
+            // TODO rotation
+        }
+        else if(CHECK_RIGHT(input)){
+            // TODO rotation
+        }
+    }
+    if(CHECK_ACC(input)){
+        // TODO orientation
+    }
+
+    // TODO: Update speeds
+    // Decrements the gun cooldown, or checks if shoot is pressed and fires a shot
+    if(game.ship.gun_cooldown){
+        game.ship.gun_cooldown--;
+    }
+    else if(CHECK_SHOOT(input)){
+        do_shoot();
+    }
+}
+
+
+}
+
