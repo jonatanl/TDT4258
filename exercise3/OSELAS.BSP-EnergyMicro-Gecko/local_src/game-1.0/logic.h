@@ -43,12 +43,16 @@ struct asteroid{
     int32_t x_speed;
     int32_t y_speed;
     struct polygon poly;
+    uint8_t type;   // small, med and big
 }; 
 
 // Implementation of the logic module
 struct gamestate{
     struct ship_object ship;
     int n_asteroids;
+    int n_big_asteroids;
+    int n_med_asteroids;
+    int n_sml_asteroids;
     struct asteroid* asteroids;
     int n_projectiles;
     struct projectile* projectiles;

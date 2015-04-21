@@ -29,22 +29,25 @@
 #define FRAMES_TO_CROSS_SCREEN ((FRAMES_PER_SECOND * MILLISECONDS_TO_CROSS_SCREEN) / 1000)
 #define DEFAULT_ACCELERATION (DEFAULT_WORLD_X_DIM / (FRAMES_TO_CROSS_SCREEN * (FRAMES_TO_CROSS_SCREEN + 1)))
 
-#define MAX_AMOUNT_ASTEROIDS    40
+#define START_ASTEROIDS         5
+#define MAX_AMOUNT_ASTEROIDS    START_ASTEROIDS*4
 #define MAX_AMOUNT_PROJECTILES  10
 
 // Function prototypes
 void init_ship(struct ship_object* ship);
-void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* asteroid);
+void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* asteroid, uint8_t size);
 void do_logic();
 void do_shoot(void);
 void update_ship();
 void update_gamestate();
 void update_projectiles();
 void do_wrap(int32_t* x_pos, int32_t* y_pos);
-void set_poly_bounding_box(polygon* poly, int32_t x_abs, int32_t y_abs);
+void update_bounding_box(polygon* poly, int32_t x_abs, int32_t y_abs);
 void check_box_collisions(void);
 bool check_bounding_box_collision(polygon* p1, polygon* p2);
 bool check_poly_collision(polygon* p1, polygon* p2);
+void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_speed);
+void print_poly_bb(polygon* poly);
 
 // Global variables
 struct gamestate game;
@@ -71,13 +74,14 @@ void update_gamestate(){
     for(int i = 0; i < game.n_asteroids; i++){
         game.asteroids[i].x_pos += game.asteroids[i].x_speed;
         game.asteroids[i].y_pos += game.asteroids[i].y_speed;
+        update_bounding_box(&game.asteroids[i].poly, game.asteroids[i].x_pos, game.asteroids[i].y_pos);
     }
 }
 
 
-void set_poly_bounding_box(polygon* poly, int32_t x_abs, int32_t y_abs){
+void update_bounding_box(polygon* poly, int32_t x_abs, int32_t y_abs){
   
-  poly->x_left_upper = x_abs + poly->x_coords[0];
+    poly->x_left_upper = x_abs + poly->x_coords[0];
     poly->x_right_lower = x_abs + poly->x_coords[0];
     poly->y_left_upper = y_abs + poly->y_coords[0];
     poly->y_right_lower = y_abs + poly->y_coords[0];
@@ -90,19 +94,18 @@ void set_poly_bounding_box(polygon* poly, int32_t x_abs, int32_t y_abs){
     }
 }
 
-// TODO test on laptop
 bool check_bounding_box_collision(polygon* p1, polygon* p2){    
     return( INTERSECTS(p1->x_left_upper, p1->x_right_lower, p2->x_left_upper, p2->x_right_lower)
         &&  INTERSECTS(p1->y_right_lower, p1->y_left_upper, p2->y_right_lower, p2->y_left_upper));
 }
 
-
-
 // Handles input
 void update_ship(){
 
     uint8_t input = get_input();
-    set_poly_bounding_box(&game.ship.poly, game.ship.x_pos, game.ship.y_pos);
+    update_bounding_box(&game.ship.poly, game.ship.x_pos, game.ship.y_pos);
+
+    print_poly_bb(&game.ship.poly);
 
     if(CHECK_PAUSE(input)){
         // Do pause
@@ -163,12 +166,11 @@ void update_ship(){
 
     game.ship.x_pos += game.ship.x_speed;
     game.ship.y_pos += game.ship.y_speed;
-    game_debug("spaceship: px = %d, py = %d, sx = %d, sy = %d\n",
-        game.ship.x_pos,
+    
+    print_ship_coords(game.ship.x_pos,
         game.ship.y_pos,
         game.ship.x_speed,
-        game.ship.y_speed
-        );
+        game.ship.y_speed);
 }
 
 void update_projectiles() {
@@ -203,6 +205,8 @@ void check_box_collisions(){
     }
 }
 
+
+
 bool check_poly_collision(polygon* p1, polygon* p2){
     return true;
 }
@@ -225,7 +229,7 @@ void do_shoot(void){
 
 
 // Initialize an asteroid
-void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* new_asteroid){ 
+void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* new_asteroid, uint8_t size){ 
   
   // Set speed and position
   new_asteroid->x_pos = 100;
@@ -273,27 +277,43 @@ int init_logic(struct gamestate** gamestate_ptr){
   // Initialize the gamestate struct
   init_ship(&game.ship);
   game.asteroids = &my_asteroids[0];
-  game.n_asteroids = 0;
+  game.n_asteroids = START_ASTEROIDS;
+  game.n_big_asteroids = START_ASTEROIDS;
+  game.n_med_asteroids = 0;
+  game.n_sml_asteroids = 0;
   game.projectiles = &my_projectiles[0];
   game.n_projectiles = 0;
   game.world_x_dim = DEFAULT_WORLD_X_DIM;
   game.world_y_dim = DEFAULT_WORLD_Y_DIM;
 
   // Initialize all asteroids
-  // TODO: rethink this
-  for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){
-      
+  uint8_t size;
+  uint8_t factor;
+  for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){      
+      if(i > START_ASTEROIDS){
+        size = 0;
+        factor = 5;
+      }
+      else if(i > START_ASTEROIDS * 2){
+        size = 1;
+        factor = 3;
+      }
+      else{
+        size = 2;
+        factor = 1;
+      }
+
       // Initialize polygon vertices
       int32_t* x_coords = malloc(sizeof(int32_t)*3);
       int32_t* y_coords = malloc(sizeof(int32_t)*3);
       x_coords[0] = game.asteroids[i].x_pos;
       y_coords[0] = game.asteroids[i].y_pos;
-      x_coords[1] = game.asteroids[i].x_pos + 40 * SCREEN_TO_WORLD_RATIO;
-      y_coords[1] = game.asteroids[i].y_pos + 40 * SCREEN_TO_WORLD_RATIO;
+      x_coords[1] = game.asteroids[i].x_pos + 10 * factor * SCREEN_TO_WORLD_RATIO;
+      y_coords[1] = game.asteroids[i].y_pos + 10 * factor * SCREEN_TO_WORLD_RATIO;
       x_coords[2] = game.asteroids[i].x_pos;
-      y_coords[2] = game.asteroids[i].y_pos + 40 * SCREEN_TO_WORLD_RATIO;
+      y_coords[2] = game.asteroids[i].y_pos + 10 * factor * SCREEN_TO_WORLD_RATIO;
 
-      init_asteroid(3, x_coords, y_coords, &game.asteroids[i]);
+      init_asteroid(3, x_coords, y_coords, &game.asteroids[i], size);
   }
   *gamestate_ptr = &game;
 
@@ -324,4 +344,16 @@ int release_logic(){
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 
+void print_poly_bb(polygon* poly){
+  game_debug("Bounding box:\n");
+  game_debug("left_upper: x: %d, y: %d, right_lower: x: %d, y: %d\n", poly->x_left_upper/SCREEN_TO_WORLD_RATIO, poly->y_left_upper/SCREEN_TO_WORLD_RATIO, poly->x_right_lower/SCREEN_TO_WORLD_RATIO, poly->y_right_lower/SCREEN_TO_WORLD_RATIO);
+}
 
+void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_speed){
+  game_debug("spaceship: px = %d, py = %d, sx = %d, sy = %d\n",
+    x_pos,
+    y_pos,
+    x_speed,
+    y_speed
+  );
+}
