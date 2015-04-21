@@ -29,7 +29,7 @@
 #define FRAMES_TO_CROSS_SCREEN ((FRAMES_PER_SECOND * MILLISECONDS_TO_CROSS_SCREEN) / 1000)
 #define DEFAULT_ACCELERATION (DEFAULT_WORLD_X_DIM / (FRAMES_TO_CROSS_SCREEN * (FRAMES_TO_CROSS_SCREEN + 1)))
 
-#define START_ASTEROIDS         5
+#define START_ASTEROIDS         3
 #define MAX_AMOUNT_ASTEROIDS    START_ASTEROIDS*4
 #define MAX_AMOUNT_PROJECTILES  10
 
@@ -48,6 +48,8 @@ bool check_bounding_box_collision(polygon* p1, polygon* p2);
 bool check_poly_collision(polygon* p1, polygon* p2);
 void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_speed);
 void print_poly_bb(polygon* poly);
+asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
+void kill_asteroid(int index);
 
 // Global variables
 struct gamestate game;
@@ -72,9 +74,9 @@ void update_gamestate(){
     }
 
     for(int i = 0; i < game.n_asteroids; i++){
-        game.asteroids[i].x_pos += game.asteroids[i].x_speed;
-        game.asteroids[i].y_pos += game.asteroids[i].y_speed;
-        update_bounding_box(&game.asteroids[i].poly, game.asteroids[i].x_pos, game.asteroids[i].y_pos);
+        game.active_asteroids[i]->x_pos += game.active_asteroids[i]->x_speed;
+        game.active_asteroids[i]->y_pos += game.active_asteroids[i]->y_speed;
+        update_bounding_box(&game.active_asteroids[i]->poly, game.active_asteroids[i]->x_pos, game.active_asteroids[i]->y_pos);
     }
 }
 
@@ -211,10 +213,39 @@ bool check_poly_collision(polygon* p1, polygon* p2){
     return true;
 }
 
-
-
 void do_shoot(void){
 
+}
+
+// Handles a killed asteroid. Spawns 2 smaller asteroids if big asteroid is killed
+// Also handles list of active asteroids
+void kill_asteroid(int index){
+  if(game.active_asteroids[index]->type == SML){
+    game.active_asteroids[index] = game.active_asteroids[game.n_asteroids--];
+  }
+  else if(game.active_asteroids[index]->type == MED){
+    // Beware lengthy expression!
+    // Replaces the active asteroid pointer with a pointer to an unused asteroid. However, new asteroid needs to be initialized, and the x and y pos of the old 
+    // asteroid is used. For the second asteroid the x and y pos values are basically daisy chained. Currently the two asteroids spawn on top of each others
+    game.active_asteroids[index] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS*3 + game.n_sml_asteroids++]);
+    game.active_asteroids[++game.n_asteroids] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS*3 + game.n_sml_asteroids++]);
+  }
+  else{
+    game.active_asteroids[index] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS + game.n_med_asteroids++]);
+    game.active_asteroids[++game.n_asteroids] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS + game.n_med_asteroids++]);  
+  }
+  if(game.n_asteroids == 0){
+    game_debug("YOU'RE WINNER!\n");
+  }
+}
+
+// The return value is not always used
+asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid){
+  asteroid->x_pos = x_pos;
+  asteroid->y_pos = y_pos;
+  asteroid->x_speed = 10;
+  asteroid->y_speed = 10;
+  return asteroid;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,16 +262,11 @@ void do_shoot(void){
 // Initialize an asteroid
 void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* new_asteroid, uint8_t size){ 
   
-  // Set speed and position
-  new_asteroid->x_pos = 100;
-  new_asteroid->y_pos = 100;
-  new_asteroid->x_speed = 10;
-  new_asteroid->y_speed = 10;
-  
   // Initialize the asteroid polygon
   new_asteroid->poly.n_vertices = n_coords;
   new_asteroid->poly.x_coords = x_coords;
   new_asteroid->poly.y_coords = y_coords;
+  new_asteroid->type = size;
 }
 
 // Initialize a spaceship
@@ -287,19 +313,19 @@ int init_logic(struct gamestate** gamestate_ptr){
   game.world_y_dim = DEFAULT_WORLD_Y_DIM;
 
   // Initialize all asteroids
-  uint8_t size;
+  uint8_t type;
   uint8_t factor;
   for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){      
       if(i > START_ASTEROIDS){
-        size = 0;
+        type = BIG;
         factor = 5;
       }
       else if(i > START_ASTEROIDS * 2){
-        size = 1;
+        type = MED;
         factor = 3;
       }
       else{
-        size = 2;
+        type = SML;
         factor = 1;
       }
 
@@ -313,8 +339,15 @@ int init_logic(struct gamestate** gamestate_ptr){
       x_coords[2] = game.asteroids[i].x_pos;
       y_coords[2] = game.asteroids[i].y_pos + 10 * factor * SCREEN_TO_WORLD_RATIO;
 
-      init_asteroid(3, x_coords, y_coords, &game.asteroids[i], size);
+      init_asteroid(3, x_coords, y_coords, &game.asteroids[i], type);
   }
+
+  game.active_asteroids = malloc(sizeof(asteroid*)*START_ASTEROIDS);
+  for(int i = 0; i < START_ASTEROIDS; i++){
+    game.active_asteroids[i] = &game.asteroids[i];
+    spawn_asteroid((10 + i*20 *SCREEN_TO_WORLD_RATIO), (40 + i*25 *SCREEN_TO_WORLD_RATIO), game.active_asteroids[i]);
+  }
+
   *gamestate_ptr = &game;
 
   // No errors

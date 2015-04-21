@@ -11,6 +11,11 @@
 
 #define FRAMES_PER_SECOND 30
 
+#define BIG 2
+#define MED 1
+#define SML 0
+
+
 // All coordinates are relative to the logical game dimensions 
 // rather than actual screen size
 struct polygon{
@@ -38,22 +43,25 @@ struct ship_object{
 
 // Struct for asteroid properties
 struct asteroid{
+    uint8_t id;
     int32_t x_pos;
     int32_t y_pos;
     int32_t x_speed;
     int32_t y_speed;
     struct polygon poly;
     uint8_t type;   // small, med and big
+    uint8_t index;  // when an asteroid is hit we need to know which
 }; 
 
 // Implementation of the logic module
 struct gamestate{
     struct ship_object ship;
+    struct asteroid* asteroids;
     int n_asteroids;
-    int n_big_asteroids;
+    int n_big_asteroids;    // prob not needed
     int n_med_asteroids;
     int n_sml_asteroids;
-    struct asteroid* asteroids;
+    struct asteroid** active_asteroids;
     int n_projectiles;
     struct projectile* projectiles;
     int32_t world_x_dim;
