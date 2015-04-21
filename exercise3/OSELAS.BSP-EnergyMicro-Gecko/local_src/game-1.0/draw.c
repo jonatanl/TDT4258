@@ -6,16 +6,14 @@
 #include <sys/ioctl.h> // ioctl()
 #include <linux/fb.h>  // struct fb_copyarea
 
+#include "draw.h"
+#include "game.h"
 #define DEBUG
 #include "debug.h"
-#include "draw.h"
 
 // Hard-coded framebuffer parameters
-#define FB_DISPLAY_WIDTH  (320)
-#define FB_DISPLAY_HEIGHT (240)
-#define FB_DISPLAY_SIZE   (320 * 240)
 #define FB_DEVICE_PATH    ("/dev/fb0")
-#define FB_DEVICE_SIZE    (FB_DISPLAY_SIZE * sizeof(uint16_t))
+#define FB_DEVICE_SIZE    (DISPLAY_SIZE * sizeof(uint16_t))
 
 // Precomputed color values
 #define color(R,G,B) ((R << 11) + (G << 5) + (B << 0))
@@ -50,8 +48,8 @@ void update_display(void)
   // update the display
   rect.dx = 0;
   rect.dy = 0;
-  rect.width  = FB_DISPLAY_WIDTH;
-  rect.height = FB_DISPLAY_HEIGHT;
+  rect.width  = DISPLAY_WIDTH;
+  rect.height = DISPLAY_HEIGHT;
   ioctl(fbfd, 0x4680, &rect);
 }
 
@@ -88,12 +86,12 @@ void do_draw_all(void)
 
 static void inline set_pixel(int x, int y)
 {
-  fbmem[x + y * FB_DISPLAY_WIDTH] = FB_COLOR_GRAY;
+  fbmem[x + y * DISPLAY_WIDTH] = FB_COLOR_GRAY;
 }
 
 static int inline get_index(int x, int y)
 {
-  return x + y * FB_DISPLAY_WIDTH; 
+  return x + y * DISPLAY_WIDTH; 
 }
 
 void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
@@ -209,7 +207,7 @@ void draw_line_octant1(int i, int i_end, int dx, int dy)
     i += 1;
     e += dy;
     if(e >= 0){
-      i += FB_DISPLAY_WIDTH;
+      i += DISPLAY_WIDTH;
       e -= dx;
     }
     fbmem[i] = draw_color;
@@ -228,7 +226,7 @@ void draw_line_octant2(int i, int i_end, int dx, int dy)
   while(i != i_end){
     
     // Update indexes and draw pixel
-    i += FB_DISPLAY_WIDTH;
+    i += DISPLAY_WIDTH;
     e += dx;
     if(e >= 0){
       i += 1;
@@ -251,7 +249,7 @@ void draw_line_octant3(int i, int i_end, int dx, int dy)
   while(i != i_end){
     
     // Update indexes and draw pixel
-    i += FB_DISPLAY_WIDTH;
+    i += DISPLAY_WIDTH;
     e += dx;
     if(e >= 0){
       i -= 1;
@@ -277,7 +275,7 @@ void draw_line_octant8(int i, int i_end, int dx, int dy)
     i += 1;
     e += dy;
     if(e >= 0){
-      i -= FB_DISPLAY_WIDTH;
+      i -= DISPLAY_WIDTH;
       e -= dx;
     }
     fbmem[i] = draw_color;
@@ -289,10 +287,10 @@ void test_draw()
   game_debug("Running the drawing test ...\n");
 
   // a rectangle
-  int rx = FB_DISPLAY_WIDTH  / 16;
-  int ry = FB_DISPLAY_HEIGHT / 16;
-  int rw = FB_DISPLAY_WIDTH  - (2 * rx);
-  int rh = FB_DISPLAY_HEIGHT - (2 * ry);
+  int rx = DISPLAY_WIDTH  / 16;
+  int ry = DISPLAY_HEIGHT / 16;
+  int rw = DISPLAY_WIDTH  - (2 * rx);
+  int rh = DISPLAY_HEIGHT - (2 * ry);
 
   // center of the rectangle
   int cx = rx + (rw / 2);
@@ -320,8 +318,8 @@ void test_draw()
   // update the display
   rect.dx = 0;
   rect.dy = 0;
-  rect.width  = FB_DISPLAY_WIDTH;
-  rect.height = FB_DISPLAY_HEIGHT;
+  rect.width  = DISPLAY_WIDTH;
+  rect.height = DISPLAY_HEIGHT;
   ioctl(fbfd, 0x4680, &rect);
   game_debug("OK: Updated the display\n");
 
@@ -347,7 +345,7 @@ int init_draw(struct gamestate* gamestate)
   // Map the framebuffer device to memory
   fbmem = (uint16_t*)mmap(
       NULL,                               // let kernel decide physical memory address
-      FB_DISPLAY_SIZE * sizeof(uint16_t), // framebuffer size
+      DISPLAY_SIZE * sizeof(uint16_t), // framebuffer size
       PROT_READ | PROT_WRITE,             // memory is read-write
       MAP_SHARED,                         // updates are carried immediately
       fbfd,                               // the mapped file
@@ -359,7 +357,7 @@ int init_draw(struct gamestate* gamestate)
   game_debug("OK: Mapped framebuffer device to memory\n");
 
   // Clear the display
-  for(int i=0; i<FB_DISPLAY_SIZE; i++){
+  for(int i=0; i<DISPLAY_SIZE; i++){
     fbmem[i] = FB_COLOR_BLACK;
   }
   update_display();
@@ -375,7 +373,7 @@ int release_draw()
   game_debug("Releasing draw module ...\n");
 
   // Unmap framebuffer device from memory
-  error = munmap((void*)fbmem, FB_DISPLAY_SIZE * sizeof(uint16_t));
+  error = munmap((void*)fbmem, DISPLAY_SIZE * sizeof(uint16_t));
   if(error < 0){
     game_error("Error unmapping device file from memory: %s\n", strerror(errno));
     return -1;

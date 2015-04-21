@@ -1,0 +1,3 @@
+#define DISPLAY_WIDTH  (320)
+#define DISPLAY_HEIGHT (240)
+#define DISPLAY_SIZE   (320 * 240)
