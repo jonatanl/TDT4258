@@ -142,8 +142,8 @@ game_debug("got input in update_ship(): %d\n", input);
     }
     if(CHECK_ACC(input)){
         // TODO orientation
-        game.ship.x_speed += game.ship.x_orientation * DEFAULT_ACCELERATION;
-        game.ship.y_speed += game.ship.y_orientation * DEFAULT_ACCELERATION;
+        game.ship.x_speed += (int)(game.ship.x_orientation * DEFAULT_ACCELERATION);
+        game.ship.y_speed += (int)(game.ship.y_orientation * DEFAULT_ACCELERATION);
     }
 
     // TODO: Update speeds
@@ -222,10 +222,10 @@ void do_shoot(void){
 void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* new_asteroid){ 
   
   // Set speed and position
-  new_asteroid->x_pos = 100;
-  new_asteroid->y_pos = 100;
-  new_asteroid->x_speed = 10;
-  new_asteroid->y_speed = 10;
+  new_asteroid->x_pos   = 100 * SCREEN_TO_WORLD_RATIO;
+  new_asteroid->y_pos   = 100 * SCREEN_TO_WORLD_RATIO;
+  new_asteroid->x_speed =  10 * SCREEN_TO_WORLD_RATIO;
+  new_asteroid->y_speed =  10 * SCREEN_TO_WORLD_RATIO;
   
   // Initialize the asteroid polygon
   new_asteroid->poly.n_vertices = n_coords;
@@ -249,12 +249,12 @@ void init_ship(struct ship_object* ship){
     int32_t* x_coords = malloc(sizeof(int32_t)*3);
     int32_t* y_coords = malloc(sizeof(int32_t)*3);
     
-    x_coords[0] = ship->x_pos;
-    y_coords[0] = ship->y_pos;
-    x_coords[1] = ship->x_pos - 20 * SCREEN_TO_WORLD_RATIO;
-    y_coords[1] = ship->y_pos - 20 * SCREEN_TO_WORLD_RATIO;
-    x_coords[2] = ship->x_pos - 20 * SCREEN_TO_WORLD_RATIO;
-    y_coords[2] = ship->y_pos;
+    x_coords[0] =   0 * SCREEN_TO_WORLD_RATIO;
+    y_coords[0] =   0 * SCREEN_TO_WORLD_RATIO;
+    x_coords[1] = -20 * SCREEN_TO_WORLD_RATIO;
+    y_coords[1] = -20 * SCREEN_TO_WORLD_RATIO;
+    x_coords[2] = -20 * SCREEN_TO_WORLD_RATIO;
+    y_coords[2] =   0 * SCREEN_TO_WORLD_RATIO;
 
     ship->poly.x_coords = x_coords;
     ship->poly.y_coords = y_coords;
@@ -280,12 +280,13 @@ int init_logic(struct gamestate** gamestate_ptr){
       // Initialize polygon vertices
       int32_t* x_coords = malloc(sizeof(int32_t)*3);
       int32_t* y_coords = malloc(sizeof(int32_t)*3);
-      x_coords[0] = game.asteroids[i].x_pos;
-      y_coords[0] = game.asteroids[i].y_pos;
-      x_coords[1] = game.asteroids[i].x_pos + 40 * SCREEN_TO_WORLD_RATIO;
-      y_coords[1] = game.asteroids[i].y_pos + 40 * SCREEN_TO_WORLD_RATIO;
-      x_coords[2] = game.asteroids[i].x_pos;
-      y_coords[2] = game.asteroids[i].y_pos + 40 * SCREEN_TO_WORLD_RATIO;
+
+      x_coords[0] =  0 * SCREEN_TO_WORLD_RATIO;
+      y_coords[0] =  0 * SCREEN_TO_WORLD_RATIO;
+      x_coords[1] = 40 * SCREEN_TO_WORLD_RATIO;
+      y_coords[1] = 40 * SCREEN_TO_WORLD_RATIO;
+      x_coords[2] =  0 * SCREEN_TO_WORLD_RATIO;
+      y_coords[2] = 40 * SCREEN_TO_WORLD_RATIO;
 
       init_asteroid(3, x_coords, y_coords, &game.asteroids[i]);
   }
