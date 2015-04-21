@@ -1,16 +1,16 @@
 #include <stdbool.h>
-
 #include "logic.h"
 
-void rotate_coordinate(ifloat* xPosition, ifloat* yPosition, ifloat xCenter, ifloat yCenter, bool clockWise);
+// Private methods
+void rotate_coordinate(int32_t* xPosition, int32_t* yPosition, int32_t xCenter, int32_t yCenter, bool clockWise);
 
 // Pre calculated sine and cosine to rotate 12 degrees clockwise
-static ifloat clockWiseSine		= float_to_ifloat(0.97815f);
-static ifloat clockWiseCosine 	= float_to_ifloat(0.20791f);
+static float clockWiseSine		= 0.97815f;
+static float clockWiseCosine 	= 0.20791f;
 
 // Pre calculated sine and cosine to rotate 12 degrees counterclockwise
-static ifloat counterWiseSine 		= float_to_ifloat(-0.20791f);
-static ifloat counterWiseCosine 	= float_to_ifloat(0.97815f);
+static float counterWiseSine 	= -0.20791f;
+static float counterWiseCosine 	= 0.97815f;
 
 void rotate_clockwise(ship_object *spaceship) {
 	int numberOfVertices = spaceship->poly.n_vertices;
@@ -28,9 +28,9 @@ void rotate_counterclockwise(ship_object *spaceship) {
 	}	
 }
 
-void rotate_coordinate(ifloat* xPosition, ifloat* yPosition, ifloat xCenter, ifloat yCenter, bool clockWise) {
-	ifloat sine;
-	ifloat cosine;
+void rotate_coordinate(int32_t* xPosition, int32_t* yPosition, int32_t xCenter, int32_t yCenter, bool clockWise) {
+	float sine;
+	float cosine;
 
 	if (clockWise) {
 		sine = clockWiseSine;
@@ -40,14 +40,14 @@ void rotate_coordinate(ifloat* xPosition, ifloat* yPosition, ifloat xCenter, ifl
 		cosine = counterWiseCosine;
 	}
 
-	ifloat xRotated = add(subtract(multiply(cosine, *xPosition),
-					multiply(sine, *yPosition)),
-					subtract(xCenter, add(multiply(xCenter, cosine), multiply(yCenter, sine))));
+	float xRotated = cosine * xPosition
+					- sine * yPosition
+					+ xCenter -xCenter * cosine + yCenter * sine;
 
-	ifloat yRotated = add(multiply(sine, *xPosition),
-					add(multiply(cosine, *yPosition),
-					subtract(yCenter, subtract(multiply(xCenter, sine), multiply(yCenter, cosine)))));
+	float yRotated = sine * xPosition
+					+ cosine * yPosition
+					+ yCenter - xCenter * sine - yCenter * cosine;
 
-	*xPosition = xRotated;
-	*yPosition = yRotated;
+	*xPosition = (int32_t) xRotated;
+	*yPosition = (int32_t) yRotated;
 }
