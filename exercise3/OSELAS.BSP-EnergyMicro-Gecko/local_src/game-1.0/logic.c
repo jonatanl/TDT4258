@@ -8,6 +8,7 @@
 #include "input.h"
 #define DEBUG
 #include "debug.h"
+#include "spaceship.h"
 
 #define PRINT_POSITION  false
 #define PRINT_INPUT     true
@@ -106,6 +107,7 @@ void update_ship(){
 
                 if(CHECK_LEFT(input)){
                     game_debug("Registered left turn\n");
+
                 }
                 else if(CHECK_RIGHT(input)){
                     game_debug("registered right turn\n");
@@ -124,9 +126,11 @@ void update_ship(){
         
         if(CHECK_LEFT(input)){
             // TODO rotation
+            rotate_counterclockwise(&game.ship);
         }
         else if(CHECK_RIGHT(input)){
             // TODO rotation
+            rotate_clockwise(&game.ship);
         }
     }
     if(CHECK_ACC(input)){
@@ -145,10 +149,8 @@ void update_ship(){
 
 void update_projectiles() {
   for (int i = 0; i < game.n_projectiles; ++i) {
-    projectile* bullet = game.projectiles[i]
-
-    bullet.x_pos = bullet.x_pos + bullet.x_speed;
-    bullet.y_pos = bullet.y_pos + bullet.y_speed;
+    game.projectiles[i].x_pos += game.projectiles[i].x_speed;
+    game.projectiles[i].y_pos += game.projectiles[i].y_speed;
   }
 }
 
@@ -215,9 +217,9 @@ void init_ship(struct ship_object* ship){
     
     x_coords[0] = ship->x_pos;
     y_coords[0] = ship->y_pos;
-    x_coords[1] = ship->x_pos - 20;
-    y_coords[1] = ship->y_pos - 20;
-    x_coords[2] = ship->x_pos - 20;
+    x_coords[1] = ship->x_pos - 20 * SCREEN_TO_WORLD_RATIO;
+    y_coords[1] = ship->y_pos - 20 * SCREEN_TO_WORLD_RATIO;
+    x_coords[2] = ship->x_pos - 20 * SCREEN_TO_WORLD_RATIO;
     y_coords[2] = ship->y_pos;
 
     ship->poly.x_coords = x_coords;
@@ -246,10 +248,10 @@ int init_logic(struct gamestate** gamestate_ptr){
       int32_t* y_coords = malloc(sizeof(int32_t)*3);
       x_coords[0] = game.asteroids[i].x_pos;
       y_coords[0] = game.asteroids[i].y_pos;
-      x_coords[1] = game.asteroids[i].x_pos + 40;
-      y_coords[1] = game.asteroids[i].y_pos + 40;
+      x_coords[1] = game.asteroids[i].x_pos + 40 * SCREEN_TO_WORLD_RATIO;
+      y_coords[1] = game.asteroids[i].y_pos + 40 * SCREEN_TO_WORLD_RATIO;
       x_coords[2] = game.asteroids[i].x_pos;
-      y_coords[2] = game.asteroids[i].y_pos + 40;
+      y_coords[2] = game.asteroids[i].y_pos + 40 * SCREEN_TO_WORLD_RATIO;
 
       init_asteroid(3, x_coords, y_coords, &game.asteroids[i]);
   }
@@ -270,75 +272,5 @@ int release_logic(){
   // No errors
   game_debug("DONE: No errors releasing the logic module\n");
   return 0;
-}
-
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-////////////
-////////////    DEBUG
-////////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-
-void do_logic_input(uint8_t input){
-    // Handles input
-    void update_ship(){
-    // uint8_t input = get_input();
-
-    if(CHECK_PAUSE(input)){
-        // Do pause
-    }
-    
-    if(PRINT_INPUT){
-        static uint8_t prev_input = 0;
-        if(input != prev_input){
-            prev_input = input;
-            game_debug("Input registered, %d\n", input);
-
-            if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){ 
-                game_debug("Registered no left/right conflict\n");
-
-                if(CHECK_LEFT(input)){
-                    game_debug("Registered left turn\n");
-                }
-                else if(CHECK_RIGHT(input)){
-                    game_debug("registered right turn\n");
-                }
-            }
-            if(CHECK_ACC(input)){
-                game_debug("Registered acceleration\n");
-            }
-        }        
-    }
-    // END DEBUG STUFF
-
-    // If both left and right is pressed the ship does nothing
-    // if else, check if turn, do roation, and normalize
-    if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){   
-        
-        if(CHECK_LEFT(input)){
-            // TODO rotation
-        }
-        else if(CHECK_RIGHT(input)){
-            // TODO rotation
-        }
-    }
-    if(CHECK_ACC(input)){
-        // TODO orientation
-    }
-
-    // TODO: Update speeds
-    // Decrements the gun cooldown, or checks if shoot is pressed and fires a shot
-    if(game.ship.gun_cooldown){
-        game.ship.gun_cooldown--;
-    }
-    else if(CHECK_SHOOT(input)){
-        do_shoot();
-    }
-}
-
-
 }
 

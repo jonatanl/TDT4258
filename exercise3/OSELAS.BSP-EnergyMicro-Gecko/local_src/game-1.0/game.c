@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 
   // The game loop
   while(!error){
+    clear_all();
     do_logic();
     draw_all();
     update_display();
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
     // NOTE: We would prefer using clock_nanosleep(), but it doesn't seem to be
     // defined in our version of the c standard library.
     next_frame.tv_sec = 0;
-    next_frame.tv_nsec = 0;//NANOSECONDS_PER_FRAME;
+    next_frame.tv_nsec = NANOSECONDS_PER_FRAME;
     while(nanosleep(&next_frame, &remaining)){
 
       if(errno == EINTR){
@@ -139,29 +140,4 @@ int close_game()
   // No errors
   game_debug("DONE: No errors initializing the game\n");
   return 0;
-}
-
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-////////////
-////////////    DEBUG
-////////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-
-void debug_test_run(void){
-  // From util.h
-  uint8_t test_inputs[] = {ROTATE_LEFT, ROTATE_RIGHT, ROTATE_RIGHT, ROTATE_RIGHT, ACCELERATE, 0};
-  int test_inputs_len = 6;
-  for(int i = 0; i < test_inputs_len; i++){
-    do_logic_input(test_inputs[i]);
-    draw_all();
-    update_display();  
-  }
-  // Crash the program
-  int a = 0;
-  int b = 0;
-//  int *a = b;
 }

@@ -5,8 +5,9 @@
 #include <stdint.h>
 
 // The world dimensions
-#define DEFAULT_WORLD_X_DIM (1 << 30)
-#define DEFAULT_WORLD_Y_DIM (1 << 30)
+#define SCREEN_TO_WORLD_RATIO (1 << 20)
+#define DEFAULT_WORLD_X_DIM (DISPLAY_WIDTH  * SCREEN_TO_WORLD_RATIO)
+#define DEFAULT_WORLD_Y_DIM (DISPLAY_HEIGHT * SCREEN_TO_WORLD_RATIO)
 
 #define FRAMES_PER_SECOND 30
 
