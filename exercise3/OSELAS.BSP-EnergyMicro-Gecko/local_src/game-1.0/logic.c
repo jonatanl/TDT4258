@@ -38,6 +38,7 @@ void do_logic();
 void do_shoot(void);
 void update_ship();
 void update_gamestate();
+void update_projectiles();
 void do_wrap(int32_t* x_pos, int32_t* y_pos);
 
 // Global variables
@@ -49,6 +50,7 @@ void do_logic(){
 
     update_ship();
     update_gamestate();
+    update_projectiles();
     // Check collisions
 }
 
@@ -121,6 +123,15 @@ void update_ship(){
     else if(CHECK_SHOOT(input)){
         do_shoot();
     }
+}
+
+void update_projectiles() {
+  for (int i = 0; i < game.n_projectiles; ++i) {
+    projectile* bullet = game.projectiles[i]
+
+    bullet.x_pos = bullet.x_pos + bullet.x_speed;
+    bullet.y_pos = bullet.y_pos + bullet.y_speed;
+  }
 }
 
 void do_wrap(int32_t* x_pos, int32_t* y_pos){

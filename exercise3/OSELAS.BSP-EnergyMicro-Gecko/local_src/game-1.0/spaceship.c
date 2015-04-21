@@ -5,11 +5,11 @@
 void rotate_coordinate(int32_t* xPosition, int32_t* yPosition, int32_t xCenter, int32_t yCenter, bool clockWise);
 
 // Pre calculated sine and cosine to rotate 12 degrees clockwise
-static float clockWiseSine		= 0.97815f;
-static float clockWiseCosine 	= 0.20791f;
+static float clockWiseSine		= -0.20791f;;
+static float clockWiseCosine 	= 0.97815f;
 
 // Pre calculated sine and cosine to rotate 12 degrees counterclockwise
-static float counterWiseSine 	= -0.20791f;
+static float counterWiseSine 	= 0.20791f;
 static float counterWiseCosine 	= 0.97815f;
 
 // Rotate all vertices in ship clockwise
