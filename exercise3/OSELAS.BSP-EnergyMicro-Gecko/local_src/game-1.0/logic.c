@@ -40,7 +40,7 @@ void update_ship();
 void update_gamestate();
 void update_projectiles();
 void do_wrap(int32_t* x_pos, int32_t* y_pos);
-void set_ship_bounding_box();
+void set_poly_bounding_box(polygon* poly);
 
 // Global variables
 struct gamestate game;
@@ -70,18 +70,26 @@ void update_gamestate(){
     }
 }
 
-void set_ship_bounding_box(){
-    for(int i = 0; i < 3; i++){
-        game.ship.poly.x_left_upper = ARG_MIN(game.ship.poly.x_coords[i], game.ship.poly.x_left_upper);
-        game.ship.poly.x_right_lower = ARG_MAX(game.ship.poly.x_coords[i], game.ship.poly.x_right_lower);
-        game.ship.poly.y_left_upper = ARG_MAX(game.ship.poly.y_coords[i], game.ship.poly.y_left_upper);
-        game.ship.poly.y_right_lower = ARG_MIN(game.ship.poly.y_coords[i], game.ship.poly.y_right_lower);   
+void set_poly_bounding_box(polygon* poly){
+    for(int i = 0; i < poly->n_vertices; i++){
+        poly->x_left_upper = ARG_MIN(poly->x_coords[i], poly->x_left_upper);
+        poly->x_right_lower = ARG_MAX(poly->x_coords[i], poly->x_right_lower);
+        poly->y_left_upper = ARG_MAX(poly->y_coords[i], poly->y_left_upper);
+        poly->y_right_lower = ARG_MIN(poly->y_coords[i], poly->y_right_lower);
     }
+}
+
+// TODO test on laptop
+bool check_bounding_box_collision(polygon* p1, polygon* p2){    
+    return( INTERSECTS(p1->x_left_upper, p1->x_right_lower, p2->x_left_upper, p2->x_right_lower)
+        &&  INTERSECTS(p1->y_right_lower, p1->y_left_upper, p2->y_right_lower, p2->y_left_upper));
 }
 
 // Handles input
 void update_ship(){
     uint8_t input = get_input();
+
+    set_poly_bounding_box(&game.ship.poly);
 
     if(CHECK_PAUSE(input)){
         // Do pause

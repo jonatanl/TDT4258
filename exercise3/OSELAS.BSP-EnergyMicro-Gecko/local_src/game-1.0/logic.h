@@ -16,10 +16,10 @@ struct polygon{
     int n_vertices;
     int32_t* x_coords;
     int32_t* y_coords;
-    int32_t x_left_upper;
-    int32_t y_left_upper;
-    int32_t x_right_lower;
-    int32_t y_right_lower;
+    int32_t x_left_upper;   // x_min
+    int32_t y_left_upper;   // y_max
+    int32_t x_right_lower;  // x_max
+    int32_t y_right_lower;  // y_min
 };
 
 // Struct for ship properties. Only one(two?) should ever exist.
