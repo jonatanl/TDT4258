@@ -27,8 +27,9 @@
 #define NANOSECONDS_PER_FRAME (1000000000 / FRAMES_PER_SECOND)
 
 // Function prototypes
-int init_game();
-int close_game();
+int init_game(void);
+int close_game(void);
+void debug_test_run(void)
 
 // Global variables
 static gamestate* my_gamestate; // used to pass gamestates around
@@ -138,4 +139,29 @@ int close_game()
   // No errors
   game_debug("DONE: No errors initializing the game\n");
   return 0;
+}
+
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////
+////////////    DEBUG
+////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+
+void debug_test_run(void){
+  // From util.h
+  uint8_t test_inputs[] = {ROTATE_LEFT, ROTATE_RIGHT, ROTATE_RIGHT, ROTATE_RIGHT, ACCELERATE, 0};
+  int test_inputs_len = 6;
+  for(int i = 0; i < test_inputs_len; i++){
+    do_logic_input(test_inputs[i]);
+    draw_all();
+    update_display();  
+  }
+  // Crash the program
+  int a = 0;
+  int b = 0;
+  int *a = b;
 }
