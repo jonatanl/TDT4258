@@ -10,6 +10,7 @@
 #include "game.h"
 #define DEBUG
 #include "debug.h"
+#include "logic.h"
 
 // Hard-coded framebuffer parameters
 #define FB_DEVICE_PATH    ("/dev/fb0")
@@ -96,23 +97,23 @@ static int inline get_index(int x, int y)
 
 void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
 {
-  int x1 = x_coords[0];
-  int y1 = y_coords[0];
+  int x1 = x_coords[0] / SCREEN_TO_WORLD_RATIO;
+  int y1 = y_coords[0] / SCREEN_TO_WORLD_RATIO;
   int x2;
   int y2;
 
   // Draw the polyline edges
   for(int i=1; i<n_points; i++){
-    x2 = x_coords[i];
-    y2 = y_coords[i];
+    x2 = x_coords[i] / SCREEN_TO_WORLD_RATIO;
+    y2 = y_coords[i] / SCREEN_TO_WORLD_RATIO;
     do_draw_line(x1, y1, x2, y2);
     x1 = x2;
     y1 = y2;
   }
 
   // Draw a line from the last to the first point
-  x2 = x_coords[0];
-  y2 = y_coords[0];
+  x2 = x_coords[0] / SCREEN_TO_WORLD_RATIO;
+  y2 = y_coords[0] / SCREEN_TO_WORLD_RATIO;
   do_draw_line(x1, y1, x2, y2);
 }
 
@@ -206,7 +207,7 @@ void draw_line_octant1(int i, int i_end, int dx, int dy)
     // Update indexes and draw pixel
     i += 1;
     e += dy;
-    if(e >= 0){
+    if(e > 0){
       i += DISPLAY_WIDTH;
       e -= dx;
     }
@@ -228,7 +229,7 @@ void draw_line_octant2(int i, int i_end, int dx, int dy)
     // Update indexes and draw pixel
     i += DISPLAY_WIDTH;
     e += dx;
-    if(e >= 0){
+    if(e > 0){
       i += 1;
       e -= dy;
     }
@@ -251,7 +252,7 @@ void draw_line_octant3(int i, int i_end, int dx, int dy)
     // Update indexes and draw pixel
     i += DISPLAY_WIDTH;
     e += dx;
-    if(e >= 0){
+    if(e > 0){
       i -= 1;
       e -= dy;
     }
@@ -274,7 +275,7 @@ void draw_line_octant8(int i, int i_end, int dx, int dy)
     // Update indexes and draw pixel
     i += 1;
     e += dy;
-    if(e >= 0){
+    if(e > 0){
       i -= DISPLAY_WIDTH;
       e -= dx;
     }
