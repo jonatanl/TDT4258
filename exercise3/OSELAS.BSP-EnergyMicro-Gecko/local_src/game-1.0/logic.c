@@ -135,6 +135,8 @@ void update_ship(){
     }
     if(CHECK_ACC(input)){
         // TODO orientation
+        game.ship.x_speed += game.ship.x_orientation * DEFAULT_ACCELERATION;
+        game.ship.y_speed += game.ship.y_orientation * DEFAULT_ACCELERATION;
     }
 
     // TODO: Update speeds
@@ -145,6 +147,15 @@ void update_ship(){
     else if(CHECK_SHOOT(input)){
         do_shoot();
     }
+
+    game.ship.x_pos += game.ship.x_speed;
+    game.ship.y_pos += game.ship.y_speed;
+    game_debug("spaceship: px = %d, py = %d, sx = %d, sy = %d\n",
+        game.ship.x_pos,
+        game.ship.y_pos,
+        game.ship.x_speed,
+        game.ship.y_speed
+        );
 }
 
 void update_projectiles() {
