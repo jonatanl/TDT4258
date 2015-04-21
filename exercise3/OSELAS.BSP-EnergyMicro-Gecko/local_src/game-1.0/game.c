@@ -17,9 +17,9 @@
 
 #define DEBUG
 #include "debug.h"
+#include "draw.h"
 #include "logic.h"
 #include "input.h"
-#include "draw.h"
 
 // Path to device file
 #define DEVICE_PATH "/dev/gamepad"
