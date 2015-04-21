@@ -42,6 +42,9 @@ void update_gamestate();
 void update_projectiles();
 void do_wrap(int32_t* x_pos, int32_t* y_pos);
 void set_poly_bounding_box(polygon* poly);
+void check_box_collisions(void);
+bool check_bounding_box_collision(polygon* p1, polygon* p2);
+bool check_poly_collision(polygon* p1, polygon* p2);
 
 // Global variables
 struct gamestate game;
@@ -86,16 +89,19 @@ bool check_bounding_box_collision(polygon* p1, polygon* p2){
         &&  INTERSECTS(p1->y_right_lower, p1->y_left_upper, p2->y_right_lower, p2->y_left_upper));
 }
 
+
+
 // Handles input
 void update_ship(){
-    uint8_t input = get_input();
 
+    uint8_t input = get_input();
     set_poly_bounding_box(&game.ship.poly);
 
     if(CHECK_PAUSE(input)){
         // Do pause
     }
     
+
     if(PRINT_INPUT){
         static uint8_t prev_input = 0;
         if(input != prev_input){
@@ -179,6 +185,22 @@ void do_wrap(int32_t* x_pos, int32_t* y_pos){
         *y_pos += DEFAULT_WORLD_Y_DIM;
     }
 }
+
+void check_box_collisions(){
+    for(int i = 0; i < game.n_asteroids; i++){
+        if(check_bounding_box_collision(&game.ship.poly, &game.asteroids[i].poly)){
+            if(check_poly_collision(&game.ship.poly, &game.asteroids[i].poly)){
+                game_debug("GAME OVER MAN, GAME OVER\n");
+            }
+        }
+    }
+}
+
+bool check_poly_collision(polygon* p1, polygon* p2){
+    return true;
+}
+
+
 
 void do_shoot(void){
 
@@ -284,4 +306,15 @@ int release_logic(){
   game_debug("DONE: No errors releasing the logic module\n");
   return 0;
 }
+
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////
+////////////    DEBUG
+////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+
 
