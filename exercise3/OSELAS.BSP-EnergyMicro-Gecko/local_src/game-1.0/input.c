@@ -25,7 +25,7 @@ uint8_t sanitize_input_buffer(uint8_t n_input, uint8_t* input_buffer);
 #define DEVICE_PATH "/dev/gamepad"
 
 // To keep track of whether a read is needed or not.
-static uint8_t input_feed = 0;
+static uint8_t input_feed = 0xff;
 
 static int devfd; // device file descriptor
 static int error; // error variable
@@ -42,7 +42,7 @@ void signal_handler(int signal){
 }
 
 uint8_t get_input(){
-  return input_feed;
+  return ~input_feed;
 }
 
 int init_input(){

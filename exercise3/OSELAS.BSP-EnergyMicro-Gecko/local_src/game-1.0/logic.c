@@ -95,6 +95,7 @@ bool check_bounding_box_collision(polygon* p1, polygon* p2){
 void update_ship(){
 
     uint8_t input = get_input();
+game_debug("got input in update_ship(): %d\n", input);
     set_poly_bounding_box(&game.ship.poly);
 
     if(CHECK_PAUSE(input)){
