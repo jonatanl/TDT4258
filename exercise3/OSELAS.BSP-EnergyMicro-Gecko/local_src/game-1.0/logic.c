@@ -38,7 +38,9 @@ void do_logic();
 void do_shoot(void);
 void update_ship();
 void update_gamestate();
+void update_projectiles();
 void do_wrap(int32_t* x_pos, int32_t* y_pos);
+void set_poly_bounding_box(polygon* poly);
 
 // Global variables
 struct gamestate game;
@@ -49,6 +51,7 @@ void do_logic(){
 
     update_ship();
     update_gamestate();
+    update_projectiles();
     // Check collisions
 }
 
@@ -67,9 +70,26 @@ void update_gamestate(){
     }
 }
 
+void set_poly_bounding_box(polygon* poly){
+    for(int i = 0; i < poly->n_vertices; i++){
+        poly->x_left_upper = ARG_MIN(poly->x_coords[i], poly->x_left_upper);
+        poly->x_right_lower = ARG_MAX(poly->x_coords[i], poly->x_right_lower);
+        poly->y_left_upper = ARG_MAX(poly->y_coords[i], poly->y_left_upper);
+        poly->y_right_lower = ARG_MIN(poly->y_coords[i], poly->y_right_lower);
+    }
+}
+
+// TODO test on laptop
+bool check_bounding_box_collision(polygon* p1, polygon* p2){    
+    return( INTERSECTS(p1->x_left_upper, p1->x_right_lower, p2->x_left_upper, p2->x_right_lower)
+        &&  INTERSECTS(p1->y_right_lower, p1->y_left_upper, p2->y_right_lower, p2->y_left_upper));
+}
+
 // Handles input
 void update_ship(){
     uint8_t input = get_input();
+
+    set_poly_bounding_box(&game.ship.poly);
 
     if(CHECK_PAUSE(input)){
         // Do pause
@@ -121,6 +141,15 @@ void update_ship(){
     else if(CHECK_SHOOT(input)){
         do_shoot();
     }
+}
+
+void update_projectiles() {
+  for (int i = 0; i < game.n_projectiles; ++i) {
+    projectile* bullet = game.projectiles[i]
+
+    bullet.x_pos = bullet.x_pos + bullet.x_speed;
+    bullet.y_pos = bullet.y_pos + bullet.y_speed;
+  }
 }
 
 void do_wrap(int32_t* x_pos, int32_t* y_pos){
