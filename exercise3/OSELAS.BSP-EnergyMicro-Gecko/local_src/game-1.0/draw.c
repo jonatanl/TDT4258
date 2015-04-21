@@ -43,6 +43,16 @@ static struct fb_copyarea rect;
 static uint16_t draw_color; // current color for drawing
 static struct gamestate* my_gamestate;
 
+// The screen transform structure is used to transform world coordinates to
+// screen coordinates. The following computation is used to calculate screen
+// coordinates from world coordinates:
+//  1.    translate_x and translate_y is added to the world coordinates
+//  2.    the world coordinates is divided by divide_x and divide_y
+static struct screen_transform
+{
+  int translate_x;
+  int translate_y;
+} my_screen_transform;
 
 void update_display(void)
 {
@@ -70,16 +80,24 @@ void do_draw_all(void)
 {
   const int num_asteroids = my_gamestate->n_asteroids;
   struct asteroid* asteroids = my_gamestate->asteroids;
+  struct asteroid* asteroid;
   struct polygon* pol;
+  struct ship_object* spaceship;
 
   // Draw all asteroids
   for(int i=0; i<num_asteroids; i++){
-    pol = &(asteroids[i].poly); 
+    asteroid = &(asteroids[i]);
+    my_screen_transform.translate_x = asteroid->x_pos;
+    my_screen_transform.translate_y = asteroid->y_pos;
+    pol = &(asteroid->poly);
     do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
   } 
 
   // Draw spaceship
-  pol = &(my_gamestate->ship.poly);
+  spaceship = &(my_gamestate->ship);
+  my_screen_transform.translate_x = spaceship->x_pos;
+  my_screen_transform.translate_y = spaceship->y_pos;
+  pol = &(spaceship->poly);
   do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
 
   // TODO: Draw bullets
@@ -97,23 +115,23 @@ static int inline get_index(int x, int y)
 
 void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
 {
-  int x1 = x_coords[0] / SCREEN_TO_WORLD_RATIO;
-  int y1 = y_coords[0] / SCREEN_TO_WORLD_RATIO;
+  int x1 = (x_coords[0] + my_screen_transform.translate_x) / SCREEN_TO_WORLD_RATIO;
+  int y1 = (y_coords[0] + my_screen_transform.translate_y) / SCREEN_TO_WORLD_RATIO;
   int x2;
   int y2;
 
   // Draw the polyline edges
   for(int i=1; i<n_points; i++){
-    x2 = x_coords[i] / SCREEN_TO_WORLD_RATIO;
-    y2 = y_coords[i] / SCREEN_TO_WORLD_RATIO;
+    x2 = (x_coords[i] + my_screen_transform.translate_x) / SCREEN_TO_WORLD_RATIO;
+    y2 = (y_coords[i] + my_screen_transform.translate_y) / SCREEN_TO_WORLD_RATIO;
     do_draw_line(x1, y1, x2, y2);
     x1 = x2;
     y1 = y2;
   }
 
   // Draw a line from the last to the first point
-  x2 = x_coords[0] / SCREEN_TO_WORLD_RATIO;
-  y2 = y_coords[0] / SCREEN_TO_WORLD_RATIO;
+  x2 = (x_coords[0] + my_screen_transform.translate_x) / SCREEN_TO_WORLD_RATIO;
+  y2 = (y_coords[0] + my_screen_transform.translate_y) / SCREEN_TO_WORLD_RATIO;
   do_draw_line(x1, y1, x2, y2);
 }
 
@@ -356,6 +374,10 @@ int init_draw(struct gamestate* gamestate)
     return -1;
   }
   game_debug("OK: Mapped framebuffer device to memory\n");
+
+  // Initialize the screen transform
+  my_screen_transform.translate_x = 0;
+  my_screen_transform.translate_y = 0;
 
   // Clear the display
   for(int i=0; i<DISPLAY_SIZE; i++){

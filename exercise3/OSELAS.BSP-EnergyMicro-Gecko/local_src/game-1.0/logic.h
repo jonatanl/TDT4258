@@ -29,8 +29,8 @@ struct ship_object{
     int32_t y_pos;
     int32_t x_speed;
     int32_t y_speed;
-    int32_t x_orientation;
-    int32_t y_orientation;
+    float x_orientation;
+    float y_orientation;
     int gun_cooldown;
     struct polygon poly;
     // struct polygon current_poly;
