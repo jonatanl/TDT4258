@@ -4,20 +4,6 @@
 
 #include <stdint.h>
 
-// This module implements floating point values as 32-bit signed integers. The
-// lower 20 bits specify the floating point part..
-typedef int32_t ifloat;
-#define FLOATING_DIGITS 20  // NOTE: Must be even!
-
-// Functions that perform coordinate arithmetic
-#define add(f1, f2)         (f1 + f2)
-#define subtract(f1, f2)    (f1 + f2)
-#define divide(f1, f2)      (f1 / f2)
-#define multiply(f1, f2)    ((f1 >> (FLOATING_DIGITS / 2)) * (f2 >> (FLOATING_DIGITS / 2)))
-#define int_to_ifloat(n)    (n << FLOATING_DIGITS)
-#define float_to_ifloat(f)  (((int32_t)(f * (1 << FLOATING_DIGITS))) >> FLOATING_DIGITS)
-#define ifloat_to_int(f)    (f >> FLOATING_DIGITS)
-
 // Ratio to translate world coordinates to screen coordinates 
 #define SCREEN_TO_FLOAT_RATIO   (1 << FLOATING_DIGITS)
 
@@ -31,22 +17,22 @@ typedef int32_t ifloat;
 // rather than actual screen size
 struct polygon{
     int n_vertices;
-    ifloat* x_coords;
-    ifloat* y_coords;
-    ifloat x_left_upper;
-    ifloat y_left_upper;
-    ifloat x_right_lower;
-    ifloat y_right_lower;
+    int32_t* x_coords;
+    int32_t* y_coords;
+    int32_t x_left_upper;
+    int32_t y_left_upper;
+    int32_t x_right_lower;
+    int32_t y_right_lower;
 };
 
 // Struct for ship properties. Only one(two?) should ever exist.
 struct ship_object{
-    ifloat x_pos;
-    ifloat y_pos;
-    ifloat x_speed;
-    ifloat y_speed;
-    ifloat x_orientation;
-    ifloat y_orientation;
+    int32_t x_pos;
+    int32_t y_pos;
+    int32_t x_speed;
+    int32_t y_speed;
+    int32_t x_orientation;
+    int32_t y_orientation;
     int gun_cooldown;
     struct polygon poly;
     // struct polygon current_poly;
@@ -54,10 +40,10 @@ struct ship_object{
 
 // Struct for asteroid properties
 struct asteroid{
-    ifloat x_pos;
-    ifloat y_pos;
-    ifloat x_speed;
-    ifloat y_speed;
+    int32_t x_pos;
+    int32_t y_pos;
+    int32_t x_speed;
+    int32_t y_speed;
     struct polygon poly;
 }; 
 
@@ -68,16 +54,16 @@ struct gamestate{
     struct asteroid* asteroids;
     int n_projectiles;
     struct projectile* projectiles;
-    ifloat world_x_dim;
-    ifloat world_y_dim; 
+    int32_t world_x_dim;
+    int32_t world_y_dim; 
 };
 
 // Lacks a polygon at the moment    
 struct projectile{
-    ifloat x_pos;
-    ifloat y_pos;
-    ifloat x_speed;
-    ifloat y_speed;
+    int32_t x_pos;
+    int32_t y_pos;
+    int32_t x_speed;
+    int32_t y_speed;
 };
 
 typedef struct ship_object ship_object;

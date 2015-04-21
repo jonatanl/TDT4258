@@ -28,7 +28,7 @@
 
 // Function prototypes
 void do_draw_all(void);
-void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points);
+void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points);
 void do_draw_line(int sx, int sy, int ex, int ey);
 void draw_line_octant1(int is, int ie, int dx, int dy);
 void draw_line_octant2(int is, int ie, int dx, int dy);
@@ -96,25 +96,25 @@ static int inline get_index(int x, int y)
   return x + y * FB_DISPLAY_WIDTH; 
 }
 
-void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points)
+void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
 {
-  int x1 = ifloat_to_int(x_coords[0]);
-  int y1 = ifloat_to_int(y_coords[0]);
+  int x1 = x_coords[0];
+  int y1 = y_coords[0];
   int x2;
   int y2;
 
   // Draw the polyline edges
   for(int i=1; i<n_points; i++){
-    x2 = ifloat_to_int(x_coords[i]);
-    y2 = ifloat_to_int(y_coords[i]);
+    x2 = x_coords[i];
+    y2 = y_coords[i];
     do_draw_line(x1, y1, x2, y2);
     x1 = x2;
     y1 = y2;
   }
 
   // Draw a line from the last to the first point
-  x2 = ifloat_to_int(x_coords[0]);
-  y2 = ifloat_to_int(y_coords[0]);
+  x2 = x_coords[0];
+  y2 = y_coords[0];
   do_draw_line(x1, y1, x2, y2);
 }
 
@@ -126,14 +126,14 @@ void do_draw_polyline(ifloat* x_coords, ifloat* y_coords, int n_points)
 //     Graphics & Visualization, Principles and Algorithms
 // by:
 //     T. Theoharis, G. Papaioannou, N. Platis, N. Patrikalakis
-#define OCTANT_1  0
-#define OCTANT_2  1
-#define OCTANT_3  3
-#define OCTANT_4  7
-#define OCTANT_5 15
-#define OCTANT_6 14
-#define OCTANT_7 12
-#define OCTANT_8  8
+#define OCTANT_1 0b0000
+#define OCTANT_2 0b0001
+#define OCTANT_3 0b0011
+#define OCTANT_4 0b0111
+#define OCTANT_5 0b1111
+#define OCTANT_6 0b1110
+#define OCTANT_7 0b1100
+#define OCTANT_8 0b1000
 void do_draw_line(int sx, int sy, int ex, int ey)
 {
   int dx = ex - sx;
