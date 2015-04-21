@@ -40,6 +40,7 @@ void update_ship();
 void update_gamestate();
 void update_projectiles();
 void do_wrap(int32_t* x_pos, int32_t* y_pos);
+void set_ship_bounding_box();
 
 // Global variables
 struct gamestate game;
@@ -66,6 +67,15 @@ void update_gamestate(){
     for(int i = 0; i < game.n_asteroids; i++){
         game.asteroids[i].x_pos += game.asteroids[i].x_speed;
         game.asteroids[i].y_pos += game.asteroids[i].y_speed;
+    }
+}
+
+void set_ship_bounding_box(){
+    for(int i = 0; i < 3; i++){
+        game.ship.poly.x_left_upper = ARG_MIN(game.ship.poly.x_coords[i], game.ship.poly.x_left_upper);
+        game.ship.poly.x_right_lower = ARG_MAX(game.ship.poly.x_coords[i], game.ship.poly.x_right_lower);
+        game.ship.poly.y_left_upper = ARG_MAX(game.ship.poly.y_coords[i], game.ship.poly.y_left_upper);
+        game.ship.poly.y_right_lower = ARG_MIN(game.ship.poly.y_coords[i], game.ship.poly.y_right_lower);   
     }
 }
 
