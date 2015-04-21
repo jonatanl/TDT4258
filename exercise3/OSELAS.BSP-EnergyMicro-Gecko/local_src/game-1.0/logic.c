@@ -28,6 +28,7 @@
 #define MILLISECONDS_TO_CROSS_SCREEN 3000
 #define FRAMES_TO_CROSS_SCREEN ((FRAMES_PER_SECOND * MILLISECONDS_TO_CROSS_SCREEN) / 1000)
 #define DEFAULT_ACCELERATION (DEFAULT_WORLD_X_DIM / (FRAMES_TO_CROSS_SCREEN * (FRAMES_TO_CROSS_SCREEN + 1)))
+#define BULLET_SPEED DEFAULT_WORLD_X_DIM / (5 * FRAMES_PER_SECOND)
 
 #define MAX_AMOUNT_ASTEROIDS    40
 #define MAX_AMOUNT_PROJECTILES  10
@@ -152,7 +153,7 @@ game_debug("got input in update_ship(): %d\n", input);
         game.ship.gun_cooldown--;
     }
     else if(CHECK_SHOOT(input)){
-        do_shoot();
+        // do_shoot();
     }
 
     game.ship.x_pos += game.ship.x_speed;
@@ -204,7 +205,16 @@ bool check_poly_collision(polygon* p1, polygon* p2){
 
 
 void do_shoot(void){
+  if (game.n_projectiles < 10) {
+    game.n_projectiles++;
+    projectile* bullet = &game.projectiles[game.n_projectiles - 1];
 
+    bullet->x_pos = game.ship.x_pos;
+    bullet->y_pos = game.ship.y_pos;
+
+    bullet->x_speed = game.ship.x_orientation * BULLET_SPEED;
+    bullet->y_speed = game.ship.y_orientation * BULLET_SPEED;
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
