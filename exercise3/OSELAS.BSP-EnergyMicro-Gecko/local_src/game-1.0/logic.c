@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "game.h"
 #include "util.h"
 #include "logic.h"
 #include "input.h"
@@ -52,8 +53,8 @@ void do_logic(){
 }
 
 void update_gamestate(){
-    game.ship.x_pos = add(game.ship.x_pos, game.ship.x_speed);
-    game.ship.y_pos = add(game.ship.y_pos, game.ship.y_speed);
+    game.ship.x_pos = game.ship.x_pos + game.ship.x_speed;
+    game.ship.y_pos = game.ship.y_pos + game.ship.y_speed;
     do_wrap(&game.ship.x_pos, &game.ship.y_pos);
 
     if(PRINT_POSITION){
@@ -61,8 +62,8 @@ void update_gamestate(){
     }
 
     for(int i = 0; i < game.n_asteroids; i++){
-        game.asteroids[i].x_pos = add(game.asteroids[i].x_pos, game.asteroids[i].x_speed);
-        game.asteroids[i].y_pos = add(game.asteroids[i].y_pos, game.asteroids[i].y_speed);
+        game.asteroids[i].x_pos += game.asteroids[i].x_speed;
+        game.asteroids[i].y_pos += game.asteroids[i].y_speed;
     }
 }
 

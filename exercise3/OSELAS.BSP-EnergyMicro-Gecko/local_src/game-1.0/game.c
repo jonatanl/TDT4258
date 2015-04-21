@@ -15,11 +15,11 @@
 #include <string.h>
 #include <time.h>         // clock_nanosleep(), clock_gettime()
 
+#define DEBUG
+#include "debug.h"
 #include "logic.h"
 #include "input.h"
 #include "draw.h"
-#define DEBUG
-#include "debug.h"
 
 // Path to device file
 #define DEVICE_PATH "/dev/gamepad"
@@ -29,7 +29,7 @@
 // Function prototypes
 int init_game(void);
 int close_game(void);
-void debug_test_run(void)
+void debug_test_run(void);
 
 // Global variables
 static gamestate* my_gamestate; // used to pass gamestates around
@@ -163,5 +163,5 @@ void debug_test_run(void){
   // Crash the program
   int a = 0;
   int b = 0;
-  int *a = b;
+//  int *a = b;
 }

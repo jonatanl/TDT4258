@@ -4,14 +4,13 @@
 
 #include <stdint.h>
 
-// Ratio to translate world coordinates to screen coordinates 
-#define SCREEN_TO_FLOAT_RATIO   (1 << FLOATING_DIGITS)
+#include "draw.h"
 
-// World size in ifloats
-#define DEFAULT_WORLD_X_DIM     (320 * SCREEN_TO_FLOAT_RATIO)
-#define DEFAULT_WORLD_Y_DIM     (240 * SCREEN_TO_FLOAT_RATIO)
+// The world dimensions
+#define DEFAULT_WORLD_X_DIM (1 << 30)
+#define DEFAULT_WORLD_Y_DIM (1 << 30)
 
-#define FRAMES_PER_SECOND       30
+#define FRAMES_PER_SECOND 30
 
 // All coordinates are relative to the logical game dimensions 
 // rather than actual screen size
