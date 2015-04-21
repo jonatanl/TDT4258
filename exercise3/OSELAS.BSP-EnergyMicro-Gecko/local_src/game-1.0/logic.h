@@ -4,8 +4,6 @@
 
 #include <stdint.h>
 
-#include "draw.h"
-
 // The world dimensions
 #define DEFAULT_WORLD_X_DIM (1 << 30)
 #define DEFAULT_WORLD_Y_DIM (1 << 30)

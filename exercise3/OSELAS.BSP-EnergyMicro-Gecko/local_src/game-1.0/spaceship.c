@@ -40,12 +40,12 @@ void rotate_coordinate(int32_t* xPosition, int32_t* yPosition, int32_t xCenter, 
 		cosine = counterWiseCosine;
 	}
 
-	float xRotated = cosine * xPosition
-					- sine * yPosition
+	float xRotated = cosine * (*xPosition)
+					- sine * (*yPosition)
 					+ xCenter -xCenter * cosine + yCenter * sine;
 
-	float yRotated = sine * xPosition
-					+ cosine * yPosition
+	float yRotated = sine * (*xPosition)
+					+ cosine * (*yPosition)
 					+ yCenter - xCenter * sine - yCenter * cosine;
 
 	*xPosition = (int32_t) xRotated;
