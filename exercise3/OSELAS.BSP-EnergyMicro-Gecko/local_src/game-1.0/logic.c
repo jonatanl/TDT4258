@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "game.h"
 #include "util.h"
@@ -62,6 +63,7 @@ void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_
 void print_bounding_box(struct bounding_box* box);
 asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
 void kill_asteroid(int index);
+void print_asteroid_status();
 
 // Variable prototypes
 const int32_t asteroid1_n_coords;
@@ -183,7 +185,6 @@ void update_ship(){
     }
 
     if(CHECK_DEBUG(input)){
-      // When this button is pressed you're gonna see some serious seg faults
       game_debug("## ## DEBUG ## ## \nATTEMPTING TO KILL ASTEROID\n ## ## DEBUG ## ##\n");
       kill_asteroid(0);
     }
@@ -252,22 +253,24 @@ void do_shoot(void){
 // Also handles list of active asteroids
 void kill_asteroid(int index){
   if(game.active_asteroids[index]->type == SML){
-    game.active_asteroids[index] = game.active_asteroids[game.n_asteroids--];
+    game.active_asteroids[index] = game.active_asteroids[--game.n_asteroids];
   }
   else if(game.active_asteroids[index]->type == MED){
     // Beware, lengthy expression!
     // Replaces the active asteroid pointer with a pointer to an unused asteroid. However, new asteroid needs to be initialized, and the x and y pos of the old 
     // asteroid is used. For the second asteroid the x and y pos values are basically daisy chained. Currently the two asteroids spawn on top of each others
     game.active_asteroids[index] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS*3 + game.n_sml_asteroids++]);
-    game.active_asteroids[++game.n_asteroids] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS*3 + game.n_sml_asteroids++]);
+    game.active_asteroids[game.n_asteroids++] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS*3 + game.n_sml_asteroids++]);
   }
   else{
     game.active_asteroids[index] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS + game.n_med_asteroids++]);
-    game.active_asteroids[++game.n_asteroids] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS + game.n_med_asteroids++]);  
+    game.active_asteroids[game.n_asteroids++] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS + game.n_med_asteroids++]);  
   }
   if(game.n_asteroids == 0){
     game_debug("YOU'RE WINNER!\n");
   }
+  game_debug("Kill asteroid finished. n_asteroids: %d\n", game.n_asteroids);
+  print_asteroid_status();
 }
 
 // Adds world coordinates to an asteroid
@@ -296,6 +299,18 @@ void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct as
   new_asteroid->poly.x_coords = x_coords;
   new_asteroid->poly.y_coords = y_coords;
   new_asteroid->type = size;
+  if(size == BIG){
+    new_asteroid->x_speed = RANDOM(-10,10)*SCREEN_TO_WORLD_RATIO;
+    new_asteroid->y_speed = RANDOM(-10,10)*SCREEN_TO_WORLD_RATIO;
+  }
+  else if(size == MED){
+    new_asteroid->x_speed = RANDOM(-20, 20)*SCREEN_TO_WORLD_RATIO;
+    new_asteroid->y_speed = RANDOM(-20, 20)*SCREEN_TO_WORLD_RATIO;
+  }
+  else{
+    new_asteroid->x_speed = RANDOM(-40,40)*SCREEN_TO_WORLD_RATIO;
+    new_asteroid->y_speed = RANDOM(-40,40)*SCREEN_TO_WORLD_RATIO;
+  }
 }
 
 // Initialize a spaceship
@@ -331,6 +346,13 @@ void init_ship(struct ship_object* ship){
 // Initializes the module
 int init_logic(struct gamestate** gamestate_ptr){
   game_debug("Initializing the logic module ...\n");
+
+  // RANDOMNESS GUARANTEED!
+  srand(2);
+
+  for(int i = 0; i < 10; i++){
+    game_debug("Here's a random int %d\n", rand());
+  }
 
   // Initialize the gamestate struct
   init_ship(&game.ship);
@@ -426,11 +448,6 @@ void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_
   );
 }
 
-void print_asteroid_status(){
-
-}
-
-
 //-------------------------------------------
 // Pre-defined polygon coordinates in pixels
 //-------------------------------------------
@@ -457,3 +474,14 @@ const int32_t asteroid1_y_coords[9] = {
   22 * SCREEN_TO_WORLD_RATIO,
   13 * SCREEN_TO_WORLD_RATIO
 };
+
+void print_asteroid_status(){
+  game_debug("debug print active_asteroids. n_asteroids: %d\n", game.n_asteroids);
+  for(int i = 0; i < game.n_asteroids; i++){
+    if(game.active_asteroids[i] == NULL){
+      game_debug("Asteroid %d is null\n", i);
+    }
+  }
+  game_debug("Done scanning\n");
+}
+
