@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "game.h"
 #include "util.h"
@@ -177,7 +178,6 @@ void update_ship(){
     }
 
     if(CHECK_DEBUG(input)){
-      // When this button is pressed you're gonna see some serious seg faults
       game_debug("## ## DEBUG ## ## \nATTEMPTING TO KILL ASTEROID\n ## ## DEBUG ## ##\n");
       kill_asteroid(0);
     }
@@ -291,9 +291,19 @@ void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct as
   new_asteroid->poly.n_vertices = n_coords;
   new_asteroid->poly.x_coords = x_coords;
   new_asteroid->poly.y_coords = y_coords;
-  new_asteroid->x_speed = 5*SCREEN_TO_WORLD_RATIO;
-  new_asteroid->y_speed = 5*SCREEN_TO_WORLD_RATIO;
   new_asteroid->type = size;
+  if(size == BIG){
+    new_asteroid->x_speed = RANDOM(-10,10)*SCREEN_TO_WORLD_RATIO;
+    new_asteroid->y_speed = RANDOM(-10,10)*SCREEN_TO_WORLD_RATIO;
+  }
+  else if(size == MED){
+    new_asteroid->x_speed = RANDOM(-20, 20)*SCREEN_TO_WORLD_RATIO;
+    new_asteroid->y_speed = RANDOM(-20, 20)*SCREEN_TO_WORLD_RATIO;
+  }
+  else{
+    new_asteroid->x_speed = RANDOM(-40,40)*SCREEN_TO_WORLD_RATIO;
+    new_asteroid->y_speed = RANDOM(-40,40)*SCREEN_TO_WORLD_RATIO;
+  }
 }
 
 // Initialize a spaceship
@@ -327,6 +337,13 @@ void init_ship(struct ship_object* ship){
 // Initializes the module
 int init_logic(struct gamestate** gamestate_ptr){
   game_debug("Initializing the logic module ...\n");
+
+  // RANDOMNESS GUARANTEED!
+  srand(2);
+
+  for(int i = 0; i < 10; i++){
+    game_debug("Here's a random int %d\n", rand());
+  }
 
   // Initialize the gamestate struct
   init_ship(&game.ship);
