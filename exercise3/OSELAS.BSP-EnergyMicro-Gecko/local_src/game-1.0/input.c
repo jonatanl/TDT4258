@@ -36,17 +36,19 @@ static int error; // error variable
 void signal_handler(int signal){
   int count;
   
+  // Read all available input
   count = read(devfd, (void*)&input_raw, sizeof(uint8_t));
   while(count > 0){
-    output  = input_raw & (ROTATE_LEFT | ROTATE_RIGHT | ACCELERATE);
-    output |= input_raw & SHOOT;
+    output = output & (INPUT_SHOOT); // Clear all bits except INPUT_SHOOT
+    output |= (~input_raw) & (INPUT_ROTATE_LEFT | INPUT_ROTATE_RIGHT | INPUT_ACCELERATE | INPUT_SHOOT);
+    output |= (~input_raw) & (INPUT_PAUSE | INPUT_EXIT | INPUT_DEBUG);
     count = read(devfd, (void*)&input_raw, sizeof(uint8_t));
   }
 }
 
 uint8_t get_input(){
   uint8_t output = input_raw;
-  input_raw = input_raw & (~SHOOT); 
+  input_raw = input_raw & (~INPUT_SHOOT); 
   return output;
 }
 
