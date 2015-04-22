@@ -157,12 +157,6 @@ game_debug("got input in update_ship(): %d\n", input);
 
     game.ship.x_pos += game.ship.x_speed;
     game.ship.y_pos += game.ship.y_speed;
-    game_debug("spaceship: px = %d, py = %d, sx = %d, sy = %d\n",
-        game.ship.x_pos,
-        game.ship.y_pos,
-        game.ship.x_speed,
-        game.ship.y_speed
-        );
 }
 
 void update_projectiles() {
@@ -249,12 +243,13 @@ void init_ship(struct ship_object* ship){
     int32_t* x_coords = malloc(sizeof(int32_t)*3);
     int32_t* y_coords = malloc(sizeof(int32_t)*3);
     
-    x_coords[0] =   0 * SCREEN_TO_WORLD_RATIO;
-    y_coords[0] =   0 * SCREEN_TO_WORLD_RATIO;
-    x_coords[1] = -20 * SCREEN_TO_WORLD_RATIO;
-    y_coords[1] = -20 * SCREEN_TO_WORLD_RATIO;
-    x_coords[2] = -20 * SCREEN_TO_WORLD_RATIO;
-    y_coords[2] =   0 * SCREEN_TO_WORLD_RATIO;
+    // Add vertices for a spaceship polygon
+    x_coords[0] =  0 * SCREEN_TO_WORLD_RATIO;
+    y_coords[0] =  9 * SCREEN_TO_WORLD_RATIO;
+    x_coords[1] =  7 * SCREEN_TO_WORLD_RATIO;
+    y_coords[1] = -6 * SCREEN_TO_WORLD_RATIO;
+    x_coords[2] = -7 * SCREEN_TO_WORLD_RATIO;
+    y_coords[2] = -6 * SCREEN_TO_WORLD_RATIO;
 
     ship->poly.x_coords = x_coords;
     ship->poly.y_coords = y_coords;
