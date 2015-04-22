@@ -20,6 +20,10 @@ struct polygon{
     int n_vertices;
     int32_t* x_coords;
     int32_t* y_coords;
+};
+
+// Bounding box of a shape, usually a polygon
+struct bounding_box{
     int32_t x_left_upper;   // x_min
     int32_t y_left_upper;   // y_max
     int32_t x_right_lower;  // x_max
@@ -36,7 +40,7 @@ struct ship_object{
     float y_orientation;
     int gun_cooldown;
     struct polygon poly;
-    // struct polygon current_poly;
+    struct bounding_box collision_box; // Ship collision box and draw box
 };
 
 // Struct for asteroid properties
@@ -49,7 +53,12 @@ struct asteroid{
     struct polygon poly;
     uint8_t type;   // small, med and big
     uint8_t index;  // when an asteroid is hit we need to know which
-    bool double_box;
+    struct bounding_box collision_box;  // Asteroid collision box
+
+    // The draw box list. This is sent to the draw module to update the part of
+    // the display covered by the asteroids movement.
+    struct bounding_box* draw_boxes;
+    int n_draw_boxes;
 };
 
 // Implementation of the logic module
