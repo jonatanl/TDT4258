@@ -252,13 +252,17 @@ void do_shoot(void){
 // Handles a killed asteroid. Spawns 2 smaller asteroids if big asteroid is killed
 // Also handles list of active asteroids
 void kill_asteroid(int index){
+  game_debug("Attempting to kill asteroid %d\nCurrent status:", index);
+  print_asteroid_status();
   if(game.active_asteroids[index]->type == SML){
+    game_debug("Killing small asteroid\n");
     game.active_asteroids[index] = game.active_asteroids[--game.n_asteroids];
   }
   else if(game.active_asteroids[index]->type == MED){
     // Beware, lengthy expression!
     // Replaces the active asteroid pointer with a pointer to an unused asteroid. However, new asteroid needs to be initialized, and the x and y pos of the old 
     // asteroid is used. For the second asteroid the x and y pos values are basically daisy chained. Currently the two asteroids spawn on top of each others
+    game_debug("Killing medium size asteroid\n");
     game.active_asteroids[index] = spawn_asteroid(
       game.active_asteroids[index]->x_pos, 
       game.active_asteroids[index]->y_pos, 
@@ -271,6 +275,7 @@ void kill_asteroid(int index){
     );
   }
   else{ // LARGE
+    game_debug("Killing large size asteroid\n");
     game.active_asteroids[index] = spawn_asteroid(
       game.active_asteroids[index]->x_pos, 
       game.active_asteroids[index]->y_pos, 
