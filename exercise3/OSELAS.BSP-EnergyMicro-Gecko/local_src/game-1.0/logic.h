@@ -49,7 +49,8 @@ struct asteroid{
     struct polygon poly;
     uint8_t type;   // small, med and big
     uint8_t index;  // when an asteroid is hit we need to know which
-}; 
+    bool double_box;
+};
 
 // Implementation of the logic module
 struct gamestate{

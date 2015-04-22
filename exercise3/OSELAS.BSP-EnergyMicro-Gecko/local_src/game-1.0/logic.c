@@ -38,6 +38,7 @@
 #define SMALL_ASTEROIDS         MEDIUM_ASTEROIDS*MEDIUM_BRANCH
 
 #define MAX_AMOUNT_ASTEROIDS    LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + SMALL_ASTEROIDS  
+#define MAX_ALIVE_ASTEROIDS     LARGE_ASTEROIDS*LARGE_BRANCH*MEDIUM_BRANCH
 #define MAX_AMOUNT_PROJECTILES  10
 
 #define BIG 2
@@ -168,6 +169,12 @@ void update_ship(){
         game.ship.y_speed += game.ship.y_orientation * DEFAULT_ACCELERATION;
     }
 
+    if(CHECK_DEBUG(input)){
+      // When this button is pressed you're gonna see some serious seg faults
+      game_debug("## ## DEBUG ## ## \nATTEMPTING TO KILL ASTEROID\n ## ## DEBUG ## ##\n");
+      kill_asteroid(0);
+    }
+
     // TODO: Update speeds
     // Decrements the gun cooldown, or checks if shoot is pressed and fires a shot
     if(game.ship.gun_cooldown){
@@ -250,12 +257,10 @@ void kill_asteroid(int index){
   }
 }
 
-// The return value is not always used
+// Adds world coordinates to an asteroid
 asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid){
   asteroid->x_pos = x_pos;
   asteroid->y_pos = y_pos;
-  asteroid->x_speed = 10;
-  asteroid->y_speed = 10;
   return asteroid;
 }
 
@@ -354,10 +359,11 @@ int init_logic(struct gamestate** gamestate_ptr){
       init_asteroid(3, x_coords, y_coords, &game.asteroids[i], type);
   }
 
-  game.active_asteroids = malloc(sizeof(asteroid*)*START_ASTEROIDS);
-  for(int i = 0; i < START_ASTEROIDS*4; i++){
+  // Initialized the pointer list to alive asteroids, and populates it with the initial asteroids
+  game.active_asteroids = malloc(sizeof(asteroid*)*MAX_ALIVE_ASTEROIDS);
+  for(int i = 0; i < START_ASTEROIDS; i++){
     game.active_asteroids[i] = &game.asteroids[i];
-    spawn_asteroid((10 + i*2 *SCREEN_TO_WORLD_RATIO), (40 + i*2 *SCREEN_TO_WORLD_RATIO), game.active_asteroids[i]);
+    spawn_asteroid((10 + i*20 *SCREEN_TO_WORLD_RATIO), (40 + i*20 *SCREEN_TO_WORLD_RATIO), game.active_asteroids[i]);
   }
 
   *gamestate_ptr = &game;
@@ -401,4 +407,8 @@ void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_
     x_speed,
     y_speed
   );
+}
+
+void print_asteroid_status(){
+
 }
