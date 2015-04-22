@@ -63,10 +63,16 @@ void print_poly_bb(polygon* poly);
 asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
 void kill_asteroid(int index);
 
+// Variable prototypes
+const int32_t asteroid1_n_coords;
+const int32_t asteroid1_x_coords[];
+const int32_t asteroid1_y_coords[]; 
+
 // Global variables
 struct gamestate game;
 struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
 struct projectile my_projectiles[MAX_AMOUNT_PROJECTILES];
+
 
 void do_logic(){
 
@@ -331,32 +337,21 @@ int init_logic(struct gamestate** gamestate_ptr){
 
   // Initialize all asteroids
   uint8_t type;
-  uint8_t factor;
   for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){      
       if(i < LARGE_ASTEROIDS){
         type = BIG;
-        factor = 5;
       }
       else if(i < LARGE_ASTEROIDS + MEDIUM_ASTEROIDS){
         type = MED;
-        factor = 3;
       }
       else{
         type = SML;
-        factor = 1;
       }
 
-      // Initialize polygon vertices
-      int32_t* x_coords = malloc(sizeof(int32_t)*3);
-      int32_t* y_coords = malloc(sizeof(int32_t)*3);
-      x_coords[0] = game.asteroids[i].x_pos;
-      y_coords[0] = game.asteroids[i].y_pos;
-      x_coords[1] = game.asteroids[i].x_pos + 10 * factor * SCREEN_TO_WORLD_RATIO;
-      y_coords[1] = game.asteroids[i].y_pos + 10 * factor * SCREEN_TO_WORLD_RATIO;
-      x_coords[2] = game.asteroids[i].x_pos;
-      y_coords[2] = game.asteroids[i].y_pos + 10 * factor * SCREEN_TO_WORLD_RATIO;
-
-      init_asteroid(3, x_coords, y_coords, &game.asteroids[i], type);
+      // Initialize asteroids
+      //
+      // TODO: Use different polygons for different asteroids
+      init_asteroid(3, (int32_t*)&asteroid1_x_coords[0], (int32_t*)&asteroid1_y_coords[0], &game.asteroids[i], type);
   }
 
   // Initialized the pointer list to alive asteroids, and populates it with the initial asteroids
@@ -412,3 +407,31 @@ void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_
 void print_asteroid_status(){
 
 }
+
+
+//-------------------------------------------
+// Pre-defined polygon coordinates in pixels
+//-------------------------------------------
+const int32_t asteroid1_n_coords = 9;
+const int32_t asteroid1_x_coords[9] = {
+  15 * SCREEN_TO_WORLD_RATIO, 
+  29 * SCREEN_TO_WORLD_RATIO, 
+  39 * SCREEN_TO_WORLD_RATIO, 
+  39 * SCREEN_TO_WORLD_RATIO, 
+  29 * SCREEN_TO_WORLD_RATIO, 
+  19 * SCREEN_TO_WORLD_RATIO, 
+  10 * SCREEN_TO_WORLD_RATIO,  
+   0 * SCREEN_TO_WORLD_RATIO,
+   0 * SCREEN_TO_WORLD_RATIO
+};
+const int32_t asteroid1_y_coords[9] = { 
+   0 * SCREEN_TO_WORLD_RATIO,  
+   0 * SCREEN_TO_WORLD_RATIO, 
+  12 * SCREEN_TO_WORLD_RATIO, 
+  23 * SCREEN_TO_WORLD_RATIO, 
+  35 * SCREEN_TO_WORLD_RATIO, 
+  35 * SCREEN_TO_WORLD_RATIO, 
+  35 * SCREEN_TO_WORLD_RATIO, 
+  22 * SCREEN_TO_WORLD_RATIO,
+  13 * SCREEN_TO_WORLD_RATIO
+};
