@@ -5,10 +5,10 @@
 #define _INPUT_H
 
 // Input defines and macros
-#define SHOOT         (1 << 1)
 #define ROTATE_LEFT   (1 << 0)
-#define ACCELERATE    (1 << 3)
 #define ROTATE_RIGHT  (1 << 2)
+#define ACCELERATE    (1 << 3)
+#define SHOOT         (1 << 1)
 
 // Suggested functionality
 #define PAUSE         (1 << 4)
