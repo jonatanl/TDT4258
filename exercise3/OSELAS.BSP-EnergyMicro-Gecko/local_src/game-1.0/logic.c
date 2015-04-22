@@ -252,7 +252,7 @@ void do_shoot(void){
 // Handles a killed asteroid. Spawns 2 smaller asteroids if big asteroid is killed
 // Also handles list of active asteroids
 void kill_asteroid(int index){
-  game_debug("Attempting to kill asteroid %d\nCurrent status:", index);
+  game_debug("Attempting to kill asteroid %d\nCurrent status:\n", index);
   print_asteroid_status();
   if(game.active_asteroids[index]->type == SML){
     game_debug("Killing small asteroid\n");
