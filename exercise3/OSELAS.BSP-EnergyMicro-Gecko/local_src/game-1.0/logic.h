@@ -16,6 +16,9 @@
 
 // All coordinates are relative to the logical game dimensions 
 // rather than actual screen size
+//
+// NOTE: Polygon vertices must be listed in a counter-clockwise order in order
+// for time_of_collision() to work.
 struct polygon{
     int n_vertices;
     int32_t* x_coords;
