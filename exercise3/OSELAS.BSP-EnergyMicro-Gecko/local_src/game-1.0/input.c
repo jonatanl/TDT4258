@@ -26,20 +26,10 @@ uint8_t sanitize_input_buffer(uint8_t n_input, uint8_t* input_buffer);
 
 // To keep track of whether a read is needed or not.
 static uint8_t input_raw;
-static uint8_t output_processed = 0x00;
+static uint8_t output = 0x00;
 
 static int devfd; // device file descriptor
 static int error; // error variable
-
-#define BUTTON_1 (1 << 0)
-#define BUTTON_2 (1 << 1)
-#define BUTTON_3 (1 << 2)
-#define BUTTON_4 (1 << 3)
-#define BUTTON_5 (1 << 4)
-#define BUTTON_6 (1 << 5)
-#define BUTTON_7 (1 << 6)
-#define BUTTON_8 (1 << 7)
-
 
 
 // When a signal arrives input_raw is updated
@@ -47,7 +37,7 @@ void signal_handler(int signal){
   int count;
   
   count = read(devfd, (void*)&input_raw, sizeof(uint8_t));
-  while(count > 0){ 
+  while(count > 0){
     output  = input_raw & (ROTATE_LEFT | ROTATE_RIGHT | ACCELERATE);
     output |= input_raw & SHOOT;
     count = read(devfd, (void*)&input_raw, sizeof(uint8_t));
