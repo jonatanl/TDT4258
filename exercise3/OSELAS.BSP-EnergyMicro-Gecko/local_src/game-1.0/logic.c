@@ -259,12 +259,28 @@ void kill_asteroid(int index){
     // Beware, lengthy expression!
     // Replaces the active asteroid pointer with a pointer to an unused asteroid. However, new asteroid needs to be initialized, and the x and y pos of the old 
     // asteroid is used. For the second asteroid the x and y pos values are basically daisy chained. Currently the two asteroids spawn on top of each others
-    game.active_asteroids[index] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS*3 + game.n_sml_asteroids++]);
-    game.active_asteroids[game.n_asteroids++] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS*3 + game.n_sml_asteroids++]);
+    game.active_asteroids[index] = spawn_asteroid(
+      game.active_asteroids[index]->x_pos, 
+      game.active_asteroids[index]->y_pos, 
+      &game.asteroids[LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + game.n_sml_asteroids++]
+    );
+    game.active_asteroids[game.n_asteroids++] = spawn_asteroid(
+      game.active_asteroids[index]->x_pos, 
+      game.active_asteroids[index]->y_pos, 
+      &game.asteroids[LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + game.n_sml_asteroids++]
+    );
   }
-  else{
-    game.active_asteroids[index] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS + game.n_med_asteroids++]);
-    game.active_asteroids[game.n_asteroids++] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS + game.n_med_asteroids++]);  
+  else{ // LARGE
+    game.active_asteroids[index] = spawn_asteroid(
+      game.active_asteroids[index]->x_pos, 
+      game.active_asteroids[index]->y_pos, 
+      &game.asteroids[LARGE_ASTEROIDS + game.n_med_asteroids++]
+    );
+    game.active_asteroids[game.n_asteroids++] = spawn_asteroid(
+      game.active_asteroids[index]->x_pos, 
+      game.active_asteroids[index]->y_pos, 
+      &game.asteroids[LARGE_ASTEROIDS + game.n_med_asteroids++]
+    );  
   }
   if(game.n_asteroids == 0){
     game_debug("YOU'RE WINNER!\n");
