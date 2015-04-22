@@ -13,7 +13,7 @@
 // Suggested functionality
 #define PAUSE         (1 << 4)
 #define EXIT          (1 << 5)
-#define CRASH         (1 << 6)  // Maybe it's useful to have a button crashing the game
+#define DEBUG_BTN     (1 << 6)
 
 // returns 0 if bit bit_number is 0, else return some integer > 0
 #define CHECK_BIT(raw_int, bit_number)  (raw_int & (1 << bit_number))
@@ -25,7 +25,7 @@
 #define CHECK_RIGHT(raw_int)            (raw_int & ROTATE_RIGHT)
 #define CHECK_ACC(raw_int)              (raw_int & ACCELERATE)
 #define CHECK_PAUSE(raw_int)            (raw_int & PAUSE)
-#define CHECK_CRASH(raw_int)            (raw_int & CRASH)
+#define CHECK_DEBUG(raw_int)            (raw_int & DEBUG_BTN)
 #define CHECK_EXIT(raw_int)             (raw_int & EXIT)
 
 #define SET_SHOOT(raw_int)              (raw_int | SHOOT)
