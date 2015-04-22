@@ -11,9 +11,7 @@
 
 #define FRAMES_PER_SECOND 30
 
-#define BIG 2
-#define MED 1
-#define SML 0
+
 
 
 // All coordinates are relative to the logical game dimensions 
@@ -56,12 +54,12 @@ struct asteroid{
 // Implementation of the logic module
 struct gamestate{
     struct ship_object ship;
-    struct asteroid* asteroids;
-    int n_asteroids;
-    int n_big_asteroids;    // prob not needed
+    struct asteroid* asteroids;             // A pointer to the list of asteroid structs in the segment
+    int n_asteroids;                        // The counter for active asteroids
+    int n_big_asteroids;    
     int n_med_asteroids;
     int n_sml_asteroids;
-    struct asteroid** active_asteroids;
+    struct asteroid** active_asteroids;     // A list of pointers to the my_asteroids list stored in the data segment
     int n_projectiles;
     struct projectile* projectiles;
     int32_t world_x_dim;

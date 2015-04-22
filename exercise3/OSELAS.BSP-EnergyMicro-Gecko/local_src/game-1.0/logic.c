@@ -29,9 +29,20 @@
 #define FRAMES_TO_CROSS_SCREEN ((FRAMES_PER_SECOND * MILLISECONDS_TO_CROSS_SCREEN) / 1000)
 #define DEFAULT_ACCELERATION (DEFAULT_WORLD_X_DIM / (FRAMES_TO_CROSS_SCREEN * (FRAMES_TO_CROSS_SCREEN + 1)))
 
+#define LARGE_BRANCH            2
+#define MEDIUM_BRANCH           2
+
 #define START_ASTEROIDS         3
-#define MAX_AMOUNT_ASTEROIDS    START_ASTEROIDS*4
+#define LARGE_ASTEROIDS         START_ASTEROIDS
+#define MEDIUM_ASTEROIDS        START_ASTEROIDS*LARGE_BRANCH
+#define SMALL_ASTEROIDS         MEDIUM_ASTEROIDS*MEDIUM_BRANCH
+
+#define MAX_AMOUNT_ASTEROIDS    LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + SMALL_ASTEROIDS  
 #define MAX_AMOUNT_PROJECTILES  10
+
+#define BIG 2
+#define MED 1
+#define SML 0
 
 // Function prototypes
 void init_ship(struct ship_object* ship);
@@ -224,7 +235,7 @@ void kill_asteroid(int index){
     game.active_asteroids[index] = game.active_asteroids[game.n_asteroids--];
   }
   else if(game.active_asteroids[index]->type == MED){
-    // Beware lengthy expression!
+    // Beware, lengthy expression!
     // Replaces the active asteroid pointer with a pointer to an unused asteroid. However, new asteroid needs to be initialized, and the x and y pos of the old 
     // asteroid is used. For the second asteroid the x and y pos values are basically daisy chained. Currently the two asteroids spawn on top of each others
     game.active_asteroids[index] = spawn_asteroid(game.active_asteroids[index]->x_pos, game.active_asteroids[index]->y_pos, &game.asteroids[START_ASTEROIDS*3 + game.n_sml_asteroids++]);
@@ -317,11 +328,11 @@ int init_logic(struct gamestate** gamestate_ptr){
   uint8_t type;
   uint8_t factor;
   for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){      
-      if(i > START_ASTEROIDS){
+      if(i < LARGE_ASTEROIDS){
         type = BIG;
         factor = 5;
       }
-      else if(i > START_ASTEROIDS * 2){
+      else if(i < LARGE_ASTEROIDS + MEDIUM_ASTEROIDS){
         type = MED;
         factor = 3;
       }
@@ -344,9 +355,9 @@ int init_logic(struct gamestate** gamestate_ptr){
   }
 
   game.active_asteroids = malloc(sizeof(asteroid*)*START_ASTEROIDS);
-  for(int i = 0; i < START_ASTEROIDS; i++){
+  for(int i = 0; i < START_ASTEROIDS*4; i++){
     game.active_asteroids[i] = &game.asteroids[i];
-    spawn_asteroid((10 + i*20 *SCREEN_TO_WORLD_RATIO), (40 + i*25 *SCREEN_TO_WORLD_RATIO), game.active_asteroids[i]);
+    spawn_asteroid((10 + i*2 *SCREEN_TO_WORLD_RATIO), (40 + i*2 *SCREEN_TO_WORLD_RATIO), game.active_asteroids[i]);
   }
 
   *gamestate_ptr = &game;

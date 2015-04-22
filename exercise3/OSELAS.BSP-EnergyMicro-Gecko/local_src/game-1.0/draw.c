@@ -79,19 +79,22 @@ void clear_all(void)
 void do_draw_all(void)
 {
   const int num_asteroids = my_gamestate->n_asteroids;
-  struct asteroid* asteroids = my_gamestate->asteroids;
+  struct asteroid** asteroids = my_gamestate->active_asteroids;
   struct asteroid* asteroid;
   struct polygon* pol;
   struct ship_object* spaceship;
 
+  
   // Draw all asteroids
   for(int i=0; i<num_asteroids; i++){
-    asteroid = &(asteroids[i]);
+    asteroid = asteroids[i];
     my_screen_transform.translate_x = asteroid->x_pos;
     my_screen_transform.translate_y = asteroid->y_pos;
     pol = &(asteroid->poly);
     do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
   } 
+  
+
 
   // Draw spaceship
   spaceship = &(my_gamestate->ship);
