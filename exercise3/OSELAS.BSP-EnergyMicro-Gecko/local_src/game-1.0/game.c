@@ -30,16 +30,18 @@
 int init_game(void);
 int close_game(void);
 void debug_test_run(void);
+void sleep_to_next_frame(void);
 
 // Global variables
-static gamestate* my_gamestate; // used to pass gamestates around
-static int error; // error variable
+static gamestate* my_gamestate;   // used to pass gamestates around
+static int error;   // error variable
 
-//// The system clock used for waiting. CLOCK_MONOTONIC_RAW is not affected by
-//// adjustments to system clocks, except NTP and adjtime.
-clockid_t clock_id;
-struct timespec next_frame; // the time of the next frame
-struct timespec remaining;
+// Variables used to calculate frame sleep time
+clockid_t my_clockid = CLOCK_MONOTONIC;
+struct timespec time1;
+struct timespec time2;
+struct timespec sleep_time;
+long int sleep_ns;
 
 int main(int argc, char *argv[])
 {
@@ -50,35 +52,17 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
+  // Initialize sleep struct
+  sleep_time.tv_sec = 0;
+  sleep_time.tv_nsec = 0;
+
   // The game loop
   while(!error){
+    sleep_to_next_frame(); 
     clear_all();
     do_logic();
     draw_all();
     update_display();
-
-    // Sleep until the next frame.
-    //
-    // NOTE: We would prefer using clock_nanosleep(), but it doesn't seem to be
-    // defined in our version of the c standard library.
-    next_frame.tv_sec = 0;
-    next_frame.tv_nsec = NANOSECONDS_PER_FRAME;
-    while(nanosleep(&next_frame, &remaining)){
-
-      if(errno == EINTR){
-
-        // Interrupted by signal: Decrease sleep time and sleep again
-        game_debug("(frame sleep interrupted)\n");
-        next_frame.tv_nsec = remaining.tv_nsec;
-        continue;
-      }else{
-
-        // Any other error: Exit game
-        game_error("Unexpected error while sleeping for next frame: %s\n", strerror(errno));
-        error = -1;
-        break; 
-      }
-    }
   }
 
   // Close the game
@@ -90,6 +74,56 @@ int main(int argc, char *argv[])
 
   // Exit successfully
 	exit(EXIT_SUCCESS);
+}
+
+// Compute the remaining nanoseconds until next frame and sleep.
+//
+// NOTE: We would prefer using clock_nanosleep(), but we could not get it to
+// work. Maybe it's not defined in our version of the C library.
+#define NANOSECONDS_PER_SECOND 1000000000
+void sleep_to_next_frame(void)
+{
+  //clock_nanosleep(my_clockid, 0, &time1, &time2); 
+
+  // End of current frame
+  clock_gettime(my_clockid, &time1);
+
+  // Initial sleep time
+  sleep_ns = NANOSECONDS_PER_FRAME;
+
+  // Subtract time spent in computation
+  sleep_ns -= (time1.tv_nsec - time2.tv_nsec);
+  sleep_ns -= (time1.tv_sec  - time2.tv_sec) * NANOSECONDS_PER_SECOND;
+
+  // Skip missed frames
+  while(sleep_ns < 0){  
+    sleep_ns += NANOSECONDS_PER_FRAME;
+    game_debug("(frame skipped!)\n");
+  }
+  sleep_ns = NANOSECONDS_PER_FRAME - sleep_ns;
+
+  // Sleep until the next frame. Reuses time1 and time2.
+  time1.tv_sec  = 0;
+  time1.tv_nsec = sleep_ns;
+  while(nanosleep(&time1, &time2)){
+
+    if(errno == EINTR){
+
+      // Interrupted by signal: Decrease sleep time and sleep again
+      game_debug("(frame sleep interrupted)\n");
+      time1.tv_nsec = time2.tv_nsec;
+      continue;
+    }else{
+
+      // Any other error, such as invalid input: Exit game
+      game_error("Unexpected error while sleeping for next frame: %s\n", strerror(errno));
+      error = -1;
+      break; 
+    }
+  }
+
+  // Start of next frame
+  clock_gettime(my_clockid, &time2);
 }
 
 // Initialize game modules
@@ -111,6 +145,11 @@ int init_game()
     game_error("Error initializing draw module\n");
     return -1;
   }
+
+  // Initialize frame sleep
+  sleep_time.tv_sec  = 0;
+  sleep_time.tv_nsec = 0;
+  clock_gettime(my_clockid, &time2);
 
   // No errors
   game_debug("DONE: No errors initializing the game\n");
