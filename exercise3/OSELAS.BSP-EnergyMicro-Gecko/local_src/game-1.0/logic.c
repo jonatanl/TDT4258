@@ -502,6 +502,9 @@ void print_asteroid_status(){
     if(game.active_asteroids[i] == NULL){
       game_debug("Asteroid %d is null\n", i);
     }
+    else{
+      game_debug("Asteroid %d has type %d\n", i, game.active_asteroids[i]->type);
+    }
   }
   game_debug("Done scanning\n");
 }
