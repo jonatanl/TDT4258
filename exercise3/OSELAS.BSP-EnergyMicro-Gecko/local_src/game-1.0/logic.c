@@ -55,12 +55,12 @@ void update_ship();
 void update_gamestate();
 void update_projectiles();
 void do_wrap(int32_t* x_pos, int32_t* y_pos);
-void update_bounding_box(polygon* poly, int32_t x_abs, int32_t y_abs);
+void update_bounding_box(struct bounding_box* box, struct polygon* poly, int32_t x_abs, int32_t y_abs);
 void check_box_collisions(void);
-bool check_bounding_box_collision(polygon* p1, polygon* p2);
+bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2);
 bool check_poly_collision(polygon* p1, polygon* p2);
 void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_speed);
-void print_poly_bb(polygon* poly);
+void print_bounding_box(struct bounding_box* box);
 asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
 void kill_asteroid(int index);
 void print_asteroid_status();
@@ -85,6 +85,8 @@ void do_logic(){
 }
 
 void update_gamestate(){
+    struct asteroid* current_asteroid;
+
     game.ship.x_pos = game.ship.x_pos + game.ship.x_speed;
     game.ship.y_pos = game.ship.y_pos + game.ship.y_speed;
     do_wrap(&game.ship.x_pos, &game.ship.y_pos);
@@ -94,40 +96,45 @@ void update_gamestate(){
     }
 
     for(int i = 0; i < game.n_asteroids; i++){
-        game.active_asteroids[i]->x_pos += game.active_asteroids[i]->x_speed;
-        game.active_asteroids[i]->y_pos += game.active_asteroids[i]->y_speed;
-        update_bounding_box(&game.active_asteroids[i]->poly, game.active_asteroids[i]->x_pos, game.active_asteroids[i]->y_pos);
+        current_asteroid = game.active_asteroids[i];
+        current_asteroid->x_pos += current_asteroid->x_speed;
+        current_asteroid->y_pos += current_asteroid->y_speed;
+        update_bounding_box(
+            &current_asteroid->collision_box,
+            &current_asteroid->poly,
+            current_asteroid->x_pos,
+            current_asteroid->y_pos
+        );
     }
 }
 
 
-void update_bounding_box(polygon* poly, int32_t x_abs, int32_t y_abs){
-  
-    poly->x_left_upper = x_abs + poly->x_coords[0];
-    poly->x_right_lower = x_abs + poly->x_coords[0];
-    poly->y_left_upper = y_abs + poly->y_coords[0];
-    poly->y_right_lower = y_abs + poly->y_coords[0];
+void update_bounding_box(struct bounding_box* box, struct polygon* poly, int32_t x_abs, int32_t y_abs){
+    box->x_left_upper  = x_abs + poly->x_coords[0];
+    box->x_right_lower = x_abs + poly->x_coords[0];
+    box->y_left_upper  = y_abs + poly->y_coords[0];
+    box->y_right_lower = y_abs + poly->y_coords[0];
     
     for(int i = 1; i < poly->n_vertices; i++){
-        poly->x_left_upper = ARG_MAX(poly->x_coords[i] + x_abs, poly->x_left_upper);
-        poly->x_right_lower = ARG_MIN(poly->x_coords[i] + x_abs, poly->x_right_lower);
-        poly->y_left_upper = ARG_MIN(poly->y_coords[i] + y_abs, poly->y_left_upper);
-        poly->y_right_lower = ARG_MAX(poly->y_coords[i] + y_abs, poly->y_right_lower);
+        box->x_left_upper  = ARG_MAX(poly->x_coords[i] + x_abs, box->x_left_upper);
+        box->x_right_lower = ARG_MIN(poly->x_coords[i] + x_abs, box->x_right_lower);
+        box->y_left_upper  = ARG_MIN(poly->y_coords[i] + y_abs, box->y_left_upper);
+        box->y_right_lower = ARG_MAX(poly->y_coords[i] + y_abs, box->y_right_lower);
     }
 }
 
-bool check_bounding_box_collision(polygon* p1, polygon* p2){    
-    return( INTERSECTS(p1->x_left_upper, p1->x_right_lower, p2->x_left_upper, p2->x_right_lower)
-        &&  INTERSECTS(p1->y_right_lower, p1->y_left_upper, p2->y_right_lower, p2->y_left_upper));
+bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2){
+    return( INTERSECTS(box1->x_left_upper,  box1->x_right_lower, box2->x_left_upper,  box2->x_right_lower)
+        &&  INTERSECTS(box1->y_right_lower, box1->y_left_upper,  box2->y_right_lower, box2->y_left_upper));
 }
 
 // Handles input
 void update_ship(){
 
     uint8_t input = get_input();
-    update_bounding_box(&game.ship.poly, game.ship.x_pos, game.ship.y_pos);
+    update_bounding_box(&game.ship.collision_box, &game.ship.poly, game.ship.x_pos, game.ship.y_pos);
 
-    print_poly_bb(&game.ship.poly);
+    print_bounding_box(&game.ship.collision_box);
 
     if(CHECK_PAUSE(input)){
         // Do pause
@@ -224,7 +231,7 @@ void do_wrap(int32_t* x_pos, int32_t* y_pos){
 
 void check_box_collisions(){
     for(int i = 0; i < game.n_asteroids; i++){
-        if(check_bounding_box_collision(&game.ship.poly, &game.asteroids[i].poly)){
+        if(check_bounding_box_collision(&game.ship.collision_box, &game.asteroids[i].collision_box)){
             if(check_poly_collision(&game.ship.poly, &game.asteroids[i].poly)){
                 game_debug("GAME OVER MAN, GAME OVER\n");
             }
@@ -348,6 +355,8 @@ void init_ship(struct ship_object* ship){
 
     ship->poly.x_coords = x_coords;
     ship->poly.y_coords = y_coords;
+
+    // TODO: Initialize draw box
 }
 
 // Initializes the module
@@ -389,7 +398,15 @@ int init_logic(struct gamestate** gamestate_ptr){
       // Initialize asteroids
       //
       // TODO: Use different polygons for different asteroids
-      init_asteroid(3, (int32_t*)&asteroid1_x_coords[0], (int32_t*)&asteroid1_y_coords[0], &game.asteroids[i], type);
+      init_asteroid(
+          asteroid1_n_coords,
+          (int32_t*)&asteroid1_x_coords[0],
+          (int32_t*)&asteroid1_y_coords[0],
+          &game.asteroids[i],
+          type
+      );
+
+      // TODO: Initialize draw box
   }
 
   // Initialized the pointer list to alive asteroids, and populates it with the initial asteroids
@@ -428,9 +445,14 @@ int release_logic(){
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 
-void print_poly_bb(polygon* poly){
+void print_bounding_box(struct bounding_box* box){
   game_debug("Bounding box:\n");
-  game_debug("left_upper: x: %d, y: %d, right_lower: x: %d, y: %d\n", poly->x_left_upper/SCREEN_TO_WORLD_RATIO, poly->y_left_upper/SCREEN_TO_WORLD_RATIO, poly->x_right_lower/SCREEN_TO_WORLD_RATIO, poly->y_right_lower/SCREEN_TO_WORLD_RATIO);
+  game_debug("left_upper: x: %d, y: %d, right_lower: x: %d, y: %d\n",
+      box->x_left_upper/SCREEN_TO_WORLD_RATIO,
+      box->y_left_upper/SCREEN_TO_WORLD_RATIO,
+      box->x_right_lower/SCREEN_TO_WORLD_RATIO,
+      box->y_right_lower/SCREEN_TO_WORLD_RATIO
+  );
 }
 
 void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_speed){
