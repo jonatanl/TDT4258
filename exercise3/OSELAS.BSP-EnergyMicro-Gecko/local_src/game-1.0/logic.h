@@ -58,10 +58,10 @@ struct asteroid{
     uint8_t index;  // when an asteroid is hit we need to know which
     struct bounding_box collision_box;  // Asteroid collision box
 
-    // The draw box list. This is sent to the draw module to update the part of
-    // the display covered by the asteroids movement.
-    struct bounding_box* draw_boxes;
-    int n_draw_boxes;
+//    // The draw box list. This is sent to the draw module to update the part of
+//    // the display covered by the asteroids movement.
+//    struct bounding_box* draw_boxes;
+//    int n_draw_boxes;
 };
 
 // Implementation of the logic module
