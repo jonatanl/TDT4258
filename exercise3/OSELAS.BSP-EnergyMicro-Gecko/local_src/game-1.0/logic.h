@@ -16,6 +16,9 @@
 
 // All coordinates are relative to the logical game dimensions 
 // rather than actual screen size
+//
+// NOTE: Polygon vertices must be listed in a counter-clockwise order in order
+// for time_of_collision() to work.
 struct polygon{
     int n_vertices;
     int32_t* x_coords;
@@ -55,10 +58,10 @@ struct asteroid{
     uint8_t index;  // when an asteroid is hit we need to know which
     struct bounding_box collision_box;  // Asteroid collision box
 
-    // The draw box list. This is sent to the draw module to update the part of
-    // the display covered by the asteroids movement.
-    struct bounding_box* draw_boxes;
-    int n_draw_boxes;
+//    // The draw box list. This is sent to the draw module to update the part of
+//    // the display covered by the asteroids movement.
+//    struct bounding_box* draw_boxes;
+//    int n_draw_boxes;
 };
 
 // Implementation of the logic module
@@ -89,6 +92,7 @@ typedef struct gamestate gamestate;
 typedef struct polygon polygon;
 typedef struct asteroid asteroid;
 typedef struct projectile projectile;
+typedef struct bounding_box bounding_box;
 
 // Initialize and release module
 int init_logic(struct gamestate** gamestate_ptr);
