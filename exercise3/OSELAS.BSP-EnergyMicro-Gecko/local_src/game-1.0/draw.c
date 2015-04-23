@@ -41,6 +41,8 @@ void update_asteroids_on_screen();
 void update_ship_on_screen();
 static void inline closest_screen_coordinate(int32_t* x, int32_t* y);
 static void inline world_to_screen_coordinate(int32_t* x, int32_t* y);
+static bool inline line_inside_screen(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
+static bool inline point_inside_screen(int32_t x, int32_t y);
 
 // Global variables
 static int fbfd;
@@ -212,18 +214,73 @@ static void inline closest_screen_coordinate(int32_t* x, int32_t* y)
   *y = ARG_MAX(*y, 0);
 }
 
+// Returns true if the point (x, y) is inside the screen
+static bool inline point_inside_screen(int32_t x, int32_t y)
+{
+  return (0 <= x) | (x < DISPLAY_WIDTH)
+       | (0 <= y) | (y < DISPLAY_HEIGHT);
+}
+
+// Returns true if the line from (x1, y1) to (x2, y2) is inside the screen
+static bool inline line_inside_screen(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
+{
+  return (0 <= x1) | (x1 < DISPLAY_WIDTH)
+       | (0 <= x2) | (x2 < DISPLAY_WIDTH)
+       | (0 <= y1) | (y1 < DISPLAY_HEIGHT)
+       | (0 <= y2) | (y2 < DISPLAY_HEIGHT);
+}
+
+// Returns the last point on the line that is inside the screen
+static void inline bound_line(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t* x_cut, int32_t* y_cut)
+{
+  int outcode1 = 0;
+  int outcode2 = 0;
+
+  // Compute the outcodes
+  outcode1 |= (y1 >= DISPLAY_HEIGHT) << 0;
+  outcode1 |= (y1 < 0)               << 1;
+  outcode1 |= (x1 >= DISPLAY_WIDTH)  << 2;
+  outcode1 |= (x1 < 0)               << 3;
+  outcode2 |= (y2 >= DISPLAY_HEIGHT) << 0;
+  outcode2 |= (y2 < 0)               << 1;
+  outcode2 |= (x2 >= DISPLAY_WIDTH)  << 2;
+  outcode2 |= (x2 < 0)               << 3;
+
+  if((outcode1 | outcode2) == 0){       // line is entirely inside
+    // TODO
+  }else if((outcode1 & outcode2) != 0){ // line is entirely outside
+    // TODO
+  }else switch(outcode1 ^ outcode2){    // indeterminate
+    // TODO
+  }
+  // NOTE: This code will probably end up somewhere else
+}
+
 void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
 {
-  int x1 = (x_coords[0] + my_screen_transform.translate_x) / SCREEN_TO_WORLD_RATIO;
-  int y1 = (y_coords[0] + my_screen_transform.translate_y) / SCREEN_TO_WORLD_RATIO;
+  int x1;
+  int y1;
   int x2;
   int y2;
 
+  x1 = (x_coords[0] + my_screen_transform.translate_x);
+  y1 = (y_coords[0] + my_screen_transform.translate_y);
+  world_to_screen_coordinate(&x1, &y1); 
+
   // Draw the polyline edges
   for(int i=1; i<n_points; i++){
-    x2 = (x_coords[i] + my_screen_transform.translate_x) / SCREEN_TO_WORLD_RATIO;
-    y2 = (y_coords[i] + my_screen_transform.translate_y) / SCREEN_TO_WORLD_RATIO;
-    do_draw_line(x1, y1, x2, y2);
+
+    // Calculate the next line end-point
+    x2 = (x_coords[i] + my_screen_transform.translate_x);
+    y2 = (y_coords[i] + my_screen_transform.translate_y);
+    world_to_screen_coordinate(&x2, &y2); 
+
+    // Only draw the line if it is inside the screen
+    if(line_inside_screen(x1, y1, x2, y2)){
+      do_draw_line(x1, y1, x2, y2);
+    }
+
+    // Reuse the calculated coordinates for the next line
     x1 = x2;
     y1 = y2;
   }
@@ -231,7 +288,9 @@ void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
   // Draw a line from the last to the first point
   x2 = (x_coords[0] + my_screen_transform.translate_x) / SCREEN_TO_WORLD_RATIO;
   y2 = (y_coords[0] + my_screen_transform.translate_y) / SCREEN_TO_WORLD_RATIO;
-  do_draw_line(x1, y1, x2, y2);
+  if(line_inside_screen(x1, y1, x2, y2)){
+    do_draw_line(x1, y1, x2, y2);
+  }
 }
 
 // This function calls one of four line rasterization functions based on which

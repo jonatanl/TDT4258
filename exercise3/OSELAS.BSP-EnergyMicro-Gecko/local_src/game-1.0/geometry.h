@@ -11,6 +11,23 @@
 int32_t dot_product(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 
 
+// Returns the intersection between two lines in (ix, iy). If the lines do not
+// intersect, the result is undefined.
+//
+// ASSERT: No line end-points are equal, and the lines are not parallel. 
+void get_line_intersection(
+    int32_t line1_x1,
+    int32_t line1_y1,
+    int32_t line1_x2,
+    int32_t line1_y2,
+    int32_t line2_x1,
+    int32_t line2_y1,
+    int32_t line2_x2,
+    int32_t line2_y2,
+    int32_t* ix,
+    int32_t* iy);
+
+
 // Finds the time of intersection for two moving convex polygons.
 //
 // Returns 'true' if the two polygons intersect in the time interval [0,

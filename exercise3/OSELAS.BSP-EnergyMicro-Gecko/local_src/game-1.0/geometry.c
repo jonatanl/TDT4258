@@ -28,6 +28,46 @@ void min_max_dot_product(int32_t x, int32_t y,
 }
 
 
+bool line_intersects_line(
+    int32_t line1_x1,
+    int32_t line1_y1,
+    int32_t line1_x2,
+    int32_t line1_y2,
+    int32_t line2_x1,
+    int32_t line2_y1,
+    int32_t line2_x2,
+    int32_t line2_y2
+    )
+{
+  // TODO
+  return true;
+}
+
+
+void get_line_intersection(
+    int32_t line1_x1,
+    int32_t line1_y1,
+    int32_t line1_x2,
+    int32_t line1_y2,
+    int32_t line2_x1,
+    int32_t line2_y1,
+    int32_t line2_x2,
+    int32_t line2_y2,
+    int32_t* ix,
+    int32_t* iy)
+{
+  int32_t line1_dx = line1_x2 - line1_x1;
+  int32_t line1_dy = line1_y2 - line1_y1;
+  int32_t line2_dx = line2_x2 - line2_x1;
+  int32_t line2_dy = line2_y2 - line2_y1;
+  int line1_t;
+  line1_t  = (line2_y1 - line1_y1) * line1_dx - (line2_x1 - line1_x1) * line2_dy;
+  line1_t /= (line2_dx * line1_dy) - (line2_dy * line1_dx);
+  *ix = line1_x1 + (line1_dx * line1_t);
+  *iy = line1_y1 + (line1_dy * line1_t);
+}
+
+
 // NOTE: Running time is O(m x n) where m and n is the number of edges in each
 // polygon. This can be improved to O(m x log(n)) by implementing a binary
 // search in min_max_dot_product(). However, for small polygons the improvement
