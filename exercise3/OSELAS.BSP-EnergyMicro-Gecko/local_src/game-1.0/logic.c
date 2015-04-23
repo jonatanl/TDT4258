@@ -12,7 +12,7 @@
 #include "spaceship.h"
 
 #define PRINT_POSITION  false
-#define PRINT_INPUT     true
+#define PRINT_INPUT     false
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ void update_ship(){
     uint8_t input = get_input();
     update_bounding_box(&game.ship.collision_box, &game.ship.poly, game.ship.x_pos, game.ship.y_pos);
 
-    print_bounding_box(&game.ship.collision_box);
+    // print_bounding_box(&game.ship.collision_box);
 
     if(CHECK_PAUSE(input)){
         // Do pause
@@ -190,7 +190,6 @@ void update_ship(){
     }
 
     if(CHECK_DEBUG(input)){
-      game_debug("## ## DEBUG ## ## \nATTEMPTING TO KILL ASTEROID\n ## ## DEBUG ## ##\n");
       kill_asteroid(0);
     }
 
@@ -257,7 +256,10 @@ void do_shoot(void){
 // Handles a killed asteroid. Spawns 2 smaller asteroids if big asteroid is killed
 // Also handles list of active asteroids
 void kill_asteroid(int index){
-  game_debug("Attempting to kill asteroid %d\nCurrent status:", index);
+  if(game.n_asteroids <= 0){
+    return;
+  }
+  game_debug("Attempting to kill asteroid %d\nCurrent status:\n", index);
   print_asteroid_status();
   if(game.active_asteroids[index]->type == SML){
     game_debug("Killing small asteroid\n");
@@ -375,10 +377,6 @@ int init_logic(struct gamestate** gamestate_ptr){
 
   // RANDOMNESS GUARANTEED!
   srand(2);
-
-  for(int i = 0; i < 10; i++){
-    game_debug("Here's a random int %d\n", rand());
-  }
 
   // Initialize the gamestate struct
   init_ship(&game.ship);
