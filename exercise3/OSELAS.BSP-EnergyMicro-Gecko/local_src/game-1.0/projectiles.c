@@ -1,0 +1,75 @@
+#include "projectiles.h"
+#include "input.h"
+#include "logic.h"
+#include "util.h"
+#include "debug.h"
+
+#include <stdbool.h>
+#include <stdlib.h>
+
+struct gamestate* game;
+struct projectile my_projectiles[MAX_AMOUNT_PROJECTILES];
+int free_spots[MAX_AMOUNT_PROJECTILES] = {0};
+
+void spawn_projectile();
+
+void do_shoot(void){
+  if(game->n_projectiles >= MAX_AMOUNT_PROJECTILES){
+    return;
+  }
+  spawn_projectile();
+}
+
+// Spawns and inserts a projectile
+// Since this function is somewhat obtuse it is commented liberally
+void spawn_projectile(){
+  int index = -1;
+  for(index = 0; index < MAX_AMOUNT_PROJECTILES; index++){
+    if(free_spots[index] == 0){
+      free_spots[index] = 1;
+      break;
+    }
+  }
+  if(index == -1){game_debug("No free projectile spot found, this should not happen\n");}
+
+  projectile* projectile = &my_projectiles[index];
+  projectile->x_pos = game->ship->x_pos;
+  projectile->y_pos = game->ship->y_pos;
+
+  // TODO make sensible speed values based on ship rotation
+  projectile->x_speed = (int)game->ship->x_orientation*SCREEN_TO_WORLD_RATIO*30;
+  projectile->y_speed = (int)game->ship->y_orientation*SCREEN_TO_WORLD_RATIO*30;
+
+  game->active_projectiles[game->n_projectiles++] = projectile;
+}
+
+void kill_projectile(int index){
+  if(game->n_projectiles <= 0){
+    return;
+  }
+  free_spots[game->active_projectiles[index] - my_projectiles] = 0;
+  game->active_projectiles[index] = game->active_projectiles[--game->n_projectiles];
+}
+
+void update_projectiles() {
+  for (int i = 0; i < game->n_projectiles; ++i) {
+    game->active_projectiles[i]->x_pos += game->active_projectiles[i]->x_speed;
+    game->active_projectiles[i]->y_pos += game->active_projectiles[i]->y_speed;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+////////////////
+////////////////        Initializer methods
+////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+void init_projectiles(gamestate* game_ptr){
+  game = game_ptr;
+  game->active_projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
+  game->n_projectiles = 0;
+}

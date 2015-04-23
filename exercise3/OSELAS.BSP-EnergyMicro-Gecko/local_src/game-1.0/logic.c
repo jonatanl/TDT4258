@@ -11,6 +11,7 @@
 #include "debug.h"
 #include "spaceship.h"
 #include "asteroids.h"
+#include "projectiles.h"
 
 #define PRINT_POSITION  false
 #define PRINT_INPUT     false
@@ -46,8 +47,6 @@ void kill_projectile(int index);
 
 // Global variables
 struct gamestate game;
-struct projectile my_projectiles[MAX_AMOUNT_PROJECTILES];
-int free_spots[MAX_AMOUNT_PROJECTILES] = {0};
 
 void do_logic(){
     uint8_t input = get_input();
@@ -109,12 +108,7 @@ bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaces
 //        &&  INTERSECTS(box1->y_right_lower, box1->y_left_upper,  box2->y_right_lower, box2->y_left_upper));
 //}
 
-void update_projectiles() {
-  for (int i = 0; i < game.n_projectiles; ++i) {
-    game.active_projectiles[i]->x_pos += game.active_projectiles[i]->x_speed;
-    game.active_projectiles[i]->y_pos += game.active_projectiles[i]->y_speed;
-  }
-}
+
 
 void do_wrap(int32_t* x_pos, int32_t* y_pos){
     if(*x_pos >= DEFAULT_WORLD_X_DIM){
@@ -145,43 +139,7 @@ bool check_poly_collision(polygon* p1, polygon* p2){
     return true;
 }
 
-void do_shoot(void){
-  if(game.n_projectiles >= MAX_AMOUNT_PROJECTILES){
-    return;
-  }
-  spawn_projectile();
-}
 
-// Spawns and inserts a projectile
-// Since this function is somewhat obtuse it is commented liberally
-void spawn_projectile(){
-  int index = -1;
-  for(index = 0; index < MAX_AMOUNT_PROJECTILES; index++){
-    if(free_spots[index] == 0){
-      free_spots[index] = 1;
-      break;
-    }
-  }
-  if(index == -1){game_debug("No free projectile spot found, this should not happen\n");}
-
-  projectile* projectile = &my_projectiles[index];
-  projectile->x_pos = game.ship->x_pos;
-  projectile->y_pos = game.ship->y_pos;
-
-  // TODO make sensible speed values based on ship rotation
-  projectile->x_speed = (int)game.ship->x_orientation*SCREEN_TO_WORLD_RATIO*30;
-  projectile->y_speed = (int)game.ship->y_orientation*SCREEN_TO_WORLD_RATIO*30;
-
-  game.active_projectiles[game.n_projectiles++] = projectile;
-}
-
-void kill_projectile(int index){
-  if(game.n_projectiles <= 0){
-    return;
-  }
-  free_spots[game.active_projectiles[index] - my_projectiles] = 0;
-  game.active_projectiles[index] = game.active_projectiles[--game.n_projectiles];
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,19 +158,13 @@ int init_logic(struct gamestate** gamestate_ptr){
   // RANDOMNESS GUARANTEED!
   srand(2);
 
-  // Initialize the gamestate struct
+  // Initialize the gamestate struct, and all the submodules for tracking gamestate
   init_spaceship(&game.ship);
-  game.n_asteroids = START_ASTEROIDS;
-  game.n_big_asteroids = START_ASTEROIDS;
-  game.n_med_asteroids = 0;
-  game.n_sml_asteroids = 0;
-  game.active_projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
-  game.n_projectiles = 0;
+  init_asteroids(&game);
+  init_projectiles(&game);
+  init_asteroids(&game);
   game.world_x_dim = DEFAULT_WORLD_X_DIM;
   game.world_y_dim = DEFAULT_WORLD_Y_DIM;
-
-  // Initialize all asteroids
-  init_asteroids(&game);
 
   *gamestate_ptr = &game;
 

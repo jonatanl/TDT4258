@@ -9,7 +9,7 @@
 
 #define MAX_AMOUNT_ASTEROIDS    LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + SMALL_ASTEROIDS  
 #define MAX_ALIVE_ASTEROIDS     LARGE_ASTEROIDS*LARGE_BRANCH*MEDIUM_BRANCH
-#define MAX_AMOUNT_PROJECTILES  5
 
 void init_asteroids();
 void kill_asteroid(int index);
+void update_asteroids();
