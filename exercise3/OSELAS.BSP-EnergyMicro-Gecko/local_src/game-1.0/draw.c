@@ -5,6 +5,7 @@
 #include <sys/mman.h>  // mmap(), munmap()
 #include <sys/ioctl.h> // ioctl()
 #include <linux/fb.h>  // struct fb_copyarea
+#include <stdlib.h> // absolute value abs()
 
 #include "draw.h"
 #include "game.h"
@@ -34,6 +35,9 @@ void draw_line_octant2(int is, int ie, int dx, int dy);
 void draw_line_octant3(int is, int ie, int dx, int dy);
 void draw_line_octant8(int is, int ie, int dx, int dy);
 void test_draw(void);
+void update_partial_display(int x, int y, int new_x, int new_y, bounding_box* collision_box);
+void update_asteroids();
+void update_ship();
 
 // Global variables
 static int fbfd;
@@ -57,10 +61,75 @@ static struct screen_transform
 void update_display(void)
 {
   // update the display
-  rect.dx = 0;
-  rect.dy = 0;
-  rect.width  = DISPLAY_WIDTH;
-  rect.height = DISPLAY_HEIGHT;
+  //rect.dx = 0;
+  //rect.dy = 0;
+  //rect.width  = DISPLAY_WIDTH;
+  //rect.height = DISPLAY_HEIGHT;
+  //ioctl(fbfd, 0x4680, &rect);
+
+  // Update partial display
+  update_ship();
+  update_asteroids();
+}
+
+void update_asteroids() {
+  asteroid** asteroids = my_gamestate->active_asteroids;
+  asteroid* asteroid;
+
+  for (int i = 0; i < my_gamestate->n_asteroids; ++i) {
+    asteroid = asteroids[i];
+    int old_x = asteroid->x_pos - asteroid->x_speed;
+    int old_y = asteroid->y_pos - asteroid->y_speed;
+    int new_x = asteroid->x_pos;
+    int new_y = asteroid->y_pos;
+
+    update_partial_display(old_x, old_y, new_x, new_y, &asteroid->collision_box);
+  }
+}
+
+void update_ship() {
+  ship_object* ship = &my_gamestate->ship;
+  int old_x = ship->x_pos - ship->x_speed;
+  int old_y = ship->y_pos - ship->y_speed;
+  int new_x = ship->x_pos;
+  int new_y = ship->y_pos;
+
+  update_partial_display(old_x, old_y, new_x, new_y, &ship->collision_box);
+}
+
+void update_partial_display(int old_x, int old_y, int new_x, int new_y, bounding_box* collision_box) {
+  // Convert to pixels coordinates
+  old_x /= SCREEN_TO_WORLD_RATIO;
+  old_y /= SCREEN_TO_WORLD_RATIO;
+  new_x /= SCREEN_TO_WORLD_RATIO;
+  new_y /= SCREEN_TO_WORLD_RATIO;
+  int dx = abs(old_x - new_x) / SCREEN_TO_WORLD_RATIO;
+  int dy = abs(old_y - new_y) / SCREEN_TO_WORLD_RATIO;
+  int width = (collision_box->x_right_lower - collision_box->x_left_upper) / SCREEN_TO_WORLD_RATIO;
+  int height = (collision_box->y_right_lower - collision_box->y_left_upper) / SCREEN_TO_WORLD_RATIO;
+
+  // Determine if it is faster to update one or two rectangles
+  if ((width + dx) * (height + dy) > 2 * width * height) {
+    // Update one rectangle
+    rect.dx = old_x;
+    rect.dy = old_y;
+    rect.width  = width;
+    rect.height = height;
+
+  } else {
+    // Update two rectangles
+    rect.dx = old_x;
+    rect.dy = old_y;
+    rect.width  = width;
+    rect.height = height;
+    // Update first of two rectangles
+    ioctl(fbfd, 0x4680, &rect);
+
+    // Only the x and y position has changed for the second rectangle
+    rect.dx = new_x;
+    rect.dy = new_y;
+  }
+
   ioctl(fbfd, 0x4680, &rect);
 }
 
