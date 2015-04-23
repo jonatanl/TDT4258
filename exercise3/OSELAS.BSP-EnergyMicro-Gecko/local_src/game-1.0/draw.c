@@ -36,8 +36,8 @@ void draw_line_octant3(int is, int ie, int dx, int dy);
 void draw_line_octant8(int is, int ie, int dx, int dy);
 void test_draw(void);
 void update_partial_display(int x, int y, int new_x, int new_y, bounding_box* collision_box);
-void update_asteroids();
-void update_ship();
+void update_asteroids_on_screen();
+void update_ship_on_screen();
 
 // Global variables
 static int fbfd;
@@ -68,11 +68,11 @@ void update_display(void)
   //ioctl(fbfd, 0x4680, &rect);
 
   // Update partial display
-  update_ship();
-  update_asteroids();
+  update_ship_on_screen();
+  update_asteroids_on_screen();
 }
 
-void update_asteroids() {
+void update_asteroids_on_screen() {
   asteroid** asteroids = my_gamestate->active_asteroids;
   asteroid* asteroid;
 
@@ -87,8 +87,8 @@ void update_asteroids() {
   }
 }
 
-void update_ship() {
-  ship_object* ship = &my_gamestate->ship;
+void update_ship_on_screen() {
+  spaceship* ship = &my_gamestate->ship;
   int old_x = ship->x_pos - ship->x_speed;
   int old_y = ship->y_pos - ship->y_speed;
   int new_x = ship->x_pos;
