@@ -84,6 +84,7 @@ void do_draw_all(void)
   struct polygon* pol;
   struct spaceship* spaceship;
 
+game_debug("do_draw_all()\n");
   
   // Draw all asteroids
   for(int i=0; i<num_asteroids; i++){
@@ -97,7 +98,7 @@ void do_draw_all(void)
 
 
   // Draw spaceship
-  spaceship = &(my_gamestate->ship);
+  spaceship = my_gamestate->ship;
   my_screen_transform.translate_x = spaceship->x_pos;
   my_screen_transform.translate_y = spaceship->y_pos;
   pol = &(spaceship->poly);
