@@ -3,6 +3,7 @@
 #define _UTIL_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "logic.h"
 
 //-----------------------------------------------------------
