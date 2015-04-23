@@ -82,18 +82,18 @@ void update_gamestate(uint8_t input){
 }
 
 bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaceship* spaceship){
-    struct bounding_box* box1 = &asteroid->collision_box;
-    struct bounding_box* box2 = &spaceship->collision_box;
-    return  INTERSECTS(
-                box1->x_left_upper  + asteroid->x_pos,
-                box1->x_right_lower + asteroid->x_pos,
-                box2->x_left_upper  + spaceship->x_pos,
-                box2->x_right_lower + spaceship->x_pos) && 
-            INTERSECTS(
-                box1->y_right_lower + asteroid->y_pos,
-                box1->y_left_upper  + asteroid->y_pos,
-                box2->y_right_lower + spaceship->y_pos,
-                box2->y_left_upper  + spaceship->y_pos);
+  struct bounding_box* box1 = &asteroid->collision_box;
+  struct bounding_box* box2 = &spaceship->collision_box;
+  return  INTERSECTS(
+              box1->x_left_upper  + asteroid->x_pos,
+              box1->x_right_lower + asteroid->x_pos,
+              box2->x_left_upper  + spaceship->x_pos,
+              box2->x_right_lower + spaceship->x_pos) && 
+          INTERSECTS(
+              box1->y_right_lower + asteroid->y_pos,
+              box1->y_left_upper  + asteroid->y_pos,
+              box2->y_right_lower + spaceship->y_pos,
+              box2->y_left_upper  + spaceship->y_pos);
 }
 //bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2){
 //    return( INTERSECTS(box1->x_left_upper,  box1->x_right_lower, box2->x_left_upper,  box2->x_right_lower)
@@ -103,28 +103,28 @@ bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaces
 
 
 void do_wrap(int32_t* x_pos, int32_t* y_pos){
-    if(*x_pos >= DEFAULT_WORLD_X_DIM){
-        *x_pos -= DEFAULT_WORLD_X_DIM; 
-    }
-    else if(*x_pos < 0){
-        *x_pos += DEFAULT_WORLD_X_DIM;
-    }
-    if(*y_pos >= DEFAULT_WORLD_Y_DIM){
-        *y_pos -= DEFAULT_WORLD_Y_DIM; 
-    }
-    else if(*y_pos < 0){
-        *y_pos += DEFAULT_WORLD_Y_DIM;
-    }
+  if(*x_pos >= DEFAULT_WORLD_X_DIM){
+    *x_pos -= DEFAULT_WORLD_X_DIM; 
+  }
+  else if(*x_pos < 0){
+    *x_pos += DEFAULT_WORLD_X_DIM;
+  }
+  if(*y_pos >= DEFAULT_WORLD_Y_DIM){
+    *y_pos -= DEFAULT_WORLD_Y_DIM; 
+  }
+  else if(*y_pos < 0){
+    *y_pos += DEFAULT_WORLD_Y_DIM;
+  }
 }
 
 void check_box_collisions(){
-    for(int i = 0; i < game.n_asteroids; i++){
-        if(check_asteroid_spaceship_collision(&game.asteroids[i], game.ship)){
-            if(check_poly_collision(&game.ship->poly, &game.asteroids[i].poly)){
-                game_debug("GAME OVER MAN, GAME OVER\n");
-            }
-        }
+  for(int i = 0; i < game.n_asteroids; i++){
+    if(check_asteroid_spaceship_collision(&game.asteroids[i], game.ship)){
+      if(check_poly_collision(&game.ship->poly, &game.asteroids[i].poly)){
+        game_debug("GAME OVER MAN, GAME OVER\n");
+      }
     }
+  }
 }
 
 bool check_poly_collision(polygon* p1, polygon* p2){
