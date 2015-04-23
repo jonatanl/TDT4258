@@ -252,8 +252,8 @@ void spawn_projectile(){
   if(index == -1){game_debug("No free projectile spot found, this should not happen\n");}
 
   projectile* projectile = &my_projectiles[index];
-  projectile->x_pos = game.ship.x_pos;
-  projectile->y_pos = game.ship.y_pos;
+  projectile->x_pos = game.ship->x_pos;
+  projectile->y_pos = game.ship->y_pos;
 
   // TODO make sensible speed values based on ship rotation
   projectile->x_speed = 10*SCREEN_TO_WORLD_RATIO;
