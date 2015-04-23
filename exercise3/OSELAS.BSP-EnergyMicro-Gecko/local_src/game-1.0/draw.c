@@ -5,13 +5,14 @@
 #include <sys/mman.h>  // mmap(), munmap()
 #include <sys/ioctl.h> // ioctl()
 #include <linux/fb.h>  // struct fb_copyarea
-#include <stdlib.h> // absolute value abs()
+#include <stdlib.h>    // absolute value abs()
 
 #include "draw.h"
 #include "game.h"
 #define DEBUG
 #include "debug.h"
 #include "logic.h"
+#include "util.h"
 
 // Hard-coded framebuffer parameters
 #define FB_DEVICE_PATH    ("/dev/fb0")
@@ -35,9 +36,11 @@ void draw_line_octant2(int is, int ie, int dx, int dy);
 void draw_line_octant3(int is, int ie, int dx, int dy);
 void draw_line_octant8(int is, int ie, int dx, int dy);
 void test_draw(void);
-void update_partial_display(int x, int y, int new_x, int new_y, bounding_box* collision_box);
+void update_partial_display(int x, int y, int new_x, int new_y, bounding_box collision_box);
 void update_asteroids_on_screen();
 void update_ship_on_screen();
+static void inline closest_screen_coordinate(int32_t* x, int32_t* y);
+static void inline world_to_screen_coordinate(int32_t* x, int32_t* y);
 
 // Global variables
 static int fbfd;
@@ -61,15 +64,15 @@ static struct screen_transform
 void update_display(void)
 {
   // update the display
-  //rect.dx = 0;
-  //rect.dy = 0;
-  //rect.width  = DISPLAY_WIDTH;
-  //rect.height = DISPLAY_HEIGHT;
-  //ioctl(fbfd, 0x4680, &rect);
+  rect.dx = 0;
+  rect.dy = 0;
+  rect.width  = DISPLAY_WIDTH;
+  rect.height = DISPLAY_HEIGHT;
+  ioctl(fbfd, 0x4680, &rect);
 
   // Update partial display
-  update_ship_on_screen();
-  update_asteroids_on_screen();
+  //update_ship_on_screen();
+  //update_asteroids_on_screen();
 }
 
 void update_asteroids_on_screen() {
@@ -83,30 +86,42 @@ void update_asteroids_on_screen() {
     int new_x = asteroid->x_pos;
     int new_y = asteroid->y_pos;
 
-    update_partial_display(old_x, old_y, new_x, new_y, &asteroid->collision_box);
+    update_partial_display(old_x, old_y, new_x, new_y, asteroid->collision_box);
   }
 }
 
 void update_ship_on_screen() {
-  spaceship* ship = &my_gamestate->ship;
+  spaceship* ship = my_gamestate->ship;
   int old_x = ship->x_pos - ship->x_speed;
   int old_y = ship->y_pos - ship->y_speed;
   int new_x = ship->x_pos;
   int new_y = ship->y_pos;
 
-  update_partial_display(old_x, old_y, new_x, new_y, &ship->collision_box);
+  update_partial_display(old_x, old_y, new_x, new_y, ship->collision_box);
 }
 
-void update_partial_display(int old_x, int old_y, int new_x, int new_y, bounding_box* collision_box) {
-  // Convert to pixels coordinates
-  old_x /= SCREEN_TO_WORLD_RATIO;
-  old_y /= SCREEN_TO_WORLD_RATIO;
-  new_x /= SCREEN_TO_WORLD_RATIO;
-  new_y /= SCREEN_TO_WORLD_RATIO;
-  int dx = abs(old_x - new_x) / SCREEN_TO_WORLD_RATIO;
-  int dy = abs(old_y - new_y) / SCREEN_TO_WORLD_RATIO;
-  int width = (collision_box->x_right_lower - collision_box->x_left_upper) / SCREEN_TO_WORLD_RATIO;
-  int height = (collision_box->y_right_lower - collision_box->y_left_upper) / SCREEN_TO_WORLD_RATIO;
+void update_partial_display(int old_x, int old_y, int new_x, int new_y, bounding_box collision_box) {
+  // Convert to pixels coordinates and make shure they are inside the screen
+  world_to_screen_coordinate(&old_x, &old_y);
+  closest_screen_coordinate(&old_x, &old_y);
+
+  // Convert to pixels coordinates and make shure they are inside the screen
+  world_to_screen_coordinate(&new_x, &new_y);
+  closest_screen_coordinate(&new_x, &new_y);
+  
+  int dx = abs(old_x - new_x);
+  int dy = abs(old_y - new_y);
+
+  // Convert to pixels coordinates and make shure they are inside the screen
+  world_to_screen_coordinate(&collision_box.x_right_lower, &collision_box.y_right_lower);
+  closest_screen_coordinate(&collision_box.y_right_lower, &collision_box.y_right_lower);
+
+  // Convert to pixels coordinates and make shure they are inside the screen
+  world_to_screen_coordinate(&collision_box.x_left_upper, &collision_box.y_left_upper);
+  closest_screen_coordinate(&collision_box.x_left_upper, &collision_box.y_left_upper);
+
+  int width = collision_box.x_right_lower - collision_box.x_left_upper;
+  int height = collision_box.y_right_lower - collision_box.y_left_upper;
 
   // Determine if it is faster to update one or two rectangles
   if ((width + dx) * (height + dy) > 2 * width * height) {
@@ -122,6 +137,7 @@ void update_partial_display(int old_x, int old_y, int new_x, int new_y, bounding
     rect.dy = old_y;
     rect.width  = width;
     rect.height = height;
+
     // Update first of two rectangles
     ioctl(fbfd, 0x4680, &rect);
 
@@ -190,10 +206,10 @@ static void inline world_to_screen_coordinate(int32_t* x, int32_t* y)
 
 static void inline closest_screen_coordinate(int32_t* x, int32_t* y)
 {
-  *x = min(*x, SCREEN_TO_WORLD_RATIO - 1);
-  *x = max(*x, 0);
-  *y = min(*y, SCREEN_TO_WORLD_RATIO - 1);
-  *y = max(*y, 0);
+  *x = ARG_MIN(*x, SCREEN_TO_WORLD_RATIO - 1);
+  *x = ARG_MAX(*x, 0);
+  *y = ARG_MIN(*y, SCREEN_TO_WORLD_RATIO - 1);
+  *y = ARG_MAX(*y, 0);
 }
 
 void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
