@@ -73,6 +73,9 @@ const int32_t asteroid1_y_coords[];
 const int32_t asteroid2_n_coords;
 const int32_t asteroid2_x_coords[];
 const int32_t asteroid2_y_coords[]; 
+const int32_t asteroid3_n_coords;
+const int32_t asteroid3_x_coords[];
+const int32_t asteroid3_y_coords[]; 
 
 // Global variables
 struct gamestate game;
@@ -417,9 +420,9 @@ int init_logic(struct gamestate** gamestate_ptr){
       else{
         type = SML;
         init_asteroid(
-            asteroid2_n_coords,
-            (int32_t*)&asteroid2_x_coords[0],
-            (int32_t*)&asteroid2_y_coords[0],
+            asteroid3_n_coords,
+            (int32_t*)&asteroid3_x_coords[0],
+            (int32_t*)&asteroid3_y_coords[0],
             &game.asteroids[i],
             type
         );
@@ -539,5 +542,28 @@ const int32_t asteroid2_y_coords[8] = {
   18 * SCREEN_TO_WORLD_RATIO, 
   13 * SCREEN_TO_WORLD_RATIO, 
    4 * SCREEN_TO_WORLD_RATIO, 
+   0 * SCREEN_TO_WORLD_RATIO, 
+};
+const int32_t asteroid3_n_coords = 9;   // small asteroid
+const int32_t asteroid3_x_coords[9] = {
+   4 * SCREEN_TO_WORLD_RATIO,
+   0 * SCREEN_TO_WORLD_RATIO,
+   0 * SCREEN_TO_WORLD_RATIO,
+   3 * SCREEN_TO_WORLD_RATIO,  
+   6 * SCREEN_TO_WORLD_RATIO, 
+   8 * SCREEN_TO_WORLD_RATIO, 
+  10 * SCREEN_TO_WORLD_RATIO, 
+  10 * SCREEN_TO_WORLD_RATIO, 
+   7 * SCREEN_TO_WORLD_RATIO, 
+};
+const int32_t asteroid3_y_coords[9] = { 
+   0 * SCREEN_TO_WORLD_RATIO,
+   4 * SCREEN_TO_WORLD_RATIO,
+   7 * SCREEN_TO_WORLD_RATIO,
+   9 * SCREEN_TO_WORLD_RATIO, 
+   9 * SCREEN_TO_WORLD_RATIO, 
+   9 * SCREEN_TO_WORLD_RATIO, 
+   7 * SCREEN_TO_WORLD_RATIO, 
+   3 * SCREEN_TO_WORLD_RATIO, 
    0 * SCREEN_TO_WORLD_RATIO, 
 };
