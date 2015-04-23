@@ -100,24 +100,23 @@ void do_logic(){
         do_shoot();
     }
 
-    // print_bounding_box(&game.ship.collision_box);
     update_gamestate();
     update_projectiles();
     // Check collisions
 }
 
 void update_gamestate(){
-    struct asteroid* current_asteroid;
+  struct asteroid* current_asteroid;
 
-    for(int i = 0; i < game.n_asteroids; i++){
-        current_asteroid = game.active_asteroids[i];
-        current_asteroid->x_pos += current_asteroid->x_speed;
-        current_asteroid->y_pos += current_asteroid->y_speed;
-        create_bounding_box(
-            &current_asteroid->collision_box,
-            &current_asteroid->poly
-        );
-    }
+  for(int i = 0; i < game.n_asteroids; i++){
+    current_asteroid = game.active_asteroids[i];
+    current_asteroid->x_pos += current_asteroid->x_speed;
+    current_asteroid->y_pos += current_asteroid->y_speed;
+    create_bounding_box(
+      &current_asteroid->collision_box,
+      &current_asteroid->poly
+    );
+  }
 }
 
 bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaceship* spaceship){
@@ -141,8 +140,8 @@ bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaces
 
 void update_projectiles() {
   for (int i = 0; i < game.n_projectiles; ++i) {
-    game.projectiles[i]->x_pos += game.projectiles[i]->x_speed;
-    game.projectiles[i]->y_pos += game.projectiles[i]->y_speed;
+    game.active_projectiles[i]->x_pos += game.active_projectiles[i]->x_speed;
+    game.active_projectiles[i]->y_pos += game.active_projectiles[i]->y_speed;
   }
 }
 
@@ -256,19 +255,18 @@ void spawn_projectile(){
   projectile->y_pos = game.ship->y_pos;
 
   // TODO make sensible speed values based on ship rotation
-  projectile->x_speed = 10*SCREEN_TO_WORLD_RATIO;
-  projectile->y_speed = 10*SCREEN_TO_WORLD_RATIO;
+  projectile->x_speed = (int)game.ship->x_orientation*SCREEN_TO_WORLD_RATIO*30;
+  projectile->y_speed = (int)game.ship->y_orientation*SCREEN_TO_WORLD_RATIO*30;
 
-  // 
-  game.projectiles[game.n_projectiles++] = projectile;
+  game.active_projectiles[game.n_projectiles++] = projectile;
 }
 
 void kill_projectile(int index){
   if(game.n_projectiles <= 0){
     return;
   }
-  free_spots[game.projectiles[index] - my_projectiles] = 0;
-  game.projectiles[index] = game.projectiles[--game.n_projectiles];
+  free_spots[game.active_projectiles[index] - my_projectiles] = 0;
+  game.active_projectiles[index] = game.active_projectiles[--game.n_projectiles];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -318,7 +316,7 @@ int init_logic(struct gamestate** gamestate_ptr){
   game.n_big_asteroids = START_ASTEROIDS;
   game.n_med_asteroids = 0;
   game.n_sml_asteroids = 0;
-  game.projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
+  game.active_projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
   game.n_projectiles = 0;
   game.world_x_dim = DEFAULT_WORLD_X_DIM;
   game.world_y_dim = DEFAULT_WORLD_Y_DIM;

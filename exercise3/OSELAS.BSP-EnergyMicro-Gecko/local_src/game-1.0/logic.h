@@ -75,7 +75,7 @@ struct gamestate{
     int n_sml_asteroids;
     struct asteroid** active_asteroids;     // A list of pointers to the my_asteroids list stored in the data segment
     int n_projectiles;
-    struct projectile** projectiles;
+    struct projectile** active_projectiles;
     int32_t world_x_dim;
     int32_t world_y_dim; 
 };
