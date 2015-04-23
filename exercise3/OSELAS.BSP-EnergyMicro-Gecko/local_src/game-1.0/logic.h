@@ -34,7 +34,7 @@ struct bounding_box{
 };
 
 // Struct for ship properties. Only one(two?) should ever exist.
-struct ship_object{
+struct spaceship{
     int32_t x_pos;
     int32_t y_pos;
     int32_t x_speed;
@@ -66,7 +66,7 @@ struct asteroid{
 
 // Implementation of the logic module
 struct gamestate{
-    struct ship_object ship;
+    struct spaceship ship;
     struct asteroid* asteroids;             // A pointer to the list of asteroid structs in the segment
     int n_asteroids;                        // The counter for active asteroids
     int n_big_asteroids;    
@@ -87,7 +87,7 @@ struct projectile{
     int32_t y_speed;
 };
 
-typedef struct ship_object ship_object;
+typedef struct spaceship spaceship;
 typedef struct gamestate gamestate;
 typedef struct polygon polygon;
 typedef struct asteroid asteroid;

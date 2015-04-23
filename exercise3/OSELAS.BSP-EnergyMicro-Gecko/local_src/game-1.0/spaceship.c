@@ -5,7 +5,7 @@
 #include "util.h"
 
 // Rotate all vertices in ship clockwise
-void rotate_spaceship(struct ship_object *spaceship, bool clockwise) {
+void rotate_spaceship(struct spaceship *spaceship, bool clockwise) {
 	int numberOfVertices = spaceship->poly.n_vertices;
 
 	for (int i = 0; i < numberOfVertices; ++i) {

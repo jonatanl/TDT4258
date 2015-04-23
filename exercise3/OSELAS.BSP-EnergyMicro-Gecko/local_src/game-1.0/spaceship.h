@@ -4,6 +4,6 @@
 
 #include "logic.h"
 
-void rotate_spaceship(struct ship_object* spaceship, bool clockwise);
+void rotate_spaceship(struct spaceship* spaceship, bool clockwise);
 
 #endif // !_SPACESHIP_H
