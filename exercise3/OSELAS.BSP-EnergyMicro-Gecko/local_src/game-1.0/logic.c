@@ -253,7 +253,10 @@ bool check_poly_collision(polygon* p1, polygon* p2){
 }
 
 void do_shoot(void){
-
+  if(game.n_projectiles >= MAX_AMOUNT_PROJECTILES){
+    return;
+  }
+  spawn_projectile();
 }
 
 // Adds world coordinates to an asteroid
@@ -314,9 +317,6 @@ void kill_asteroid(int index){
 // Spawns and inserts a projectile
 // Since this function is somewhat obtuse it is commented liberally
 void spawn_projectile(){
-  if(game.n_projectiles >= MAX_AMOUNT_PROJECTILES){
-    return;
-  }
   int index = -1;
   for(index = 0; index < MAX_AMOUNT_PROJECTILES; index++){
     if(free_spots[index] == 0){
