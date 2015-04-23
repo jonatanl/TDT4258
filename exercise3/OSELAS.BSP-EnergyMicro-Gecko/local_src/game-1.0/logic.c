@@ -177,12 +177,10 @@ void update_ship(){
     if(!(CHECK_LEFT(input) && CHECK_RIGHT(input))){   
         
         if(CHECK_LEFT(input)){
-            // TODO rotation
-            rotate_counterclockwise(&game.ship);
+            rotate_spaceship(&game.ship, true);  // rotate counterclockwise
         }
         else if(CHECK_RIGHT(input)){
-            // TODO rotation
-            rotate_clockwise(&game.ship);
+            rotate_spaceship(&game.ship, false); // rotate counterclockwise
         }
     }
     if(CHECK_ACC(input)){
