@@ -35,7 +35,7 @@
 
 #define MAX_AMOUNT_ASTEROIDS    LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + SMALL_ASTEROIDS  
 #define MAX_ALIVE_ASTEROIDS     LARGE_ASTEROIDS*LARGE_BRANCH*MEDIUM_BRANCH
-#define MAX_AMOUNT_PROJECTILES  10
+#define MAX_AMOUNT_PROJECTILES  5
 
 #define BIG 2
 #define MED 1
@@ -56,6 +56,9 @@ void print_bounding_box(struct bounding_box* box);
 asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
 void kill_asteroid(int index);
 void print_asteroid_status();
+void spawn_projectile(void);
+void kill_projectile(int index);
+
 
 // Variable prototypes. These are here to avoid cluttering important source
 // code with long polygon definitions.
@@ -73,7 +76,7 @@ const int32_t asteroid3_y_coords[];
 struct gamestate game;
 struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
 struct projectile my_projectiles[MAX_AMOUNT_PROJECTILES];
-
+int free_spots[MAX_AMOUNT_PROJECTILES] = {0};
 
 void do_logic(){
     uint8_t input = get_input();
@@ -138,8 +141,8 @@ bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaces
 
 void update_projectiles() {
   for (int i = 0; i < game.n_projectiles; ++i) {
-    game.projectiles[i].x_pos += game.projectiles[i].x_speed;
-    game.projectiles[i].y_pos += game.projectiles[i].y_speed;
+    game.projectiles[i]->x_pos += game.projectiles[i]->x_speed;
+    game.projectiles[i]->y_pos += game.projectiles[i]->y_speed;
   }
 }
 
@@ -175,7 +178,17 @@ bool check_poly_collision(polygon* p1, polygon* p2){
 }
 
 void do_shoot(void){
+  if(game.n_projectiles >= MAX_AMOUNT_PROJECTILES){
+    return;
+  }
+  spawn_projectile();
+}
 
+// Adds world coordinates to an asteroid
+asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid){
+  asteroid->x_pos = x_pos;
+  asteroid->y_pos = y_pos;
+  return asteroid;
 }
 
 // Handles a killed asteroid. Spawns 2 smaller asteroids if big asteroid is killed
@@ -226,11 +239,36 @@ void kill_asteroid(int index){
   print_asteroid_status();
 }
 
-// Adds world coordinates to an asteroid
-asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid){
-  asteroid->x_pos = x_pos;
-  asteroid->y_pos = y_pos;
-  return asteroid;
+// Spawns and inserts a projectile
+// Since this function is somewhat obtuse it is commented liberally
+void spawn_projectile(){
+  int index = -1;
+  for(index = 0; index < MAX_AMOUNT_PROJECTILES; index++){
+    if(free_spots[index] == 0){
+      free_spots[index] = 1;
+      break;
+    }
+  }
+  if(index == -1){game_debug("No free projectile spot found, this should not happen\n");}
+
+  projectile* projectile = &my_projectiles[index];
+  projectile->x_pos = game.ship.x_pos;
+  projectile->y_pos = game.ship.y_pos;
+
+  // TODO make sensible speed values based on ship rotation
+  projectile->x_speed = 10*SCREEN_TO_WORLD_RATIO;
+  projectile->y_speed = 10*SCREEN_TO_WORLD_RATIO;
+
+  // 
+  game.projectiles[game.n_projectiles++] = projectile;
+}
+
+void kill_projectile(int index){
+  if(game.n_projectiles <= 0){
+    return;
+  }
+  free_spots[game.projectiles[index] - my_projectiles] = 0;
+  game.projectiles[index] = game.projectiles[--game.n_projectiles];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -280,7 +318,7 @@ int init_logic(struct gamestate** gamestate_ptr){
   game.n_big_asteroids = START_ASTEROIDS;
   game.n_med_asteroids = 0;
   game.n_sml_asteroids = 0;
-  game.projectiles = &my_projectiles[0];
+  game.projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
   game.n_projectiles = 0;
   game.world_x_dim = DEFAULT_WORLD_X_DIM;
   game.world_y_dim = DEFAULT_WORLD_Y_DIM;
