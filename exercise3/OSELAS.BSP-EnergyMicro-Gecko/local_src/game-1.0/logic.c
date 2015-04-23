@@ -47,7 +47,7 @@
 #define SML 0
 
 // Function prototypes
-void init_ship(struct ship_object* ship);
+void init_ship(struct spaceship* ship);
 void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* asteroid, uint8_t size);
 void do_logic();
 void do_shoot(void);
@@ -340,7 +340,7 @@ void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct as
 }
 
 // Initialize a spaceship
-void init_ship(struct ship_object* ship){
+void init_ship(struct spaceship* ship){
     ship->x_speed = 0;
     ship->y_speed = 0;
     ship->x_pos = DEFAULT_WORLD_X_DIM / 2;

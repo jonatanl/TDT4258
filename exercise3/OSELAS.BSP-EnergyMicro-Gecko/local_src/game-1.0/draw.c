@@ -82,7 +82,7 @@ void do_draw_all(void)
   struct asteroid** asteroids = my_gamestate->active_asteroids;
   struct asteroid* asteroid;
   struct polygon* pol;
-  struct ship_object* spaceship;
+  struct spaceship* spaceship;
 
   
   // Draw all asteroids
