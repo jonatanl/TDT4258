@@ -68,7 +68,6 @@ struct asteroid{
 // Implementation of the logic module
 struct gamestate{
     struct spaceship* ship;
-    struct asteroid* asteroids;             // A pointer to the list of asteroid structs in the segment
     int n_asteroids;                        // The counter for active asteroids
     int n_big_asteroids;    
     int n_med_asteroids;

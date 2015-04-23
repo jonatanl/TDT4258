@@ -82,6 +82,7 @@ void update_asteroids_on_screen() {
   asteroid* asteroid;
 
   for (int i = 0; i < my_gamestate->n_asteroids; ++i) {
+
     asteroid = asteroids[i];
     int old_x = asteroid->x_pos - asteroid->x_speed;
     int old_y = asteroid->y_pos - asteroid->y_speed;
@@ -165,14 +166,24 @@ void clear_all(void)
 
 void do_draw_all(void)
 {
+
   const int num_asteroids = my_gamestate->n_asteroids;
   struct asteroid** asteroids = my_gamestate->active_asteroids;
   struct asteroid* asteroid;
   struct polygon* pol;
   struct spaceship* spaceship;
   
+  if(asteroids == NULL){
+    game_debug("NULL asteroids\n");
+  }
+  
   // Draw all asteroids
   for(int i=0; i<num_asteroids; i++){
+    
+    if(asteroids[i] == NULL){
+      game_debug("NULL asteroid[%d]\n", i);
+    }
+    
     asteroid = asteroids[i];
     my_screen_transform.translate_x = asteroid->x_pos;
     my_screen_transform.translate_y = asteroid->y_pos;

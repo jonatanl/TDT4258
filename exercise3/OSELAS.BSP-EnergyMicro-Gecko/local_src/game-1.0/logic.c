@@ -29,7 +29,6 @@
 
 
 // Function prototypes
-void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* asteroid, uint8_t size);
 void do_logic();
 void do_shoot(void);
 void update_gamestate(uint8_t input);
@@ -49,6 +48,7 @@ void kill_projectile(int index);
 struct gamestate game;
 
 void do_logic(){
+  game_debug("Do logic called\n");
   uint8_t input = get_input();
 
   if(CHECK_PAUSE(input)){
@@ -69,15 +69,17 @@ void do_logic(){
   if(CHECK_SHOOT(input)){
     do_shoot();
   }
-
   update_gamestate(input);
+  game_debug("Do logic done\n");
 }
 
 void update_gamestate(uint8_t input){
+  game_debug("update_gamestate called\n");
   update_projectiles();
   update_asteroids();
   update_spaceship(input);
   // Check collisions
+  game_debug("update_gamestate done\n");
 
 }
 
@@ -119,8 +121,8 @@ void do_wrap(int32_t* x_pos, int32_t* y_pos){
 
 void check_box_collisions(){
   for(int i = 0; i < game.n_asteroids; i++){
-    if(check_asteroid_spaceship_collision(&game.asteroids[i], game.ship)){
-      if(check_poly_collision(&game.ship->poly, &game.asteroids[i].poly)){
+    if(check_asteroid_spaceship_collision(game.active_asteroids[i], game.ship)){
+      if(check_poly_collision(&game.ship->poly, &game.active_asteroids[i]->poly)){
         game_debug("GAME OVER MAN, GAME OVER\n");
       }
     }
@@ -152,7 +154,12 @@ int init_logic(struct gamestate** gamestate_ptr){
 
   // Initialize the gamestate struct, and all the submodules for tracking gamestate
   init_spaceship(&game.ship);
+  game_debug("Initializing asteroids\n");
   init_asteroids(&game);
+  game_debug("Done initializing asteroids\n");
+  if(game.active_asteroids == NULL){
+
+  }
   init_projectiles(&game);
   game.world_x_dim = DEFAULT_WORLD_X_DIM;
   game.world_y_dim = DEFAULT_WORLD_Y_DIM;

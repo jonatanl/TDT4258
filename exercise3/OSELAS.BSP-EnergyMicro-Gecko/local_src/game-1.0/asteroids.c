@@ -2,6 +2,7 @@
 #include "input.h"
 #include "logic.h"
 #include "util.h"
+#define DEBUG
 #include "debug.h"
 
 #include <stdbool.h>
@@ -70,12 +71,12 @@ void kill_asteroid(int index){
     game->active_asteroids[index] = spawn_asteroid(
       game->active_asteroids[index]->x_pos, 
       game->active_asteroids[index]->y_pos, 
-      &game->asteroids[LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + game->n_sml_asteroids++]
+      &my_asteroids[LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + game->n_sml_asteroids++]
     );
     game->active_asteroids[game->n_asteroids++] = spawn_asteroid(
       game->active_asteroids[index]->x_pos, 
       game->active_asteroids[index]->y_pos, 
-      &game->asteroids[LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + game->n_sml_asteroids++]
+      &my_asteroids[LARGE_ASTEROIDS + MEDIUM_ASTEROIDS + game->n_sml_asteroids++]
     );
   }
   else{ // LARGE
@@ -83,12 +84,12 @@ void kill_asteroid(int index){
     game->active_asteroids[index] = spawn_asteroid(
       game->active_asteroids[index]->x_pos, 
       game->active_asteroids[index]->y_pos, 
-      &game->asteroids[LARGE_ASTEROIDS + game->n_med_asteroids++]
+      &my_asteroids[LARGE_ASTEROIDS + game->n_med_asteroids++]
     );
     game->active_asteroids[game->n_asteroids++] = spawn_asteroid(
       game->active_asteroids[index]->x_pos, 
       game->active_asteroids[index]->y_pos, 
-      &game->asteroids[LARGE_ASTEROIDS + game->n_med_asteroids++]
+      &my_asteroids[LARGE_ASTEROIDS + game->n_med_asteroids++]
     );  
   }
   if(game->n_asteroids == 0){
@@ -130,6 +131,7 @@ void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct as
 }
 
 void init_asteroids(gamestate* game_ptr){
+  game_debug("In method init_asteroids\n");
   game = game_ptr;
   game->n_asteroids = START_ASTEROIDS;
   game->n_big_asteroids = START_ASTEROIDS;
@@ -143,7 +145,7 @@ void init_asteroids(gamestate* game_ptr){
         asteroid1_n_coords,
         (int32_t*)&asteroid1_x_coords[0],
         (int32_t*)&asteroid1_y_coords[0],
-        &game->asteroids[i],
+        &my_asteroids[i],
         type
       );
     }
@@ -153,7 +155,7 @@ void init_asteroids(gamestate* game_ptr){
         asteroid2_n_coords,
         (int32_t*)&asteroid2_x_coords[0],
         (int32_t*)&asteroid2_y_coords[0],
-        &game->asteroids[i],
+        &my_asteroids[i],
         type
       );
     }
@@ -163,18 +165,35 @@ void init_asteroids(gamestate* game_ptr){
         asteroid3_n_coords,
         (int32_t*)&asteroid3_x_coords[0],
         (int32_t*)&asteroid3_y_coords[0],
-        &game->asteroids[i],
+        &my_asteroids[i],
         type
       );
     }
   }
 
   // Initialized the pointer list to alive asteroids, and populates it with the initial asteroids
+  game_debug("initializing active asteroids pointer\n");
   game->active_asteroids = malloc(sizeof(asteroid*)*MAX_ALIVE_ASTEROIDS);
   for(int i = 0; i < START_ASTEROIDS; i++){
-    game->active_asteroids[i] = &game->asteroids[i];
+    if(&my_asteroids[i] == NULL){game_debug("made pointer to NULL asteroid");}
+    game->active_asteroids[i] = &my_asteroids[i];
     spawn_asteroid((10 + i*20 *SCREEN_TO_WORLD_RATIO), (40 + i*20 *SCREEN_TO_WORLD_RATIO), game->active_asteroids[i]);
   }
+
+  if(game->active_asteroids == NULL){
+    game_debug("NULL asteroids\n");
+  }
+  else{
+    game_debug("game->active_asteroids is not a NULL ptr\n");  
+  }
+
+  for(int i = 0; i < START_ASTEROIDS; i++){
+    if(game->active_asteroids[i] == NULL){
+      game_debug("NULL asteroid[%d]\n", i);
+    }
+  }
+
+  game_debug("Exiting init_asteroids\n");
 }
 
 //-------------------------------------------

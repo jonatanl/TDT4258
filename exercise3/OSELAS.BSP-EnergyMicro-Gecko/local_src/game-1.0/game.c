@@ -58,11 +58,17 @@ int main(int argc, char *argv[])
 
   // The game loop
   while(!error){
+    game_debug("game loop started, calling sleep to next frame\n");
     sleep_to_next_frame(); 
+    game_debug("starting clear all\n");
     clear_all();
+    game_debug("starting do_logic\n");
     do_logic();
+    game_debug("starting draw_all\n");
     draw_all();
+    game_debug("starting update_display\n");
     update_display();
+    game_debug("game loop ended\n");
   }
 
   // Close the game
