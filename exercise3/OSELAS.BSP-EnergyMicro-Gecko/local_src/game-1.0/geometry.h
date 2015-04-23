@@ -8,7 +8,7 @@
 #include "logic.h"
 
 // Returns the dot product of (x1, y1) and (x2, y2).
-int32_t inline dot_product(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
+int32_t dot_product(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 
 
 // Finds the time of intersection for two moving convex polygons.

@@ -1,12 +1,14 @@
+#define DEBUG
 #include <limits.h>
 #include <stdbool.h>
 
+#include "debug.h"
 #include "logic.h"
 #include "geometry.h"
 
 
 // Returns the dot product between (x1, y1) and (x2, y2)
-int32_t inline dot_product(int32_t x1, int32_t y1, int32_t x2, int32_t y2){
+int32_t dot_product(int32_t x1, int32_t y1, int32_t x2, int32_t y2){
   return (x1 * x2) + (y1 * y2);
 }
  
@@ -15,11 +17,11 @@ int32_t inline dot_product(int32_t x1, int32_t y1, int32_t x2, int32_t y2){
 void min_max_dot_product(int32_t x, int32_t y,
     int32_t* x_coords, int32_t* y_coords, int n_vertices, int* min, int* max)
 {
-  int32_t product = dot_product(x, x_coords[0], y, y_coords[0]);
+  int32_t product = dot_product(x, y, x_coords[0], y_coords[0]);
   *min = product;
   *max = product;
   for(int i=1; i<n_vertices; i++){
-    product = dot_product(x, x_coords[i], y, y_coords[i]);
+    product = dot_product(x, y, x_coords[i], y_coords[i]);
     if(*min > product){ *min = product; } 
     if(*max < product){ *max = product; }
   }
@@ -106,13 +108,13 @@ bool get_intersection_time(
     if(max2 < min1){
      
       // polygon2 is on the negative side of polygon1 in the projection 
-      if(speed <= 0){ return false; }
+      if(speed <= 0){ game_debug("1\n"); return false; }
       time_first = (min1 - max2) / speed; // rounded down
       time_last  = (max1 - min2 + (speed - 1)) / speed; // rounded up
     }else if(max1 < min2){ 
       
       // polygon2 is on the positive side of polygon1 in the projection 
-      if(speed >= 0){ return false; }
+      if(speed >= 0){ game_debug("2\n"); return false; }
       time_first = (min2 - max1) / (-speed); // rounded down
       time_last  = (max2 - min1 + ((-speed) - 1)) / (-speed); // rounded up
     }else{
@@ -130,7 +132,7 @@ bool get_intersection_time(
     if(time_first > *time_first_max){
       *time_first_max = time_first;
       if(*time_first_max > time_max){
-        return false;
+        game_debug("3\n"); return false;
       }
     }
 
@@ -139,11 +141,64 @@ bool get_intersection_time(
     if(time_last < *time_last_min){
       *time_last_min = time_last;
       if(*time_first_max > *time_last_min){
-        return false;
+        game_debug("4\n"); return false;
       }
     }
   }
 
   // Return true if no separating axis was found
   return true;
+}
+
+
+// Test function for get_intersection_time().
+void test_get_intersection_time(){
+
+  // Test polygon 1
+  int32_t n_vertices1 = 6;
+  int32_t x_coords1[6] = { 80,  20,  20,  80, 100, 120};
+  int32_t y_coords1[6] = { 20,  50, 110, 170, 160, 140};
+  struct polygon test_poly1 = {
+    .n_vertices = n_vertices1,
+    .x_coords = &x_coords1[0],
+    .y_coords = &y_coords1[0],
+  };
+  int32_t x_speed1 =  2;
+  int32_t y_speed1 = -1;
+
+  // Test polygon 2
+  int32_t n_vertices2 = 6;
+  int32_t x_coords2[6] = {240, 240, 250, 270, 270, 260};
+  int32_t y_coords2[6] = { 20,  50,  60,  60,  20,  10};
+  struct polygon test_poly2 = {
+    .n_vertices = n_vertices2,
+    .x_coords = &x_coords2[0],
+    .y_coords = &y_coords2[0],
+  };
+  int32_t x_speed2 = -1;
+  int32_t y_speed2 = -1;
+
+  // Test variables for collision between polygon 1 and 2
+  int32_t time_max_1_2 = 1000;
+  bool has_intersection_1_2;
+  int intersection_1_2_first;
+  int intersection_1_2_last;
+
+  // Test for intersection between polygon 1 and 2
+  // Expected intersection times: first = 50, last = ?
+  game_debug("Testing for intersection between polygon 1 and 2 ... \n");
+  has_intersection_1_2 = get_intersection_time(
+      &test_poly1,
+      &test_poly2,
+      x_speed1,
+      y_speed1,
+      x_speed2,
+      y_speed2,
+      time_max_1_2,
+      &intersection_1_2_first,
+      &intersection_1_2_last
+  );
+  game_debug("has_intersection       : %d\n", has_intersection_1_2);
+  game_debug("intersection_1_2_first : %d (expected somewhat less than 50)\n", intersection_1_2_first);
+  game_debug("intersection_1_2_last  : %d\n", intersection_1_2_last);
 }
