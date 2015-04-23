@@ -32,9 +32,9 @@
 void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* asteroid, uint8_t size);
 void do_logic();
 void do_shoot(void);
-void update_gamestate();
-void update_projectiles()
-;void check_box_collisions(void);
+void update_gamestate(uint8_t input);
+void update_projectiles();
+void check_box_collisions(void);
 bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2);
 bool check_poly_collision(polygon* p1, polygon* p2);
 void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_speed);
@@ -49,44 +49,36 @@ void kill_projectile(int index);
 struct gamestate game;
 
 void do_logic(){
-    uint8_t input = get_input();
+  uint8_t input = get_input();
 
-    if(CHECK_PAUSE(input)){
-        // Do pause
-    }
-    if(CHECK_DEBUG(input)){
-      kill_asteroid(0);
-    }
+  if(CHECK_PAUSE(input)){
+      // Do pause
+  }
+  if(CHECK_DEBUG(input)){
+    kill_asteroid(0);
+  }
 
-    update_spaceship(input);
-    if(PRINT_POSITION){
-      print_ship_coords(game.ship->x_pos,
-          game.ship->y_pos,
-          game.ship->x_speed,
-          game.ship->y_speed);
-    }
-
-    if(CHECK_SHOOT(input)){
-        do_shoot();
-    }
-
-    update_gamestate();
-    update_projectiles();
-    // Check collisions
-}
-
-void update_gamestate(){
-  struct asteroid* current_asteroid;
-
-  for(int i = 0; i < game.n_asteroids; i++){
-    current_asteroid = game.active_asteroids[i];
-    current_asteroid->x_pos += current_asteroid->x_speed;
-    current_asteroid->y_pos += current_asteroid->y_speed;
-    create_bounding_box(
-      &current_asteroid->collision_box,
-      &current_asteroid->poly
+  if(PRINT_POSITION){
+    print_ship_coords(game.ship->x_pos,
+      game.ship->y_pos,
+      game.ship->x_speed,
+      game.ship->y_speed
     );
   }
+
+  if(CHECK_SHOOT(input)){
+    do_shoot();
+  }
+
+  update_gamestate(input);
+}
+
+void update_gamestate(uint8_t input){
+  update_projectiles();
+  update_asteroids();
+  update_spaceship(input);
+  // Check collisions
+
 }
 
 bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaceship* spaceship){
@@ -214,15 +206,3 @@ void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_
   );
 }
 
-void print_asteroid_status(){
-  game_debug("debug print active_asteroids. n_asteroids: %d\n", game.n_asteroids);
-  for(int i = 0; i < game.n_asteroids; i++){
-    if(game.active_asteroids[i] == NULL){
-      game_debug("Asteroid %d is null\n", i);
-    }
-    else{
-      game_debug("Asteroid %d has type %d\n", i, game.active_asteroids[i]->type);
-    }
-  }
-  game_debug("Done scanning\n");
-}
