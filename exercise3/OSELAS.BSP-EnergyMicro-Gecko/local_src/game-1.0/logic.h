@@ -92,6 +92,7 @@ typedef struct gamestate gamestate;
 typedef struct polygon polygon;
 typedef struct asteroid asteroid;
 typedef struct projectile projectile;
+typedef struct bounding_box bounding_box;
 
 // Initialize and release module
 int init_logic(struct gamestate** gamestate_ptr);
