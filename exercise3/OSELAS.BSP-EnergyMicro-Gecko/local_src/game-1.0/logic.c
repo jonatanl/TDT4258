@@ -378,10 +378,6 @@ int init_logic(struct gamestate** gamestate_ptr){
   // RANDOMNESS GUARANTEED!
   srand(2);
 
-  for(int i = 0; i < 10; i++){
-    game_debug("Here's a random int %d\n", rand());
-  }
-
   // Initialize the gamestate struct
   init_ship(&game.ship);
   game.asteroids = &my_asteroids[0];
