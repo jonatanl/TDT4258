@@ -65,10 +65,14 @@ asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
 void kill_asteroid(int index);
 void print_asteroid_status();
 
-// Variable prototypes
+// Variable prototypes. These are here to avoid cluttering important source
+// code with long polygon definitions.
 const int32_t asteroid1_n_coords;
 const int32_t asteroid1_x_coords[];
 const int32_t asteroid1_y_coords[]; 
+const int32_t asteroid2_n_coords;
+const int32_t asteroid2_x_coords[];
+const int32_t asteroid2_y_coords[]; 
 
 // Global variables
 struct gamestate game;
@@ -392,26 +396,34 @@ int init_logic(struct gamestate** gamestate_ptr){
   for(int i = 0; i < MAX_AMOUNT_ASTEROIDS; i++){      
       if(i < LARGE_ASTEROIDS){
         type = BIG;
+        init_asteroid(
+            asteroid1_n_coords,
+            (int32_t*)&asteroid1_x_coords[0],
+            (int32_t*)&asteroid1_y_coords[0],
+            &game.asteroids[i],
+            type
+        );
       }
       else if(i < LARGE_ASTEROIDS + MEDIUM_ASTEROIDS){
         type = MED;
+        init_asteroid(
+            asteroid2_n_coords,
+            (int32_t*)&asteroid2_x_coords[0],
+            (int32_t*)&asteroid2_y_coords[0],
+            &game.asteroids[i],
+            type
+        );
       }
       else{
         type = SML;
+        init_asteroid(
+            asteroid2_n_coords,
+            (int32_t*)&asteroid2_x_coords[0],
+            (int32_t*)&asteroid2_y_coords[0],
+            &game.asteroids[i],
+            type
+        );
       }
-
-      // Initialize asteroids
-      //
-      // TODO: Use different polygons for different asteroids
-      init_asteroid(
-          asteroid1_n_coords,
-          (int32_t*)&asteroid1_x_coords[0],
-          (int32_t*)&asteroid1_y_coords[0],
-          &game.asteroids[i],
-          type
-      );
-
-      // TODO: Initialize draw box
   }
 
   // Initialized the pointer list to alive asteroids, and populates it with the initial asteroids
@@ -469,10 +481,23 @@ void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_
   );
 }
 
+void print_asteroid_status(){
+  game_debug("debug print active_asteroids. n_asteroids: %d\n", game.n_asteroids);
+  for(int i = 0; i < game.n_asteroids; i++){
+    if(game.active_asteroids[i] == NULL){
+      game_debug("Asteroid %d is null\n", i);
+    }
+    else{
+      game_debug("Asteroid %d has type %d\n", i, game.active_asteroids[i]->type);
+    }
+  }
+  game_debug("Done scanning\n");
+}
+
 //-------------------------------------------
-// Pre-defined polygon coordinates in pixels
+// Pre-defined polygons
 //-------------------------------------------
-const int32_t asteroid1_n_coords = 9;
+const int32_t asteroid1_n_coords = 9;   // large asteroid
 const int32_t asteroid1_x_coords[9] = {
   15 * SCREEN_TO_WORLD_RATIO, 
    0 * SCREEN_TO_WORLD_RATIO,
@@ -495,17 +520,24 @@ const int32_t asteroid1_y_coords[9] = {
   12 * SCREEN_TO_WORLD_RATIO, 
    0 * SCREEN_TO_WORLD_RATIO, 
 };
-
-void print_asteroid_status(){
-  game_debug("debug print active_asteroids. n_asteroids: %d\n", game.n_asteroids);
-  for(int i = 0; i < game.n_asteroids; i++){
-    if(game.active_asteroids[i] == NULL){
-      game_debug("Asteroid %d is null\n", i);
-    }
-    else{
-      game_debug("Asteroid %d has type %d\n", i, game.active_asteroids[i]->type);
-    }
-  }
-  game_debug("Done scanning\n");
-}
-
+const int32_t asteroid2_n_coords = 8;   // medium asteroid
+const int32_t asteroid2_x_coords[8] = {
+   6 * SCREEN_TO_WORLD_RATIO,
+   0 * SCREEN_TO_WORLD_RATIO,
+   0 * SCREEN_TO_WORLD_RATIO,  
+   6 * SCREEN_TO_WORLD_RATIO, 
+  13 * SCREEN_TO_WORLD_RATIO, 
+  21 * SCREEN_TO_WORLD_RATIO, 
+  21 * SCREEN_TO_WORLD_RATIO, 
+  16 * SCREEN_TO_WORLD_RATIO, 
+};
+const int32_t asteroid2_y_coords[8] = { 
+   0 * SCREEN_TO_WORLD_RATIO,
+   5 * SCREEN_TO_WORLD_RATIO,
+  12 * SCREEN_TO_WORLD_RATIO, 
+  18 * SCREEN_TO_WORLD_RATIO, 
+  18 * SCREEN_TO_WORLD_RATIO, 
+  13 * SCREEN_TO_WORLD_RATIO, 
+   4 * SCREEN_TO_WORLD_RATIO, 
+   0 * SCREEN_TO_WORLD_RATIO, 
+};
