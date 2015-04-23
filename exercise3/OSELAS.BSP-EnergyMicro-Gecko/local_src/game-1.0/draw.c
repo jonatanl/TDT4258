@@ -152,8 +152,6 @@ void do_draw_all(void)
   struct asteroid* asteroid;
   struct polygon* pol;
   struct spaceship* spaceship;
-
-game_debug("do_draw_all()\n");
   
   // Draw all asteroids
   for(int i=0; i<num_asteroids; i++){
@@ -163,8 +161,6 @@ game_debug("do_draw_all()\n");
     pol = &(asteroid->poly);
     do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
   } 
-  
-
 
   // Draw spaceship
   spaceship = my_gamestate->ship;
@@ -184,6 +180,20 @@ static void inline set_pixel(int x, int y)
 static int inline get_index(int x, int y)
 {
   return x + y * DISPLAY_WIDTH; 
+}
+
+static void inline world_to_screen_coordinate(int32_t* x, int32_t* y)
+{
+  *x /= SCREEN_TO_WORLD_RATIO;
+  *y /= SCREEN_TO_WORLD_RATIO;
+}
+
+static void inline closest_screen_coordinate(int32_t* x, int32_t* y)
+{
+  *x = min(*x, SCREEN_TO_WORLD_RATIO - 1);
+  *x = max(*x, 0);
+  *y = min(*y, SCREEN_TO_WORLD_RATIO - 1);
+  *y = max(*y, 0);
 }
 
 void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
