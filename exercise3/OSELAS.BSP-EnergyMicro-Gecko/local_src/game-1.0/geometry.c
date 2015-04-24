@@ -44,6 +44,13 @@ void inline rotate_counterclockwise90(int32_t* x, int32_t* y)
 }
 
 
+bool inline inside_interval(int32_t n, int32_t i1, int32_t i2)
+{
+  // NOTE: Avoids branching by using '|' instead of '&&'
+  return ((i1 <= n) && (n <= i2)) | ((i2 <= n) && (n <= i1));
+}
+
+
 bool inline intersects_line_line(
     int32_t line1_x1,
     int32_t line1_y1,
@@ -63,16 +70,7 @@ bool inline intersects_line_line(
   int32_t dot2 = ((line2_x1 - line1_x1) * (line1_dy))  + ((line2_y1 - line1_y1) * (-line1_dx));
   int32_t dot3 = ((line1_x1 - line2_x1) * (line2_dy))  + ((line1_y1 - line2_y1) * (-line2_dx));
   int32_t dot4 = ((line1_x2 - line2_x1) * (line2_dy))  + ((line1_y2 - line2_y1) * (-line2_dx));
-
-  // Should return true if and only if
-  //    (sign(dot1) != sign(dot2)) && (sign(dot3) != sign(dot4))
-  // 
-  // Uses the fact that the MSB is set to 0 in positive numbers and 1 in
-  // negative numbers. In (a ^ b) the MSB is set if the MSB of a and b differ,
-  // that is if their signs differ.
-  //
-  // Uses bitwise OR to avoid branching with &&.
-  return ((dot1 ^ dot2) <= 0) | ((dot3 ^ dot4) <= 0);
+  return inside_interval(0, dot1, dot2) && inside_interval(0, dot3, dot4);
 }
 
 

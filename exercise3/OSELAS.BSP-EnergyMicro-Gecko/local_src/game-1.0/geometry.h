@@ -7,8 +7,13 @@
 
 #include "logic.h"
 
+
 // Returns the dot product of (x1, y1) and (x2, y2).
 int32_t dot_product(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
+
+
+// Returns true if 'n' lies in the smallest closed interval containing both 'i1' and 'i2'.
+bool inline inside_interval(int32_t n, int32_t i1, int32_t i2);
 
 
 // Returns true if the two lines intersect, and false otherwise.
