@@ -75,8 +75,8 @@ void do_logic(){
 
 void update_gamestate(uint8_t input){
   game_debug("update_gamestate called\n");
-  update_projectiles();
-  update_asteroids();
+  //update_projectiles();
+  //update_asteroids();
   update_spaceship(input);
   // Check collisions
   game_debug("update_gamestate done\n");
@@ -155,12 +155,12 @@ int init_logic(struct gamestate** gamestate_ptr){
   // Initialize the gamestate struct, and all the submodules for tracking gamestate
   init_spaceship(&game.ship);
   game_debug("Initializing asteroids\n");
-  init_asteroids(&game);
+  //init_asteroids(&game);
   game_debug("Done initializing asteroids\n");
   if(game.active_asteroids == NULL){
 
   }
-  init_projectiles(&game);
+  //init_projectiles(&game);
   game.world_x_dim = DEFAULT_WORLD_X_DIM;
   game.world_y_dim = DEFAULT_WORLD_Y_DIM;
 
