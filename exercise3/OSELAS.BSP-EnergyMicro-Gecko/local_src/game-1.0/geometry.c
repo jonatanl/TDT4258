@@ -28,7 +28,23 @@ void min_max_dot_product(int32_t x, int32_t y,
 }
 
 
-bool line_intersects_line(
+void inline rotate_clockwise90(int32_t* x, int32_t* y)
+{
+  int temp = *x;
+  *x = *y;
+  *y = -temp; 
+}
+
+
+void inline rotate_counterclockwise90(int32_t* x, int32_t* y)
+{
+  int temp = *x;
+  *x = -y[0];
+  *y = temp; 
+}
+
+
+bool inline intersects_line_line(
     int32_t line1_x1,
     int32_t line1_y1,
     int32_t line1_x2,
@@ -39,12 +55,28 @@ bool line_intersects_line(
     int32_t line2_y2
     )
 {
-  // TODO
-  return true;
+  int32_t line1_dx = line1_x2 - line1_x1;
+  int32_t line1_dy = line1_y2 - line1_y1;
+  int32_t line2_dx = line2_x2 - line2_x1;
+  int32_t line2_dy = line2_y2 - line2_y1;
+  int32_t dot1 = ((line2_x2 - line1_x1) * (line1_dy))  + ((line2_y2 - line1_y1) * (-line1_dx));
+  int32_t dot2 = ((line2_x1 - line1_x1) * (line1_dy))  + ((line2_y1 - line1_y1) * (-line1_dx));
+  int32_t dot3 = ((line1_x1 - line2_x1) * (line2_dy))  + ((line1_y1 - line2_y1) * (-line2_dx));
+  int32_t dot4 = ((line1_x2 - line2_x1) * (line2_dy))  + ((line1_y2 - line2_y1) * (-line2_dx));
+
+  // Should return true if and only if
+  //    (sign(dot1) != sign(dot2)) && (sign(dot3) != sign(dot4))
+  // 
+  // Uses the fact that the MSB is set to 0 in positive numbers and 1 in
+  // negative numbers. In (a ^ b) the MSB is set if the MSB of a and b differ,
+  // that is if their signs differ.
+  //
+  // Uses bitwise OR to avoid branching with &&.
+  return ((dot1 ^ dot2) <= 0) | ((dot3 ^ dot4) <= 0);
 }
 
 
-void get_line_intersection(
+void inline get_intersection_line_line(
     int32_t line1_x1,
     int32_t line1_y1,
     int32_t line1_x2,
@@ -72,7 +104,7 @@ void get_line_intersection(
 // polygon. This can be improved to O(m x log(n)) by implementing a binary
 // search in min_max_dot_product(). However, for small polygons the improvement
 // will be small. 
-bool get_intersection_time(
+bool get_intersection_time_poly_poly(
     struct polygon* poly1,  // the polygons to check for intersection
     struct polygon* poly2,  //
     int32_t x_speed1,     // the speed of the polygons
@@ -192,7 +224,7 @@ bool get_intersection_time(
 
 
 // Test function for get_intersection_time().
-void test_get_intersection_time(){
+void test_get_intersection_time_poly_poly(){
 
   // Test polygon 1
   int32_t n_vertices1 = 6;
@@ -227,7 +259,7 @@ void test_get_intersection_time(){
   // Test for intersection between polygon 1 and 2
   // Expected intersection times: first = 50, last = ?
   game_debug("Testing for intersection between polygon 1 and 2 ... \n");
-  has_intersection_1_2 = get_intersection_time(
+  has_intersection_1_2 = get_intersection_time_poly_poly(
       &test_poly1,
       &test_poly2,
       x_speed1,
