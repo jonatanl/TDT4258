@@ -44,14 +44,14 @@ void inline rotate_counterclockwise90(int32_t* x, int32_t* y)
 }
 
 
-bool inline inside_interval(int32_t n, int32_t i1, int32_t i2)
+bool inside_interval(int32_t n, int32_t i1, int32_t i2)
 {
   // NOTE: Avoids branching by using '|' instead of '&&'
   return ((i1 <= n) && (n <= i2)) | ((i2 <= n) && (n <= i1));
 }
 
 
-bool inline intersects_line_line(
+bool intersects_line_line(
     int32_t line1_x1,
     int32_t line1_y1,
     int32_t line1_x2,
@@ -74,7 +74,7 @@ bool inline intersects_line_line(
 }
 
 
-void inline get_intersection_line_line(
+void get_intersection_line_line(
     int32_t line1_x1,
     int32_t line1_y1,
     int32_t line1_x2,
