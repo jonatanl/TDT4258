@@ -7,12 +7,17 @@
 
 #include "logic.h"
 
+
 // Returns the dot product of (x1, y1) and (x2, y2).
 int32_t dot_product(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 
 
+// Returns true if 'n' lies in the smallest closed interval containing both 'i1' and 'i2'.
+bool inside_interval(int32_t n, int32_t i1, int32_t i2);
+
+
 // Returns true if the two lines intersect, and false otherwise.
-bool inline intersects_line_line(
+bool intersects_line_line(
     int32_t line1_x1,
     int32_t line1_y1,
     int32_t line1_x2,
@@ -27,7 +32,7 @@ bool inline intersects_line_line(
 // intersect, the result is undefined.
 //
 // ASSERT: No line end-points are equal, and the lines are not parallel. 
-void inline get_intersection_line_line(
+void get_intersection_line_line(
     int32_t line1_x1,
     int32_t line1_y1,
     int32_t line1_x2,

@@ -13,6 +13,7 @@
 #include "debug.h"
 #include "logic.h"
 #include "util.h"
+#include "geometry.h"
 
 // Hard-coded framebuffer parameters
 #define FB_DEVICE_PATH    ("/dev/fb0")
@@ -241,38 +242,14 @@ static bool inline line_inside_screen(int32_t x1, int32_t y1, int32_t x2, int32_
        | (0 <= y2) | (y2 < DISPLAY_HEIGHT);
 }
 
-// Returns the last point on the line that is inside the screen
-static void inline bound_line(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t* x_cut, int32_t* y_cut)
-{
-  int outcode1 = 0;
-  int outcode2 = 0;
-
-  // Compute the outcodes
-  outcode1 |= (y1 >= DISPLAY_HEIGHT) << 0;
-  outcode1 |= (y1 < 0)               << 1;
-  outcode1 |= (x1 >= DISPLAY_WIDTH)  << 2;
-  outcode1 |= (x1 < 0)               << 3;
-  outcode2 |= (y2 >= DISPLAY_HEIGHT) << 0;
-  outcode2 |= (y2 < 0)               << 1;
-  outcode2 |= (x2 >= DISPLAY_WIDTH)  << 2;
-  outcode2 |= (x2 < 0)               << 3;
-
-  if((outcode1 | outcode2) == 0){       // line is entirely inside
-    // TODO
-  }else if((outcode1 & outcode2) != 0){ // line is entirely outside
-    // TODO
-  }else switch(outcode1 ^ outcode2){    // indeterminate
-    // TODO
-  }
-  // NOTE: This code will probably end up somewhere else
-}
-
 void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
 {
   int x1;
   int y1;
   int x2;
   int y2;
+  int clipcode1;
+  int clipcode2;
 
   x1 = (x_coords[0] + my_screen_transform.translate_x);
   y1 = (y_coords[0] + my_screen_transform.translate_y);
@@ -286,9 +263,24 @@ void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
     y2 = (y_coords[i] + my_screen_transform.translate_y);
     world_to_screen_coordinate(&x2, &y2); 
 
-    // Only draw the line if it is inside the screen
-    if(line_inside_screen(x1, y1, x2, y2)){
+    // Compute the clipping codes
+    clipcode1 = 0;
+    clipcode1 |= (x1 < 0)               << 0;
+    clipcode1 |= (x1 >= DISPLAY_WIDTH)  << 1;
+    clipcode1 |= (y1 < 0)               << 2;
+    clipcode1 |= (y1 >= DISPLAY_HEIGHT) << 3;
+    clipcode2 = 0;
+    clipcode2 |= (x2 < 0)               << 0;
+    clipcode2 |= (x2 >= DISPLAY_WIDTH)  << 1;
+    clipcode2 |= (y2 < 0)               << 2;
+    clipcode2 |= (y2 >= DISPLAY_HEIGHT) << 3;
+
+    if((clipcode1 | clipcode2) == 0){       // line is entirely inside
       do_draw_line(x1, y1, x2, y2);
+    }else if((clipcode1 & clipcode2) != 0){ // line is entirely outside
+      // Do nothing
+    }else {                                 // indeterminate
+      // TODO: Check clipping code and split the line in two
     }
 
     // Reuse the calculated coordinates for the next line
