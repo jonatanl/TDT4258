@@ -311,9 +311,31 @@ The graphics module. It is responsible for updating the frame buffer, and for re
 Supplies some debugging tools, most notably the macros \texttt{game\_debug()} and \texttt{game\_error()}. The debug statements are enabled by defining the macro \texttt{DEBUG} before including the module header. See \texttt{debug.h} and \texttt{debug.c}.
 \end{description}
 
-Many of these modules grew beyond reasonable size and were firther divided. 
-
 \subsection{Optimization}
+Our game had two major resource drains, rendering the game on screen and calculating the game logic. In order to reduce expensive data operations we made sure to always use references to our data structures. We allocated some data to the data segment at compile time, and made sure that heap data was only allocated once and referred to in other parts of the program.
+
+\begin{lstlisting}[caption=Allocating asteroid data on data segment.,label=lst:Asteroid allocation]
+...
+static struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
+...
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Updating the asteroids using their references.,label=lst:Asteroid updating]
+void update_asteroids(){
+  struct asteroid* current_asteroid;
+
+  for(int i = 0; i < game->n_asteroids; i++){
+    current_asteroid = game->active_asteroids[i];
+    current_asteroid->x_pos += current_asteroid->x_speed;
+    current_asteroid->y_pos += current_asteroid->y_speed;
+    wrap_coordinate(&current_asteroid->x_pos, &current_asteroid->y_pos);
+    ...
+  }
+}
+\end{lstlisting}
+
+This way we could make sure that no expensive allocations or data moves were made in the middle of the game, increasing performance.
+
 The board itself, has very limited performence. There is not a seperate GPU on the board. In other words, all the graphic calculations has to be done in the CPU. As a result we implemented a lot of the GPU algorithms ourself.
 
 The board is not capable of refreshing the whole screen each frame and at the same time have a reasonable FPS. To solve this problem, we implemented an algorithm to only update the moving parts of the screen. It is not necessary to update 320 x 240 pixels, when only parts of the screen move each frame. The only moving parts on the screen are: spaceship, astroids and bullets. These items are considerably smaller together compared to the total screen size.
