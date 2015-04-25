@@ -335,9 +335,10 @@ static void do_update_partial_display(int old_x, int old_y, int new_x, int new_y
 static void do_draw_all(void)
 {
   const int num_asteroids = my_gamestate->n_asteroids;
+  const int num_projectiles = my_gamestate->n_projectiles;
+  
   struct asteroid** asteroids = my_gamestate->active_asteroids;
   struct asteroid* asteroid;
-  const int num_projectiles = my_gamestate->n_projectiles;
   struct projectile** projectiles = my_gamestate->active_projectiles;
   struct projectile* projectile;
   struct spaceship* spaceship;
@@ -352,6 +353,25 @@ static void do_draw_all(void)
     pol = &(asteroid->poly);
     do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
   } 
+
+  if(projectiles == NULL){
+    game_debug("NULL projectiles\n");
+  }
+
+  // Draw all projectiles
+  for(int i=0; i<num_projectiles; i++){
+
+    if(projectiles[i] == NULL){
+      game_debug("NULL projectile[%d]\n", i);
+    }
+
+    projectile = projectiles[i];
+    my_screen_transform.translate_x = projectile->x_pos;
+    my_screen_transform.translate_y = projectile->y_pos;
+    pol = &(projectile->poly);
+    do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
+
+  }
 
   // Draw spaceship
   spaceship = my_gamestate->ship;
