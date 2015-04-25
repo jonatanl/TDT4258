@@ -29,17 +29,17 @@
 #define FB_COLOR_BLUE  color( 0,  0, 31)
 
 // Function prototypes
-void do_draw_all(void);
-void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points);
-void do_draw_line(int sx, int sy, int ex, int ey);
-void draw_line_octant1(int is, int ie, int dx, int dy);
-void draw_line_octant2(int is, int ie, int dx, int dy);
-void draw_line_octant3(int is, int ie, int dx, int dy);
-void draw_line_octant8(int is, int ie, int dx, int dy);
-void test_draw(void);
-void update_partial_display(int x, int y, int new_x, int new_y, bounding_box collision_box);
-void update_asteroids_on_screen();
-void update_ship_on_screen();
+static void do_draw_all(void);
+static void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points);
+static void do_draw_line(int sx, int sy, int ex, int ey);
+static void draw_line_octant1(int is, int ie, int dx, int dy);
+static void draw_line_octant2(int is, int ie, int dx, int dy);
+static void draw_line_octant3(int is, int ie, int dx, int dy);
+static void draw_line_octant8(int is, int ie, int dx, int dy);
+static void test_draw(void);
+static void update_partial_display(int x, int y, int new_x, int new_y, bounding_box collision_box);
+static void update_asteroids_on_screen();
+static void update_ship_on_screen();
 static void inline closest_screen_coordinate(int32_t* x, int32_t* y);
 static void inline world_to_screen_coordinate(int32_t* x, int32_t* y);
 static bool inline line_inside_screen(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
@@ -78,7 +78,7 @@ void update_display(void)
   //update_asteroids_on_screen();
 }
 
-void update_asteroids_on_screen() {
+static void update_asteroids_on_screen() {
   asteroid** asteroids = my_gamestate->active_asteroids;
   asteroid* asteroid;
 
@@ -94,7 +94,7 @@ void update_asteroids_on_screen() {
   }
 }
 
-void update_ship_on_screen() {
+static void update_ship_on_screen() {
   spaceship* ship = my_gamestate->ship;
   int old_x = ship->x_pos - ship->x_speed;
   int old_y = ship->y_pos - ship->y_speed;
@@ -104,7 +104,7 @@ void update_ship_on_screen() {
   update_partial_display(old_x, old_y, new_x, new_y, ship->collision_box);
 }
 
-void update_partial_display(int old_x, int old_y, int new_x, int new_y, bounding_box collision_box) {
+static void update_partial_display(int old_x, int old_y, int new_x, int new_y, bounding_box collision_box) {
   // Convert to pixels coordinates and make shure they are inside the screen
   world_to_screen_coordinate(&old_x, &old_y);
   closest_screen_coordinate(&old_x, &old_y);
@@ -165,7 +165,7 @@ void clear_all(void)
   do_draw_all();
 }
 
-void do_draw_all(void)
+static void do_draw_all(void)
 {
 
   const int num_asteroids = my_gamestate->n_asteroids;
@@ -242,7 +242,7 @@ static bool inline line_inside_screen(int32_t x1, int32_t y1, int32_t x2, int32_
        | (0 <= y2) | (y2 < DISPLAY_HEIGHT);
 }
 
-void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
+static void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
 {
   int x1;
   int y1;
@@ -312,7 +312,7 @@ void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points)
 #define OCTANT_6 0b1110
 #define OCTANT_7 0b1100
 #define OCTANT_8 0b1000
-void do_draw_line(int sx, int sy, int ex, int ey)
+static void do_draw_line(int sx, int sy, int ex, int ey)
 {
   int dx = ex - sx;
   int dy = ey - sy;
@@ -372,7 +372,7 @@ void do_draw_line(int sx, int sy, int ex, int ey)
   }
 }
 
-void draw_line_octant1(int i, int i_end, int dx, int dy)
+static void draw_line_octant1(int i, int i_end, int dx, int dy)
 {
   // Leap decision variable keeps track of when to increment y
   int e = -(dx >> 1);
@@ -394,7 +394,7 @@ void draw_line_octant1(int i, int i_end, int dx, int dy)
   }
 }
 
-void draw_line_octant2(int i, int i_end, int dx, int dy)
+static void draw_line_octant2(int i, int i_end, int dx, int dy)
 {
   // Leap decision variable keeps track of when to increment y.
   int e = -(dy >> 1);
@@ -416,7 +416,7 @@ void draw_line_octant2(int i, int i_end, int dx, int dy)
   }
 }
 
-void draw_line_octant3(int i, int i_end, int dx, int dy)
+static void draw_line_octant3(int i, int i_end, int dx, int dy)
 {
   // Leap decision variable keeps track of when to increment y.
   int e = -(dy >> 1);
@@ -439,7 +439,7 @@ void draw_line_octant3(int i, int i_end, int dx, int dy)
   }
 }
 
-void draw_line_octant8(int i, int i_end, int dx, int dy)
+static void draw_line_octant8(int i, int i_end, int dx, int dy)
 {
   // Leap decision variable keeps track of when to increment y.
   int e = -(dx >> 1);

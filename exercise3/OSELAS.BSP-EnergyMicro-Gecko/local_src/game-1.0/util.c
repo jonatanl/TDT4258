@@ -10,7 +10,11 @@ static float clockWiseCosine 	= 0.97815f;
 static float counterWiseSine 	= 0.20791f;
 static float counterWiseCosine 	= 0.97815f;
 
-// Create bounding box for a polygon
+void wrap_coordinate(int32_t* x_pos, int32_t* y_pos){
+  *x_pos = ((*x_pos % DEFAULT_WORLD_X_DIM) + DEFAULT_WORLD_X_DIM) % DEFAULT_WORLD_X_DIM;
+  *y_pos = ((*y_pos % DEFAULT_WORLD_Y_DIM) + DEFAULT_WORLD_Y_DIM) % DEFAULT_WORLD_Y_DIM;
+}
+
 void create_bounding_box(struct bounding_box* box, struct polygon* poly){
     box->x_left_upper  = poly->x_coords[0];
     box->x_right_lower = poly->x_coords[0];
@@ -25,8 +29,7 @@ void create_bounding_box(struct bounding_box* box, struct polygon* poly){
     }
 }
 
-// Rotate a single coordinate
-void rotate_coordinate_int(int32_t* xPosition, int32_t* yPosition, int32_t xCenter, int32_t yCenter, bool clockWise) {
+void rotate_coordinate_int(int32_t* xPosition, int32_t* yPosition, int32_t xCenter, int32_t yCenter, bool clockWise){
 	float sine;
 	float cosine;
 
@@ -51,7 +54,6 @@ void rotate_coordinate_int(int32_t* xPosition, int32_t* yPosition, int32_t xCent
 	*yPosition = (int32_t) yRotated;
 }
 
-// Rotate a single coordinate
 void rotate_coordinate_float(float* xPosition, float* yPosition, int32_t xCenter, int32_t yCenter,  bool clockWise) {
 	float sine;
 	float cosine;

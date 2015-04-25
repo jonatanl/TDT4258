@@ -13,6 +13,7 @@
 #include "asteroids.h"
 #include "projectiles.h"
 
+// Enable for debugging
 #define PRINT_POSITION  false
 #define PRINT_INPUT     false
 
@@ -28,36 +29,34 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// Function prototypes
-void do_logic();
-void do_shoot(void);
-void update_gamestate(uint8_t input);
-void update_projectiles();
-void check_box_collisions(void);
-bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2);
-bool check_poly_collision(polygon* p1, polygon* p2);
-void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_speed);
-void print_bounding_box(struct bounding_box* box);
-asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
-void kill_asteroid(int index);
-void print_asteroid_status();
-void spawn_projectile(void);
-void kill_projectile(int index);
+// Static function prototypes
+static void check_box_collisions(void);
+static bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2);
+static bool check_poly_collision(polygon* p1, polygon* p2);
+static void print_bounding_box(struct bounding_box* box);
+static void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_speed);
+
 
 // Global variables
 struct gamestate game;
 
-void do_logic(){
-  game_debug("Do logic called\n");
+
+void update_logic(){
+  game_debug("update_logic() called\n");
   uint8_t input = get_input();
 
   if(CHECK_PAUSE(input)){
       // Do pause
   }
+
   if(CHECK_DEBUG(input)){
     kill_asteroid(0);
   }
 
+  //update_asteroids();
+  // Check collisions
+
+  update_spaceship(input);
   if(PRINT_POSITION){
     print_ship_coords(game.ship->x_pos,
       game.ship->y_pos,
@@ -66,21 +65,12 @@ void do_logic(){
     );
   }
 
+  //update_projectiles();
   if(CHECK_SHOOT(input)){
     do_shoot();
   }
-  update_gamestate(input);
-  game_debug("Do logic done\n");
-}
 
-void update_gamestate(uint8_t input){
-  game_debug("update_gamestate called\n");
-  //update_projectiles();
-  //update_asteroids();
-  update_spaceship(input);
-  // Check collisions
-  game_debug("update_gamestate done\n");
-
+  game_debug("update_logic() done\n");
 }
 
 bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaceship* spaceship){
@@ -97,26 +87,10 @@ bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaces
               box2->y_right_lower + spaceship->y_pos,
               box2->y_left_upper  + spaceship->y_pos);
 }
-//bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2){
-//    return( INTERSECTS(box1->x_left_upper,  box1->x_right_lower, box2->x_left_upper,  box2->x_right_lower)
-//        &&  INTERSECTS(box1->y_right_lower, box1->y_left_upper,  box2->y_right_lower, box2->y_left_upper));
-//}
 
-
-
-void do_wrap(int32_t* x_pos, int32_t* y_pos){
-  if(*x_pos >= DEFAULT_WORLD_X_DIM){
-    *x_pos -= DEFAULT_WORLD_X_DIM; 
-  }
-  else if(*x_pos < 0){
-    *x_pos += DEFAULT_WORLD_X_DIM;
-  }
-  if(*y_pos >= DEFAULT_WORLD_Y_DIM){
-    *y_pos -= DEFAULT_WORLD_Y_DIM; 
-  }
-  else if(*y_pos < 0){
-    *y_pos += DEFAULT_WORLD_Y_DIM;
-  }
+bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2){
+    return( INTERSECTS(box1->x_left_upper,  box1->x_right_lower, box2->x_left_upper,  box2->x_right_lower)
+        &&  INTERSECTS(box1->y_right_lower, box1->y_left_upper,  box2->y_right_lower, box2->y_left_upper));
 }
 
 void check_box_collisions(){
@@ -132,7 +106,6 @@ void check_box_collisions(){
 bool check_poly_collision(polygon* p1, polygon* p2){
     return true;
 }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +144,7 @@ int init_logic(struct gamestate** gamestate_ptr){
   return 0;
 }
 
-// Initializes the module
+// Releases the module
 int release_logic(){
   game_debug("Releasing the logic module ...\n");
 
@@ -182,6 +155,7 @@ int release_logic(){
   game_debug("DONE: No errors releasing the logic module\n");
   return 0;
 }
+
 
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -211,4 +185,3 @@ void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_
     y_speed
   );
 }
-

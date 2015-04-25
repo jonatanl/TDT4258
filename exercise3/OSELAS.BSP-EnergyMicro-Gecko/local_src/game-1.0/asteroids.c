@@ -12,26 +12,24 @@
 #define MED 1
 #define SML 0
 
-struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
-struct gamestate* game;
 
-// Variable prototypes. These are here to avoid cluttering important source
-// code with long polygon definitions.
-const int32_t asteroid1_n_coords;
-const int32_t asteroid1_x_coords[];
-const int32_t asteroid1_y_coords[]; 
-const int32_t asteroid2_n_coords;
-const int32_t asteroid2_x_coords[];
-const int32_t asteroid2_y_coords[]; 
-const int32_t asteroid3_n_coords;
-const int32_t asteroid3_x_coords[];
-const int32_t asteroid3_y_coords[]; 
-
-asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
-void print_asteroid_status(void);
+// Prototypes
+static struct gamestate* game;
+static struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
+static struct asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
+static void print_asteroid_status(void);
+static const int32_t asteroid1_n_coords;
+static const int32_t asteroid1_x_coords[];
+static const int32_t asteroid1_y_coords[]; 
+static const int32_t asteroid2_n_coords;
+static const int32_t asteroid2_x_coords[];
+static const int32_t asteroid2_y_coords[]; 
+static const int32_t asteroid3_n_coords;
+static const int32_t asteroid3_x_coords[];
+static const int32_t asteroid3_y_coords[]; 
 
 // Adds world coordinates to an asteroid
-asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid){
+static struct asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid){
   asteroid->x_pos = x_pos;
   asteroid->y_pos = y_pos;
   return asteroid;
@@ -109,7 +107,7 @@ void kill_asteroid(int index){
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* new_asteroid, uint8_t size){ 
+static void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* new_asteroid, uint8_t size){ 
   
   // Initialize the asteroid polygon
   new_asteroid->poly.n_vertices = n_coords;
@@ -199,8 +197,8 @@ void init_asteroids(gamestate* game_ptr){
 //-------------------------------------------
 // Pre-defined polygons
 //-------------------------------------------
-const int32_t asteroid1_n_coords = 9;   // large asteroid
-const int32_t asteroid1_x_coords[9] = {
+static const int32_t asteroid1_n_coords = 9;   // large asteroid
+static const int32_t asteroid1_x_coords[9] = {
   15 * SCREEN_TO_WORLD_RATIO, 
    0 * SCREEN_TO_WORLD_RATIO,
    0 * SCREEN_TO_WORLD_RATIO,
@@ -211,7 +209,7 @@ const int32_t asteroid1_x_coords[9] = {
   39 * SCREEN_TO_WORLD_RATIO, 
   29 * SCREEN_TO_WORLD_RATIO, 
 };
-const int32_t asteroid1_y_coords[9] = { 
+static const int32_t asteroid1_y_coords[9] = { 
    0 * SCREEN_TO_WORLD_RATIO,  
   13 * SCREEN_TO_WORLD_RATIO,
   22 * SCREEN_TO_WORLD_RATIO,
@@ -222,8 +220,8 @@ const int32_t asteroid1_y_coords[9] = {
   12 * SCREEN_TO_WORLD_RATIO, 
    0 * SCREEN_TO_WORLD_RATIO, 
 };
-const int32_t asteroid2_n_coords = 8;   // medium asteroid
-const int32_t asteroid2_x_coords[8] = {
+static const int32_t asteroid2_n_coords = 8;   // medium asteroid
+static const int32_t asteroid2_x_coords[8] = {
    6 * SCREEN_TO_WORLD_RATIO,
    0 * SCREEN_TO_WORLD_RATIO,
    0 * SCREEN_TO_WORLD_RATIO,  
@@ -233,7 +231,7 @@ const int32_t asteroid2_x_coords[8] = {
   21 * SCREEN_TO_WORLD_RATIO, 
   16 * SCREEN_TO_WORLD_RATIO, 
 };
-const int32_t asteroid2_y_coords[8] = { 
+static const int32_t asteroid2_y_coords[8] = { 
    0 * SCREEN_TO_WORLD_RATIO,
    5 * SCREEN_TO_WORLD_RATIO,
   12 * SCREEN_TO_WORLD_RATIO, 
@@ -243,8 +241,8 @@ const int32_t asteroid2_y_coords[8] = {
    4 * SCREEN_TO_WORLD_RATIO, 
    0 * SCREEN_TO_WORLD_RATIO, 
 };
-const int32_t asteroid3_n_coords = 9;   // small asteroid
-const int32_t asteroid3_x_coords[9] = {
+static const int32_t asteroid3_n_coords = 9;   // small asteroid
+static const int32_t asteroid3_x_coords[9] = {
    4 * SCREEN_TO_WORLD_RATIO,
    0 * SCREEN_TO_WORLD_RATIO,
    0 * SCREEN_TO_WORLD_RATIO,
@@ -255,7 +253,7 @@ const int32_t asteroid3_x_coords[9] = {
   10 * SCREEN_TO_WORLD_RATIO, 
    7 * SCREEN_TO_WORLD_RATIO, 
 };
-const int32_t asteroid3_y_coords[9] = { 
+static const int32_t asteroid3_y_coords[9] = { 
    0 * SCREEN_TO_WORLD_RATIO,
    4 * SCREEN_TO_WORLD_RATIO,
    7 * SCREEN_TO_WORLD_RATIO,
@@ -277,7 +275,7 @@ const int32_t asteroid3_y_coords[9] = {
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 
-void print_asteroid_status(){
+static void print_asteroid_status(){
   game_debug("debug print active_asteroids. n_asteroids: %d\n", game->n_asteroids);
   for(int i = 0; i < game->n_asteroids; i++){
     if(game->active_asteroids[i] == NULL){
