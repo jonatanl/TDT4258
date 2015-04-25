@@ -16,8 +16,11 @@ void draw_all(void);
 // Clear asteroids and spaceship from the framebuffer
 void clear_all(void);
 
+// Refreshes the partial display
+void update_partial_display(void);
+
 // Refreshes the whole display
 // NOTE: might be inefficient
-void update_display(void);
+void update_full_display(void);
 
 #endif // !_DRAW_H
