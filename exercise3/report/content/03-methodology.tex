@@ -282,14 +282,35 @@ First we created a minimal implementation of the game. In the minimal implementa
 
 \subsection{Program Modules}
 To be able to manage a growing code base, we divided our program into five modules, each with a distinct area of responsibility:
+
 \begin{description}
-\item[Game] \quad The application starting point. It initializes modules on startup, and shuts them down on exit. It also contains the game loop and does game updates. See \texttt{game.h} and \texttt{game.c}.
-\item[Logic] \quad The game logic. It is responsible for manipulating the internal state of the game. It moves the spaceship, asteroids, bullets and ufos, in addition to computing collisions. See \texttt{logic.h} and \texttt{logic.c}.
-\item[Input] \quad The input processing module. It is responsible for interfacing with the gamepad driver, and provides a clean interface for the rest of the game modules. See \texttt{input.h} and \texttt{input.c}.
-\item[Draw] \quad The graphics module. It is responsible for updating the frame buffer, and for rendering various objects of the game model. See \texttt{draw.h} and \texttt{draw.c}.
-\item[Debug] \quad Supplies some debugging tools, most notably the macros \texttt{game\_debug()} and \texttt{game\_error()}. The debug statements are enabled by defining the macro \texttt{DEBUG} before including the module header. See \texttt{debug.h} and \texttt{debug.c}.
+\item[Game] \hfill \\
+The application starting point. It initializes modules on startup, and shuts them down on exit. It also contains the game loop and does game updates. See \texttt{game.h} and \texttt{game.c}.
+
+\item[Logic] \hfill \\
+The game logic. It is responsible for manipulating the internal state of the game. It moves the spaceship, asteroids, bullets and ufos, in addition to computing collisions. See \texttt{logic.h} and \texttt{logic.c}.
+
+\item[Input] \hfill \\
+The input processing module. It is responsible for interfacing with the gamepad driver, and provides a clean interface for the rest of the game modules. See \texttt{input.h} and \texttt{input.c}.
+
+\item[Draw] \hfill \\
+The graphics module. It is responsible for updating the frame buffer, and for rendering various objects of the game model. See \texttt{draw.h} and \texttt{draw.c}.
+
+\item[Debug] \hfill \\
+Supplies some debugging tools, most notably the macros \texttt{game\_debug()} and \texttt{game\_error()}. The debug statements are enabled by defining the macro \texttt{DEBUG} before including the module header. See \texttt{debug.h} and \texttt{debug.c}.
 \end{description}
 
+\subsection{Optimization}
+The board itself, has very limited performence. There is not a seperate GPU on the board. In other words, all the graphic calculations has to be done in the CPU. As a result we implemented a lot of the GPU algorithms ourself.
+
+The board is not capable of refreshing the whole screen each frame and at the same time have a reasonable FPS. To solve this problem, we implemented an algorithm to only update the moving parts of the screen. It is not necessary to update 320 x 240 pixels, when only parts of the screen move each frame. The only moving parts on the screen are: spaceship, astroids and bullets. These items are considerably smaller together compared to the total screen size.
+
+Floating point operations are expensive calculations for the ARM CPU. 
+
+\begin{itemize}
+\item Bresenham algorithm (line rasterization) \cite{graphics-algorithms}
+\item The method of seperating axes (collision detection) \cite{collision-algorithms}
+\end{itemize}
 
 
 \section{Testing}
