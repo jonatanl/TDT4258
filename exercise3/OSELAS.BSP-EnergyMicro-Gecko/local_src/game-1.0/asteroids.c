@@ -130,7 +130,8 @@ static void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, st
 }
 
 void init_asteroids(gamestate* game_ptr){
-  game_debug("In method init_asteroids\n");
+  game_debug("Initializing asteroids ... \n");
+
   game = game_ptr;
   game->n_asteroids = START_ASTEROIDS;
   game->n_big_asteroids = START_ASTEROIDS;
@@ -192,7 +193,11 @@ void init_asteroids(gamestate* game_ptr){
     }
   }
 
-  game_debug("Exiting init_asteroids\n");
+  game_debug("Done initializing asteroids\n");
+}
+
+static void release_asteroids(){
+  free(game->active_asteroids);
 }
 
 //-------------------------------------------
