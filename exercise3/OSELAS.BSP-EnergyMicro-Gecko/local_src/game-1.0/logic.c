@@ -12,6 +12,7 @@
 #include "spaceship.h"
 #include "asteroids.h"
 #include "projectiles.h"
+#include "collision.h"
 
 // Enable for debugging
 #define PRINT_POSITION  false
@@ -70,8 +71,20 @@ void update_logic(){
     do_shoot();
   }
 
-  game.time++;
+  static struct collision* current_collision = NULL;
+  if(current_collision == NULL){
+    current_collision = get_next_collision(); 
+  }
 
+  while(current_collision != NULL && current_collision->time <= game.time){
+
+    // A collision has occurred!
+    kill_asteroid_id(current_collision->asteroid_id);
+    kill_projectile_id(current_collision->projectile_id);
+    current_collision = get_next_collision(); 
+  }
+
+  game.time++;
   game_debug("update_logic() done\n");
 }
 

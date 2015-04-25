@@ -1,27 +1,20 @@
+#define DEBUG
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "logic.h"
 #include "pqueue.h"
-
+#include "collision.h"
+#define DEBUG
+#include "debug.h"
 #define DEFAULT_MAX_TIME 1000
-
-// Represents collision between an asteroid and a projectile. Uses IDs to
-// verify that the asteroid and projectile still exist.
-static struct collision
-{
-  struct asteroid* asteroid;
-  int asteroid_id;
-
-  struct projectile* projectile;
-  int projectile_id;
-
-  unsigned time;
-}
 
 
 // Collision queue used to keep track of potential collisions. When an asteroid
 // or a projectile is spawned, all potential collisions are calculated and
 // added to the queue.
 static struct pqueue* my_collision_queue;
-static struct gamestate my_gamestate;
+static struct gamestate* my_gamestate;
 
 // Used to store collisions.
 static struct collision* my_collisions;
@@ -37,6 +30,31 @@ static inline int compare_collisions(void* collision1, void* collision2)
   int time1 = ((struct collision*) collision1)->time;
   int time2 = ((struct collision*) collision2)->time;
   return time1 - time2;
+}
+
+struct collision* get_next_collision(){
+  struct collision* next_collision;
+  bool invalid;
+
+  // Scroll past invalid collisions
+  while(!pqueue_empty(my_collision_queue)){
+    next_collision = pqueue_poll(my_collision_queue);
+
+    // Check if either projectile or asteroid is already missing
+    invalid = false;
+    invalid |= (next_collision->asteroid_id != next_collision->asteroid->id);
+    invalid |= (next_collision->projectile_id != next_collision->projectile->id);
+    if(invalid){
+
+      // Discard invalid collision
+      next_collision = NULL;
+
+      // TODO: Delete the collision from the collision array!
+    }else{
+      break;
+    }
+  }
+  return next_collision;
 }
 
 void update_projectile_collisions(struct projectile* new_projectile){
@@ -60,8 +78,8 @@ void update_projectile_collisions(struct projectile* new_projectile){
 
   // Add all potential collisions to the collision queue
   for(int i=0; i<n_asteroids; i++){
-    asteroid = active_asteroids[i];
-    asteroid_poly = asteroid_poly->poly;
+    asteroid = &active_asteroids[i];
+    asteroid_poly = asteroid->poly;
     asteroid_x_speed = asteroid->x_speed;
     asteroid_y_speed = asteroid->y_speed;
 
@@ -80,14 +98,15 @@ void update_projectile_collisions(struct projectile* new_projectile){
       // If the collision list is full, double its size
       if(n_collisions == max_collisions){
         realloc(my_collisions, sizeof(struct collision) * max_collisions * 2);
+        game_debug("update_projectile_collisions(): Reallocated collision list\n");
       }
 
       // Initialize the new collision
       new_collision = my_collisions[n_collisions++];
       new_collision->asteroid = asteroid;
-      new_collision->asteroid_id = asteroid->asteroid_id;
+      new_collision->asteroid_id = asteroid->id;
       new_collision->projectile = projectile;
-      new_collision->projectile_id = projectile->projectile_id;
+      new_collision->projectile_id = projectile->id;
       new_collision->time = time_first;
 
       // Add the new collision to the collision queue
@@ -137,24 +156,21 @@ void update_asteroid_collisions(struct asteroid* new_asteroid){
       // If the collision list is full, double its size
       if(n_collisions == max_collisions){
         realloc(my_collisions, sizeof(struct collision) * max_collisions * 2);
+        game_debug("update_asteroid_collisions(): Reallocated collision list\n");
       }
 
       // Initialize the new collision
       new_collision = my_collisions[n_collisions++];
       new_collision->asteroid = asteroid;
-      new_collision->asteroid_id = asteroid->asteroid_id;
+      new_collision->asteroid_id = asteroid->id;
       new_collision->projectile = projectile;
-      new_collision->projectile_id = projectile->projectile_id;
+      new_collision->projectile_id = projectile->id;
       new_collision->time = time_first + my_gamestate->time;
 
       // Add the new collision to the collision queue
       pqueue_insert(my_collision_queue, new_collision); 
     }
   }
-}
-
-struct collision* get_next_collision(){
-  return pqueue_empty(my_collision_queue) ? NULL : pqueue_poll(my_collision_queue);
 }
 
 // Module init

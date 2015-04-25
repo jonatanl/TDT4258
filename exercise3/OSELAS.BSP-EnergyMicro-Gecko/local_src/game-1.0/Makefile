@@ -13,7 +13,7 @@ LDFLAGS += -lrt
 
 all: game
 	
-game: draw.o input.o logic.o debug.o spaceship.o util.o geometry.o asteroids.o projectiles.o
+game: draw.o input.o logic.o debug.o spaceship.o util.o geometry.o asteroids.o projectiles.o collision.o
 
 %.o: %.c
 	arm-cortexm3-uclinuxeabi-gcc $(CFLAGS) -c $< -o $@
