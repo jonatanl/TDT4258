@@ -62,4 +62,7 @@ bool get_intersection_time_poly_poly(
     int* time_first_max,  // time of first and last intersection
     int* time_last_min);   //
 
+// Test function for get_intersection_time().
+void test_get_intersection_time_poly_poly();
+
 #endif // !_GEOMETRY_H

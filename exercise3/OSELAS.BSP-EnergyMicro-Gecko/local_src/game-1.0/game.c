@@ -26,22 +26,22 @@
 
 #define NANOSECONDS_PER_FRAME (1000000000 / FRAMES_PER_SECOND)
 
-// Function prototypes
-int init_game(void);
-int close_game(void);
-void debug_test_run(void);
-void sleep_to_next_frame(void);
+// Prototypes
+static int init_game(void);
+static int close_game(void);
+static void debug_test_run(void);
+static void sleep_to_next_frame(void);
 
 // Global variables
 static gamestate* my_gamestate;   // used to pass gamestates around
 static int error;   // error variable
 
 // Variables used to calculate frame sleep time
-clockid_t my_clockid = CLOCK_MONOTONIC;
-struct timespec time1;
-struct timespec time2;
-struct timespec sleep_time;
-long int sleep_ns;
+static clockid_t my_clockid = CLOCK_MONOTONIC;
+static struct timespec time1;
+static struct timespec time2;
+static struct timespec sleep_time;
+static long int sleep_ns;
 
 int main(int argc, char *argv[])
 {
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 // NOTE: We would prefer using clock_nanosleep(), but we could not get it to
 // work. Maybe it's not defined in our version of the C library.
 #define NANOSECONDS_PER_SECOND 1000000000
-void sleep_to_next_frame(void)
+static void sleep_to_next_frame(void)
 {
   //clock_nanosleep(my_clockid, 0, &time1, &time2); 
 
@@ -133,7 +133,7 @@ void sleep_to_next_frame(void)
 }
 
 // Initialize game modules
-int init_game()
+static int init_game()
 {
   game_debug("Initializing the game ...\n");
 
@@ -163,7 +163,7 @@ int init_game()
 }
 
 // Release game modules
-int close_game()
+static int close_game()
 {
   game_debug("Closing the game ...\n");
 

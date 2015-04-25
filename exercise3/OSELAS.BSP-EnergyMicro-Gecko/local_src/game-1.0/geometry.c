@@ -11,10 +11,9 @@
 int32_t dot_product(int32_t x1, int32_t y1, int32_t x2, int32_t y2){
   return (x1 * x2) + (y1 * y2);
 }
- 
 
 // Returns the largest and the smallest dot product between (x, y) and a point in x_coords / y_coords
-void min_max_dot_product(int32_t x, int32_t y,
+static void min_max_dot_product(int32_t x, int32_t y,
     int32_t* x_coords, int32_t* y_coords, int n_vertices, int* min, int* max)
 {
   int32_t product = dot_product(x, y, x_coords[0], y_coords[0]);
@@ -27,16 +26,14 @@ void min_max_dot_product(int32_t x, int32_t y,
   }
 }
 
-
-void inline rotate_clockwise90(int32_t* x, int32_t* y)
+static void inline rotate_clockwise90(int32_t* x, int32_t* y)
 {
   int temp = *x;
   *x = *y;
   *y = -temp; 
 }
 
-
-void inline rotate_counterclockwise90(int32_t* x, int32_t* y)
+static void inline rotate_counterclockwise90(int32_t* x, int32_t* y)
 {
   int temp = *x;
   *x = -y[0];
