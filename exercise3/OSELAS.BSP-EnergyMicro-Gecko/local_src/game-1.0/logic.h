@@ -3,27 +3,46 @@
 #define _LOGIC_H
 
 #include <stdint.h>
+
 #include "game.h"
 
-// The world dimensions
+// This header collects all game structures in one place.
+//
+// NOTE: All coordinates are relative to world coordinates (the logical game
+// dimensions) rather than screen coordinates.
+
+
+// The world dimensions are calculated by multiplying the screen size with
+// SCREEN_TO_WORLD_RATIO.
 #define SCREEN_TO_WORLD_RATIO (1 << 20)
 #define DEFAULT_WORLD_X_DIM (DISPLAY_WIDTH  * SCREEN_TO_WORLD_RATIO)
 #define DEFAULT_WORLD_Y_DIM (DISPLAY_HEIGHT * SCREEN_TO_WORLD_RATIO)
 
+
+// Number of game updates per second
 #define FRAMES_PER_SECOND 30
 
 
-
-
-// All coordinates are relative to the logical game dimensions 
-// rather than actual screen size
-//
-// NOTE: Polygon vertices must be listed in a counter-clockwise order in order
-// for time_of_collision() to work.
 struct polygon{
     int n_vertices;
     int32_t* x_coords;
     int32_t* y_coords;
+    // NOTE: Polygon vertices must be listed in a counter-clockwise order in
+    // for get_intersection_time_poly_poly() and firends to work.
+};
+
+struct spaceship{
+    int32_t x_pos;
+    int32_t y_pos;
+    int32_t x_speed;
+    int32_t y_speed;
+    float x_orientation;
+    float y_orientation;
+    int gun_cooldown;
+    struct polygon poly;
+    
+    // Used for simple collision check and to update framebuffer area.
+    struct bounding_box collision_box;
 };
 
 // Bounding box of a shape, usually a polygon
@@ -34,20 +53,6 @@ struct bounding_box{
     int32_t y_right_lower;  // y_min
 };
 
-// Struct for ship properties. Only one(two?) should ever exist.
-struct spaceship{
-    int32_t x_pos;
-    int32_t y_pos;
-    int32_t x_speed;
-    int32_t y_speed;
-    float x_orientation;
-    float y_orientation;
-    int gun_cooldown;
-    struct polygon poly;
-    struct bounding_box collision_box; // Ship collision box and draw box
-};
-
-// Struct for asteroid properties
 struct asteroid{
     uint8_t id;
     int32_t x_pos;
@@ -58,11 +63,14 @@ struct asteroid{
     uint8_t type;   // small, med and big
     uint8_t index;  // when an asteroid is hit we need to know which
     struct bounding_box collision_box;  // Asteroid collision box
+};
 
-//    // The draw box list. This is sent to the draw module to update the part of
-//    // the display covered by the asteroids movement.
-//    struct bounding_box* draw_boxes;
-//    int n_draw_boxes;
+struct projectile{
+    int32_t x_pos;
+    int32_t y_pos;
+    int32_t x_speed;
+    int32_t y_speed;
+    // Lacks a polygon at the moment    
 };
 
 // Implementation of the logic module
@@ -79,14 +87,6 @@ struct gamestate{
     int32_t world_y_dim; 
 };
 
-// Lacks a polygon at the moment    
-struct projectile{
-    int32_t x_pos;
-    int32_t y_pos;
-    int32_t x_speed;
-    int32_t y_speed;
-};
-
 typedef struct spaceship spaceship;
 typedef struct gamestate gamestate;
 typedef struct polygon polygon;
@@ -94,12 +94,13 @@ typedef struct asteroid asteroid;
 typedef struct projectile projectile;
 typedef struct bounding_box bounding_box;
 
-// Initialize and release module
+// Initialize the game logic
 int init_logic(struct gamestate** gamestate_ptr);
+
+// Release game logic resources
 int release_logic();
 
-// Updates the state of the game
-// void update_logic();
+// Updates the state of the game logic
 void update_logic();
 
 #endif // !_LOGIC_H
