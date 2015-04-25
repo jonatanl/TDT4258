@@ -22,6 +22,13 @@
 // Number of game updates per second
 #define FRAMES_PER_SECOND 30
 
+// Type definitions
+typedef struct polygon polygon;
+typedef struct bounding_box bounding_box;
+typedef struct spaceship spaceship;
+typedef struct asteroid asteroid;
+typedef struct projectile projectile;
+typedef struct gamestate gamestate;
 
 struct polygon{
     int n_vertices;
@@ -29,6 +36,14 @@ struct polygon{
     int32_t* y_coords;
     // NOTE: Polygon vertices must be listed in a counter-clockwise order in
     // for get_intersection_time_poly_poly() and firends to work.
+};
+
+// Bounding box of a shape, usually a polygon
+struct bounding_box{
+    int32_t x_left_upper;   // x_min
+    int32_t y_left_upper;   // y_max
+    int32_t x_right_lower;  // x_max
+    int32_t y_right_lower;  // y_min
 };
 
 struct spaceship{
@@ -43,14 +58,6 @@ struct spaceship{
     
     // Used for simple collision check and to update framebuffer area.
     struct bounding_box collision_box;
-};
-
-// Bounding box of a shape, usually a polygon
-struct bounding_box{
-    int32_t x_left_upper;   // x_min
-    int32_t y_left_upper;   // y_max
-    int32_t x_right_lower;  // x_max
-    int32_t y_right_lower;  // y_min
 };
 
 struct asteroid{
@@ -86,13 +93,6 @@ struct gamestate{
     int32_t world_x_dim;
     int32_t world_y_dim; 
 };
-
-typedef struct spaceship spaceship;
-typedef struct gamestate gamestate;
-typedef struct polygon polygon;
-typedef struct asteroid asteroid;
-typedef struct projectile projectile;
-typedef struct bounding_box bounding_box;
 
 // Initialize the game logic
 int init_logic(struct gamestate** gamestate_ptr);
