@@ -3,7 +3,7 @@
 #include "util.h"
 
 // Pre calculated sine and cosine to rotate 12 degrees clockwise
-static float clockWiseSine		= -0.20791f;;
+static float clockWiseSine		= -0.20791f;
 static float clockWiseCosine 	= 0.97815f;
 
 // Pre calculated sine and cosine to rotate 12 degrees counterclockwise
