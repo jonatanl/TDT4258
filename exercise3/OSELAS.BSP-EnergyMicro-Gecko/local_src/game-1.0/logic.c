@@ -70,6 +70,8 @@ void update_logic(){
     do_shoot();
   }
 
+  game.time++;
+
   game_debug("update_logic() done\n");
 }
 
@@ -124,6 +126,9 @@ int init_logic(struct gamestate** gamestate_ptr){
 
   // Seed random generator
   srand(2);
+
+  // Reset game time
+  game.time = 0;
 
   // Initialize submodules
   init_spaceship(&game.ship);

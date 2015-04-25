@@ -92,6 +92,7 @@ struct gamestate{
     struct asteroid** active_asteroids;     // A list of pointers to the my_asteroids list stored in the data segment
     int n_projectiles;
     struct projectile** active_projectiles;
+    int time;
 };
 
 // Initialize the game logic
