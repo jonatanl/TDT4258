@@ -45,6 +45,12 @@ static void spawn_projectile(){
 
   projectile->lifetime = PROJECTILE_LIFETIME;
 
+  projectile->poly.x_coords[0] = 0;
+  projectile->poly.x_coords[1] = (int)game->ship->x_orientation*SCREEN_TO_WORLD_RATIO*2;
+
+  projectile->poly.y_coords[0] = 0;
+  projectile->poly.y_coords[1] = (int)game->ship->y_orientation*SCREEN_TO_WORLD_RATIO*2;
+
   game->active_projectiles[game->n_projectiles++] = projectile;
 }
 
@@ -90,6 +96,10 @@ void init_projectiles(gamestate* game_ptr){
   game = game_ptr;
   game->active_projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
   game->n_projectiles = 0;
+  for(int i = 0; i < MAX_AMOUNT_PROJECTILES; i++){
+    my_projectiles[i].poly.x_coords = malloc(sizeof(int32_t)*2);
+    my_projectiles[i].poly.y_coords = malloc(sizeof(int32_t)*2);
+  }
 }
 
 void release_projectiles(){
