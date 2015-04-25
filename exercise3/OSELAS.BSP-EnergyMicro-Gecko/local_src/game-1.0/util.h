@@ -12,8 +12,8 @@
 //-----------------------------------------------------------
 
 // Math
-#define ARG_MAX(a, b)                   (a < b ? a : b)
-#define ARG_MIN(a, b)                   (a > b ? a : b)
+#define ARG_MAX(a, b)                   (a > b ? a : b)
+#define ARG_MIN(a, b)                   (a < b ? a : b)
 #define RANDOM(start, end) (start + (rand() % end))
 
 // Returns true if the intervals (p1_min, p1_max) and (p2_min, p2_max) overlaps
