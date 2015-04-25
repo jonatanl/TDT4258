@@ -2,6 +2,7 @@
 #include "input.h"
 #include "logic.h"
 #include "util.h"
+#define DEBUG
 #include "debug.h"
 
 #include <stdbool.h>
@@ -46,7 +47,11 @@ static void spawn_projectile(){
   game->active_projectiles[game->n_projectiles++] = projectile;
 }
 
+
 static void kill_projectile(int index){
+  if(game->n_projectiles < index){
+    game_debug("kill projectile issued on non existing projectile %d\n", index);
+  }
   if(game->n_projectiles <= 0){
     return;
   }
@@ -83,4 +88,38 @@ void init_projectiles(gamestate* game_ptr){
   game = game_ptr;
   game->active_projectiles = malloc(sizeof(projectile*)*MAX_AMOUNT_PROJECTILES);
   game->n_projectiles = 0;
+}
+
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////
+////////////    DEBUG
+////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+
+void print_projectiles_status(){
+  game_debug("## PROJECTILE STATUS: ##\n");
+  game_debug("Free spots:\n");
+  for(int i = 0; i < MAX_AMOUNT_PROJECTILES; i++){
+    if(free_spots[i] == 0){
+      game_debug("[o]");
+    }
+    else{
+      game_debug("[x]");
+    }
+  }
+  game_debug("\n\nTesting for null ptrs:\n");
+  for(int i = 0; i < game->n_projectiles; i++){
+    if(game->active_projectiles[i] == NULL){
+      game_debug("Projectile %d is NULL ptr\n", i);
+    }
+  }
+  game_debug("\nTesting projectile ptr correspondence:\n");
+  for(int i = 0; i < game->n_projectiles; i++){
+    game_debug("[%d]", game->active_projectiles[i] - my_projectiles);
+  }
+  game_debug("\n\n## PROJECTILE STATUS DONE ##:\n");
 }
