@@ -47,14 +47,12 @@ static void spawn_projectile(){
   game->active_projectiles[game->n_projectiles++] = projectile;
 }
 
-<<<<<<< HEAD
-void kill_projectile(int index){
+
+static void kill_projectile(int index){
   if(game->n_projectiles < index){
     game_debug("kill projectile issued on non existing projectile %d\n", index);
-=======
-static void kill_projectile(int index){
+  }
   if(game->n_projectiles <= 0){
->>>>>>> f5a9f5d1c88e8d32afa2771eb3e0eee9b6cda8e0
     return;
   }
   free_spots[game->active_projectiles[index] - my_projectiles] = 0;
@@ -124,5 +122,4 @@ void print_projectiles_status(){
     game_debug("[%d]", game->active_projectiles[i] - my_projectiles);
   }
   game_debug("\n\n## PROJECTILE STATUS DONE ##:\n");
-
 }
