@@ -8,12 +8,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-// epic C... simply epic
-static struct gamestate* game;
-struct projectile my_projectiles[MAX_AMOUNT_PROJECTILES];
-int free_spots[MAX_AMOUNT_PROJECTILES] = {0};
+// Prototypes
+static void spawn_projectile();
 
-void spawn_projectile();
+// Global variables
+static struct gamestate* game;
+static struct projectile my_projectiles[MAX_AMOUNT_PROJECTILES];
+static int free_spots[MAX_AMOUNT_PROJECTILES] = {0};
 
 void do_shoot(void){
   if(game->n_projectiles >= MAX_AMOUNT_PROJECTILES){
@@ -24,7 +25,7 @@ void do_shoot(void){
 
 // Spawns and inserts a projectile
 // Since this function is somewhat obtuse it is commented liberally
-void spawn_projectile(){
+static void spawn_projectile(){
   int index = -1;
   for(index = 0; index < MAX_AMOUNT_PROJECTILES; index++){
     if(free_spots[index] == 0){
@@ -46,9 +47,14 @@ void spawn_projectile(){
   game->active_projectiles[game->n_projectiles++] = projectile;
 }
 
+<<<<<<< HEAD
 void kill_projectile(int index){
   if(game->n_projectiles < index){
     game_debug("kill projectile issued on non existing projectile %d\n", index);
+=======
+static void kill_projectile(int index){
+  if(game->n_projectiles <= 0){
+>>>>>>> f5a9f5d1c88e8d32afa2771eb3e0eee9b6cda8e0
     return;
   }
   free_spots[game->active_projectiles[index] - my_projectiles] = 0;
