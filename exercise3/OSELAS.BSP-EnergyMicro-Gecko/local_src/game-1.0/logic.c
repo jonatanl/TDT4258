@@ -134,9 +134,6 @@ int init_logic(struct gamestate** gamestate_ptr){
 
   }
   init_projectiles(&game);
-  game.world_x_dim = DEFAULT_WORLD_X_DIM;
-  game.world_y_dim = DEFAULT_WORLD_Y_DIM;
-
   init_asteroids(&game);
   init_projectiles(&game);
 
