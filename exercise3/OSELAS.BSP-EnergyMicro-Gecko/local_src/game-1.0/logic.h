@@ -101,6 +101,5 @@ int release_logic();
 // Updates the state of the game
 // void update_gamestate();
 void do_logic();
-void do_wrap(int32_t* x_pos, int32_t* y_pos);
 
 #endif // !_LOGIC_H

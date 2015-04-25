@@ -29,7 +29,6 @@
 
 
 // Function prototypes
-void do_logic();
 void do_shoot(void);
 void update_gamestate(uint8_t input);
 void update_projectiles();
@@ -102,22 +101,6 @@ bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaces
 //        &&  INTERSECTS(box1->y_right_lower, box1->y_left_upper,  box2->y_right_lower, box2->y_left_upper));
 //}
 
-
-
-void do_wrap(int32_t* x_pos, int32_t* y_pos){
-  if(*x_pos >= DEFAULT_WORLD_X_DIM){
-    *x_pos -= DEFAULT_WORLD_X_DIM; 
-  }
-  else if(*x_pos < 0){
-    *x_pos += DEFAULT_WORLD_X_DIM;
-  }
-  if(*y_pos >= DEFAULT_WORLD_Y_DIM){
-    *y_pos -= DEFAULT_WORLD_Y_DIM; 
-  }
-  else if(*y_pos < 0){
-    *y_pos += DEFAULT_WORLD_Y_DIM;
-  }
-}
 
 void check_box_collisions(){
   for(int i = 0; i < game.n_asteroids; i++){

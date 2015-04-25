@@ -39,7 +39,7 @@ void spawn_projectile(){
   projectile->x_speed = (int)game->ship->x_orientation*SCREEN_TO_WORLD_RATIO*30;
   projectile->y_speed = (int)game->ship->y_orientation*SCREEN_TO_WORLD_RATIO*30;
 
-  projectile->lifetime = PROJECTILE_LIFETIME;
+  //projectile->lifetime = PROJECTILE_LIFETIME;
 
   game->active_projectiles[game->n_projectiles++] = projectile;
 }
@@ -55,9 +55,9 @@ void kill_projectile(int index){
 void update_projectiles(){
   game_debug("Attempting to update projectile despawns\n");
   for (int i = game->n_projectiles; i > 0; --i) {
-    if(game->active_projectiles[i]->lifetime-- == 0){
-      kill_projectile(i);
-    }
+    //if(game->active_projectiles[i]->lifetime-- == 0){
+    //  kill_projectile(i);
+    //}
   }
   game_debug("Attempting to update projectile positions\n");
   for(int i = 0; i < game->n_projectiles; i++){
