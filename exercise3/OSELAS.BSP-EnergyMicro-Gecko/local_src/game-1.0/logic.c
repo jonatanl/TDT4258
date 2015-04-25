@@ -122,21 +122,15 @@ bool check_poly_collision(polygon* p1, polygon* p2){
 int init_logic(struct gamestate** gamestate_ptr){
   game_debug("Initializing the logic module ...\n");
 
-  // RANDOMNESS GUARANTEED!
+  // Seed random generator
   srand(2);
 
-  // Initialize the gamestate struct, and all the submodules for tracking gamestate
+  // Initialize submodules
   init_spaceship(&game.ship);
-  game_debug("Initializing asteroids\n");
   //init_asteroids(&game);
-  game_debug("Done initializing asteroids\n");
-  if(game.active_asteroids == NULL){
-
-  }
   //init_projectiles(&game);
-  game.world_x_dim = DEFAULT_WORLD_X_DIM;
-  game.world_y_dim = DEFAULT_WORLD_Y_DIM;
 
+  // Return a pointer to the gamestate structure
   *gamestate_ptr = &game;
 
   // No errors
@@ -148,8 +142,10 @@ int init_logic(struct gamestate** gamestate_ptr){
 int release_logic(){
   game_debug("Releasing the logic module ...\n");
 
-  // TODO: Relase module resources:
-  //  - dynamically allocated polygons
+  // Release submodules
+  release_spaceship();
+  //release_asteroids();
+  //release_projectiles();
 
   // No errors
   game_debug("DONE: No errors releasing the logic module\n");
