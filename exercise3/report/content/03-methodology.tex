@@ -340,7 +340,7 @@ This way we could make sure that no expensive allocations or data moves were mad
 
 The board is not capable of refreshing the whole screen each frame and at the same time have a reasonable FPS. To solve this problem, we implemented an algorithm to only update the moving parts of the screen. It is not necessary to update 320 x 240 pixels, when only parts of the screen move each frame. The only moving parts on the screen are: spaceship, astroids and bullets. These items are considerably smaller together compared to the total screen size.
 
-Floating point operations is not supported in hardware in the ARM Cortex-M3 CPU. This makes floating point operations quite expensive. In our game we avoided floating point operations altogether, except when we calculate spaceship rotation.
+Floating point operations is not supported in hardware in the ARM Cortex-M3 CPU. This makes floating point operations quite expensive. In our game we avoided floating point operations altogether, except when we calculated spaceship rotation.
 
 \paragraph{Specialized algorithms we implemented in our game}
 \begin{itemize}
