@@ -134,8 +134,8 @@ int init_logic(struct gamestate** gamestate_ptr){
 
   }
   init_projectiles(&game);
-  init_asteroids(&game);
-  init_projectiles(&game);
+  //init_asteroids(&game);
+  //init_projectiles(&game);
 
   // Return a pointer to the gamestate structure
   *gamestate_ptr = &game;
