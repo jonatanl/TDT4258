@@ -49,11 +49,11 @@ void update_logic(){
   //    // Do pause
   //}
 
-  //if(CHECK_DEBUG(input)){
-  //  kill_asteroid(0);
-  //}
+  if(CHECK_DEBUG(input)){
+    kill_asteroid(0);
+  }
 
-  //update_asteroids();
+  update_asteroids();
   // Check collisions
 
   update_spaceship(input);
@@ -65,10 +65,10 @@ void update_logic(){
     );
   }
 
-  //update_projectiles();
-  //if(CHECK_SHOOT(input)){
-  //  do_shoot();
-  //}
+  update_projectiles();
+  if(CHECK_SHOOT(input)){
+    do_shoot();
+  }
 
   game_debug("update_logic() done\n");
 }
@@ -127,8 +127,15 @@ int init_logic(struct gamestate** gamestate_ptr){
 
   // Initialize submodules
   init_spaceship(&game.ship);
-  //init_asteroids(&game);
-  //init_projectiles(&game);
+  game_debug("Initializing asteroids\n");
+  init_asteroids(&game);
+  game_debug("Done initializing asteroids\n");
+  if(game.active_asteroids == NULL){
+
+  }
+  init_projectiles(&game);
+  init_asteroids(&game);
+  init_projectiles(&game);
 
   // Return a pointer to the gamestate structure
   *gamestate_ptr = &game;

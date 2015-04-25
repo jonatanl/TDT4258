@@ -77,6 +77,7 @@ struct projectile{
     int32_t y_pos;
     int32_t x_speed;
     int32_t y_speed;
+    int32_t lifetime;
     // Lacks a polygon at the moment    
 };
 

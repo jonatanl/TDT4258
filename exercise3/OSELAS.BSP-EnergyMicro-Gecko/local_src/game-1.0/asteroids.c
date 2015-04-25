@@ -42,6 +42,7 @@ void update_asteroids(){
     current_asteroid = game->active_asteroids[i];
     current_asteroid->x_pos += current_asteroid->x_speed;
     current_asteroid->y_pos += current_asteroid->y_speed;
+    wrap_coordinate(&current_asteroid->x_pos, &current_asteroid->y_pos);
     create_bounding_box(
       &current_asteroid->collision_box,
       &current_asteroid->poly
