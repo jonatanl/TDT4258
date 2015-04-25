@@ -288,7 +288,18 @@ To be able to manage a growing code base, we divided our program into five modul
 The application starting point. It initializes modules on startup, and shuts them down on exit. It also contains the game loop and does game updates. See \texttt{game.h} and \texttt{game.c}.
 
 \item[Logic] \hfill \\
-The game logic. It is responsible for manipulating the internal state of the game. It moves the spaceship, asteroids, bullets and ufos, in addition to computing collisions. See \texttt{logic.h} and \texttt{logic.c}.
+The game logic. It is responsible for manipulating the internal state of the game. It moves the spaceship, asteroids, bullets and ufos, in addition to computing collisions. See \texttt{logic.h} and \texttt{logic.c}. \\
+The logic module itself is also divided into the following submodules:
+\begin{description}
+\item[Asteroids] \hfill \\ 
+A module for containing methods related to asteroids, such as spawning, despawning and handling movement of asteroids.
+
+\item[Spaceship] \hfill \\
+A module containing methods to handle the player ship, tracking its orientation, speed and a handler for some input actions.
+
+\item[Projectiles] \hfill \\
+A module containing methods to keep track of projectiles, working in a similar way to the asteroid module.  
+\end{description}
 
 \item[Input] \hfill \\
 The input processing module. It is responsible for interfacing with the gamepad driver, and provides a clean interface for the rest of the game modules. See \texttt{input.h} and \texttt{input.c}.
@@ -299,6 +310,8 @@ The graphics module. It is responsible for updating the frame buffer, and for re
 \item[Debug] \hfill \\
 Supplies some debugging tools, most notably the macros \texttt{game\_debug()} and \texttt{game\_error()}. The debug statements are enabled by defining the macro \texttt{DEBUG} before including the module header. See \texttt{debug.h} and \texttt{debug.c}.
 \end{description}
+
+Many of these modules grew beyond reasonable size and were firther divided. 
 
 \subsection{Optimization}
 The board itself, has very limited performence. There is not a seperate GPU on the board. In other words, all the graphic calculations has to be done in the CPU. As a result we implemented a lot of the GPU algorithms ourself.
