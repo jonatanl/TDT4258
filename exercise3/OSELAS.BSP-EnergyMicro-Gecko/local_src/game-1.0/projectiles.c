@@ -101,6 +101,7 @@ void init_projectiles(gamestate* game_ptr){
     my_projectiles[i].poly.x_coords = malloc(sizeof(int32_t)*4);
     my_projectiles[i].poly.y_coords = malloc(sizeof(int32_t)*4);
     my_projectiles[i].poly.n_vertices = 2;
+    my_projectiles[i].id = i;
   }
 }
 

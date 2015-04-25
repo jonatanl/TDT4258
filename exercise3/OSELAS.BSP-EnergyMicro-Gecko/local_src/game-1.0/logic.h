@@ -61,7 +61,6 @@ struct spaceship{
 };
 
 struct asteroid{
-    uint8_t id;
     int32_t x_pos;
     int32_t y_pos;
     int32_t x_speed;
@@ -70,6 +69,7 @@ struct asteroid{
     uint8_t type;   // small, med and big
     uint8_t index;  // when an asteroid is hit we need to know which
     struct bounding_box collision_box;  // Asteroid collision box
+    int32_t id;
 };
 
 struct projectile{
@@ -79,7 +79,7 @@ struct projectile{
     int32_t y_speed;
     int32_t lifetime;
     struct polygon poly;
-    // Lacks a polygon at the moment    
+    int32_t id; 
 };
 
 // Implementation of the logic module
