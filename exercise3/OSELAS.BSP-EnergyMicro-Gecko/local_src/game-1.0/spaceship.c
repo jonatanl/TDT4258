@@ -79,13 +79,14 @@ void update_spaceship(uint8_t input){
     my_spaceship.x_pos = my_spaceship.x_pos + my_spaceship.x_speed;
     my_spaceship.y_pos = my_spaceship.y_pos + my_spaceship.y_speed;
 
+    // Wrap position around
+    wrap_coordinate(&my_spaceship.x_pos, &my_spaceship.y_pos);
+    
     // Update the ship bounding box
     create_bounding_box(
         &my_spaceship.collision_box,
         &my_spaceship.poly
     );
-
-    // TODO: Wrap around with do_wrap(&game.ship.x_pos, &game.ship.y_pos);
 }
 
 static void rotate_spaceship(bool clockwise) {

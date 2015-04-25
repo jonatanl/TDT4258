@@ -45,13 +45,13 @@ void update_logic(){
   game_debug("update_logic() called\n");
   uint8_t input = get_input();
 
-  if(CHECK_PAUSE(input)){
-      // Do pause
-  }
+  //if(CHECK_PAUSE(input)){
+  //    // Do pause
+  //}
 
-  if(CHECK_DEBUG(input)){
-    kill_asteroid(0);
-  }
+  //if(CHECK_DEBUG(input)){
+  //  kill_asteroid(0);
+  //}
 
   //update_asteroids();
   // Check collisions
@@ -66,9 +66,9 @@ void update_logic(){
   }
 
   //update_projectiles();
-  if(CHECK_SHOOT(input)){
-    do_shoot();
-  }
+  //if(CHECK_SHOOT(input)){
+  //  do_shoot();
+  //}
 
   game_debug("update_logic() done\n");
 }
