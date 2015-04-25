@@ -10,6 +10,7 @@
 
 // Prototypes
 static void spawn_projectile();
+static void kill_projectile(int index);
 void print_projectiles_status(void);
 
 // Global variables
@@ -53,6 +54,15 @@ static void spawn_projectile(){
   game->active_projectiles[game->n_projectiles++] = projectile;
 }
 
+void kill_projectile_id(int id){
+  for(int i = 0; i < game->n_projectiles; i++){
+    if(id == game->active_projectiles[i]->id){
+      kill_projectile(i);
+      return;
+    }
+  }
+  game_debug("kill projectile id error for projectile id: %d", id);
+}
 
 static void kill_projectile(int index){
   if(game->n_projectiles < index){
@@ -101,6 +111,7 @@ void init_projectiles(gamestate* game_ptr){
     my_projectiles[i].poly.x_coords = malloc(sizeof(int32_t)*4);
     my_projectiles[i].poly.y_coords = malloc(sizeof(int32_t)*4);
     my_projectiles[i].poly.n_vertices = 2;
+    my_projectiles[i].id = i;
   }
 }
 

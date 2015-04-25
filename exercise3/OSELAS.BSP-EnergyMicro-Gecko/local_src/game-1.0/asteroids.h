@@ -12,4 +12,5 @@
 
 void init_asteroids();
 void kill_asteroid(int index);
+void kill_asteroid_id(int id);
 void update_asteroids();

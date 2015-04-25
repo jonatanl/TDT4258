@@ -19,6 +19,8 @@ static struct gamestate* game;
 static struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
 static struct asteroid* spawn_asteroid(int32_t x_pos, int32_t y_pos, asteroid* asteroid);
 static void print_asteroid_status(void);
+void kill_asteroid_id(int id);
+
 static const int32_t asteroid1_n_coords;
 static const int32_t asteroid1_x_coords[];
 static const int32_t asteroid1_y_coords[]; 
@@ -103,6 +105,16 @@ void kill_asteroid(int index){
   print_asteroid_status();
 }
 
+// Figures out which index corresponds to the id
+void kill_asteroid_id(int id){
+  for(int i = 0; i < game->n_asteroids; i++){
+    if(id == game->active_asteroids[i]->id){
+      kill_asteroid(i);
+      return;
+    }
+  }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,8 +125,14 @@ void kill_asteroid(int index){
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-static void init_asteroid(int n_coords, int32_t* x_coords, int32_t* y_coords, struct asteroid* new_asteroid, uint8_t size){ 
-  
+static void init_asteroid(int n_coords, 
+                          int32_t* x_coords, 
+                          int32_t* y_coords, 
+                          struct asteroid* new_asteroid, 
+                          uint8_t size, 
+                          int32_t id_number
+  ){ 
+  new_asteroid->id = id_number;
   // Initialize the asteroid polygon
   new_asteroid->poly.n_vertices = n_coords;
   new_asteroid->poly.x_coords = x_coords;
@@ -151,7 +169,8 @@ void init_asteroids(gamestate* game_ptr){
         (int32_t*)&asteroid1_x_coords[0],
         (int32_t*)&asteroid1_y_coords[0],
         &my_asteroids[i],
-        type
+        type,
+        i
       );
     }
     else if(i < LARGE_ASTEROIDS + MEDIUM_ASTEROIDS){
@@ -161,7 +180,8 @@ void init_asteroids(gamestate* game_ptr){
         (int32_t*)&asteroid2_x_coords[0],
         (int32_t*)&asteroid2_y_coords[0],
         &my_asteroids[i],
-        type
+        type,
+        i
       );
     }
     else{
@@ -171,7 +191,8 @@ void init_asteroids(gamestate* game_ptr){
         (int32_t*)&asteroid3_x_coords[0],
         (int32_t*)&asteroid3_y_coords[0],
         &my_asteroids[i],
-        type
+        type,
+        i
       );
     }
   }
