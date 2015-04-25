@@ -19,6 +19,9 @@ void clear_all(void);
 // Refreshes the partial display
 void update_partial_display(void);
 
+// Refreshes a single asteroid
+void do_update_moving_asteroid(struct asteroid* ast);
+
 // Refreshes the whole display
 // NOTE: might be inefficient
 void update_full_display(void);

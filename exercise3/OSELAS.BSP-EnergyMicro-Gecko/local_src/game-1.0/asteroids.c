@@ -4,6 +4,7 @@
 #include "util.h"
 #define DEBUG
 #include "debug.h"
+#include "draw.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -58,6 +59,10 @@ void kill_asteroid(int index){
   }
   game_debug("Attempting to kill asteroid %d\nCurrent status:\n", index);
   print_asteroid_status();
+
+  // Update framebuffer to remove old asteroid
+  do_update_moving_asteroid(game->active_asteroids[index]);
+
   if(game->active_asteroids[index]->type == SML){
     game_debug("Killing small asteroid\n");
     game->active_asteroids[index] = game->active_asteroids[--game->n_asteroids];

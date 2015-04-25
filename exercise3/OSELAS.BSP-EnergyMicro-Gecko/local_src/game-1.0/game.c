@@ -102,11 +102,10 @@ static void sleep_to_next_frame(void)
   sleep_ns -= (time1.tv_sec  - time2.tv_sec) * NANOSECONDS_PER_SECOND;
 
   // Skip missed frames
-  while(sleep_ns < 0){  
-    sleep_ns += NANOSECONDS_PER_FRAME;
-    game_debug("(frame skipped!)\n");
+  if(sleep_ns < 0){
+    game_debug("frames skipped: %d\n", ((-sleep_ns) + NANOSECONDS_PER_FRAME - 1) / NANOSECONDS_PER_FRAME);
+    sleep_ns = 0;
   }
-  sleep_ns = NANOSECONDS_PER_FRAME - sleep_ns;
 
   // Sleep until the next frame. Reuses time1 and time2.
   time1.tv_sec  = 0;
