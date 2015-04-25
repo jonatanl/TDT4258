@@ -18,22 +18,19 @@
 #include "logic.h"
 #include "util.h"
 	
-int init_input();
-void signal_handler(int signal);
-uint8_t sanitize_input_buffer(uint8_t n_input, uint8_t* input_buffer);
-
 #define DEVICE_PATH "/dev/gamepad"
 
-// To keep track of whether a read is needed or not.
-static uint8_t input_raw;
-static uint8_t output = 0x00;
+// Prototypes
+static void signal_handler(int signal);
 
+// Global variables
+static uint8_t input_raw;     // Stores the current input and output
+static uint8_t output = 0x00; //
 static int devfd; // device file descriptor
 static int error; // error variable
 
-
 // When a signal arrives input_raw is updated
-void signal_handler(int signal){
+static void signal_handler(int signal){
   int count;
   
   // Read all available input
@@ -48,7 +45,7 @@ void signal_handler(int signal){
 
 uint8_t get_input(){
   uint8_t output = input_raw;
-  input_raw = input_raw & (~INPUT_SHOOT); 
+  input_raw = input_raw & (~INPUT_SHOOT); // clear the shoot bit
   return output;
 }
 

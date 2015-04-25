@@ -5,10 +5,10 @@
 #include "logic.h"
 #include "util.h"
 
-// Prototype declarations
-void rotate_spaceship(bool clockwise);
+// Prototypes
+static void rotate_spaceship(bool clockwise);
 
-// The spaceship is stored here
+// Global variables
 struct spaceship my_spaceship;
 
 // The spaceship acceleration factor as a constant expression
@@ -18,12 +18,12 @@ struct spaceship my_spaceship;
 
 // Defines the ship polygon
 #define DEFAULT_N_VERTICES 3
-int32_t my_x_coords[3] = {
+static int32_t my_x_coords[3] = {
      0 * SCREEN_TO_WORLD_RATIO,
      7 * SCREEN_TO_WORLD_RATIO,
     -7 * SCREEN_TO_WORLD_RATIO,
 };
-int32_t my_y_coords[3] = {
+static int32_t my_y_coords[3] = {
      9 * SCREEN_TO_WORLD_RATIO,
     -6 * SCREEN_TO_WORLD_RATIO,
     -6 * SCREEN_TO_WORLD_RATIO,
@@ -88,7 +88,7 @@ void update_spaceship(uint8_t input){
     // TODO: Wrap around with do_wrap(&game.ship.x_pos, &game.ship.y_pos);
 }
 
-void rotate_spaceship(bool clockwise) {
+static void rotate_spaceship(bool clockwise) {
 	int numberOfVertices = my_spaceship.poly.n_vertices;
 
 	for (int i = 0; i < numberOfVertices; ++i) {
