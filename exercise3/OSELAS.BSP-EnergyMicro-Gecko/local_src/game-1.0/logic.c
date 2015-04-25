@@ -49,11 +49,11 @@ void update_logic(){
   //    // Do pause
   //}
 
-  //if(CHECK_DEBUG(input)){
-  //  kill_asteroid(0);
-  //}
+  if(CHECK_DEBUG(input)){
+    kill_asteroid(0);
+  }
 
-  //update_asteroids();
+  update_asteroids();
   // Check collisions
 
   update_spaceship(input);
@@ -65,10 +65,10 @@ void update_logic(){
     );
   }
 
-  //update_projectiles();
-  //if(CHECK_SHOOT(input)){
-  //  do_shoot();
-  //}
+  update_projectiles();
+  if(CHECK_SHOOT(input)){
+    do_shoot();
+  }
 
   game_debug("update_logic() done\n");
 }
@@ -123,17 +123,17 @@ int init_logic(struct gamestate** gamestate_ptr){
   game_debug("Initializing the logic module ...\n");
 
   // RANDOMNESS GUARANTEED!
-  srand(2);
+  srand(1);
 
   // Initialize the gamestate struct, and all the submodules for tracking gamestate
   init_spaceship(&game.ship);
   game_debug("Initializing asteroids\n");
-  //init_asteroids(&game);
+  init_asteroids(&game);
   game_debug("Done initializing asteroids\n");
   if(game.active_asteroids == NULL){
 
   }
-  //init_projectiles(&game);
+  init_projectiles(&game);
   game.world_x_dim = DEFAULT_WORLD_X_DIM;
   game.world_y_dim = DEFAULT_WORLD_Y_DIM;
 
