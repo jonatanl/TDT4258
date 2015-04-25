@@ -43,7 +43,7 @@ In Linux, the root filesystem is the filesystem available at the top-level direc
 This introduces some relevant concepts of the Linux operating system, such as system calls and certain Linux devices.
 
 \subsection{The Frame Buffer}\label{sec:the-framebuffer}
-The frame buffer device is an abstraction that allows user applications to access the frame buffer of some underlying graphics hardware, and usually appears as \texttt{/dev/fb0}. The pixels displayed on the screen are stored in the frame buffer in a hardware-dependent format, and can be changed by writing to the frame buffer. Frame buffers are \emph{memory devices} and can be mapped into process virtual memory with \texttt{mmap()} as explained in section \ref{mapping-files-to-memory}.\cite{linux-kernel-documentation-framebuffer}
+The frame buffer device is an abstraction that allows user applications to access the frame buffer of some underlying graphics hardware, and usually appears as \texttt{/dev/fb0}. The pixels displayed on the screen are stored in the frame buffer in a hardware-dependent format, and can be changed by writing to the frame buffer. Frame buffers are \emph{memory devices} and can be mapped into process virtual memory with \texttt{mmap()} as explained in section \ref{sec:mapping-files-to-memory}.\cite{linux-kernel-documentation-framebuffer}
 
 
 \subsection{Linux System Calls}
@@ -66,7 +66,7 @@ Read and write operations on a file is performed at the bytes located at a speci
 After an application is done with a file it should call \texttt{close()} to release the file's associated resources. This will invalidate the file descriptor.
 \end{description}
 
-\subsubsection{Mapping files to memory}\label{mapping-files-to-memory}
+\subsubsection{Mapping files to memory}\label{sec:mapping-files-to-memory}
 Accessing a file in an arbitrary manner using the system calls described in section \ref{sec:reading-and-writing-files} will involve many redundant calls to \texttt{lseek()}. A better alternative then is to map the file into the virtual address space of the process, allowing the file to be accessed with ordinary memory accesses. The following system calls are available from the headers \texttt{<sys/mman.h>} and \texttt{<unistd.h>}.
 \cite{linux-man-pages}
 

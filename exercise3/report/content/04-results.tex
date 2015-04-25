@@ -3,6 +3,10 @@
 % implementation. These can be correctness results, i.e whether the
 % implementation behaved as expected, or numerical results that express runtime
 % or energy measurements.
+During our development we focused on performance, and this focus manifested into our results. With performance in mind, we were able to achieve a acceptable FPS, even though we created a real time game.
 
 \section{Energy Efficiency}
-We chose to make a realtime game which requires frequent screen updates. Therefore we needed to utilize the complete performance of the board. 
+We chose to make a real time game which requires frequent screen updates. Therefore we needed to utilize the complete performance of the board. 
+
+\section{Optimizations}
+During development we used strategicly placed debug messages. However this messages wrote to \texttt{stdout} and then flushed the stream, these messages appeared to use a significant amount of resources. With debug messages we were able to achieve about 3-5 FPS, and after removing debug messages we achieved close to 30 FPS.
