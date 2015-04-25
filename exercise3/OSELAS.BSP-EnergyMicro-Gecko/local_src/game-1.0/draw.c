@@ -29,6 +29,9 @@
 #define FB_COLOR_BLUE  color( 0,  0, 31)
 
 // Function prototypes
+static void do_update_moving_bounding_box( int32_t x_pos_new, int32_t y_pos_new, int32_t x_speed, int32_t y_speed, bounding_box* draw_box);
+static void do_update_partial_display(int x, int y, int new_x, int new_y, bounding_box collision_box);
+static void do_update_rectangle(int32_t x_left_upper, int32_t y_left_upper, int32_t x_right_lower, int32_t y_right_lower);
 static void do_draw_all(void);
 static void do_draw_polyline(int32_t* x_coords, int32_t* y_coords, int n_points);
 static void do_draw_line(int sx, int sy, int ex, int ey);
@@ -36,10 +39,6 @@ static void draw_line_octant1(int is, int ie, int dx, int dy);
 static void draw_line_octant2(int is, int ie, int dx, int dy);
 static void draw_line_octant3(int is, int ie, int dx, int dy);
 static void draw_line_octant8(int is, int ie, int dx, int dy);
-static void test_draw(void);
-static void update_partial_display(int x, int y, int new_x, int new_y, bounding_box collision_box);
-static void update_asteroids_on_screen();
-static void update_ship_on_screen();
 static void inline closest_screen_coordinate(int32_t* x, int32_t* y);
 static void inline world_to_screen_coordinate(int32_t* x, int32_t* y);
 static bool inline line_inside_screen(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
@@ -64,63 +63,243 @@ static struct screen_transform
   int translate_y;
 } my_screen_transform;
 
-void update_display(void)
+void draw_all(void)
 {
-  // update the display
+  draw_color = FB_COLOR_GRAY;
+  do_draw_all();
+}
+
+void clear_all(void)
+{
+  draw_color = FB_COLOR_BLACK;
+  do_draw_all();
+}
+
+void update_partial_display(void)
+{
+  asteroid** asteroids = my_gamestate->active_asteroids;
+  asteroid* asteroid;
+  spaceship* spaceship = my_gamestate->ship;
+
+  // Update asteroids
+  for (int i = 0; i < my_gamestate->n_asteroids; ++i) {
+    asteroid = asteroids[i];
+    do_update_moving_bounding_box(
+        asteroid->x_pos,
+        asteroid->y_pos,
+        asteroid->x_speed,
+        asteroid->y_speed,
+        &asteroid->collision_box
+    );
+  }
+  
+  // Update spaceship
+  do_update_moving_bounding_box(
+      spaceship->x_pos,
+      spaceship->y_pos,
+      spaceship->x_speed,
+      spaceship->y_speed,
+      &spaceship->collision_box
+  );
+
+  // TODO: Update bullets
+}
+
+void update_full_display(void){
   rect.dx = 0;
   rect.dy = 0;
   rect.width  = DISPLAY_WIDTH;
   rect.height = DISPLAY_HEIGHT;
   ioctl(fbfd, 0x4680, &rect);
-
-  // Update partial display
-  //update_ship_on_screen();
-  //update_asteroids_on_screen();
 }
 
-static void update_asteroids_on_screen() {
-  asteroid** asteroids = my_gamestate->active_asteroids;
-  asteroid* asteroid;
+int init_draw(struct gamestate* gamestate)
+{
+  game_debug("Initializing draw module ...\n");
 
-  for (int i = 0; i < my_gamestate->n_asteroids; ++i) {
+  // Remember the gamestate
+  my_gamestate = gamestate;
 
-    asteroid = asteroids[i];
-    int old_x = asteroid->x_pos - asteroid->x_speed;
-    int old_y = asteroid->y_pos - asteroid->y_speed;
-    int new_x = asteroid->x_pos;
-    int new_y = asteroid->y_pos;
-
-    update_partial_display(old_x, old_y, new_x, new_y, asteroid->collision_box);
+  // Open framebuffer device with read-write permissions.
+  //
+  // NOTE: read-write is needed for mmap()
+  fbfd = open(FB_DEVICE_PATH, O_RDWR);
+  if(fbfd < 0){
+    game_error("Error opening framebuffer device: %s\n", strerror(errno));
   }
+  game_debug("OK: Opened framebuffer device %s\n", FB_DEVICE_PATH);
+
+  // Map the framebuffer device to memory
+  fbmem = (uint16_t*)mmap(
+      NULL,                               // let kernel decide physical memory address
+      DISPLAY_SIZE * sizeof(uint16_t), // framebuffer size
+      PROT_READ | PROT_WRITE,             // memory is read-write
+      MAP_SHARED,                         // updates are carried immediately
+      fbfd,                               // the mapped file
+      0);                                 // offset
+  if(fbmem == MAP_FAILED){
+    game_error("Error mapping file to memory: %s\n", strerror(errno));
+    return -1;
+  }
+  game_debug("OK: Mapped framebuffer device to memory\n");
+
+  // Initialize the screen transform
+  my_screen_transform.translate_x = 0;
+  my_screen_transform.translate_y = 0;
+
+  // Clear the display
+  for(int i=0; i<DISPLAY_SIZE; i++){
+    fbmem[i] = FB_COLOR_BLACK;
+  }
+  update_full_display();
+  game_debug("OK: Removed Tux (some people have spheniscidaeaphobia)\n");
+
+  // No errors
+  game_debug("DONE: No errors initializing the draw module\n");
+  return 0;
 }
 
-static void update_ship_on_screen() {
-  spaceship* ship = my_gamestate->ship;
-  int old_x = ship->x_pos - ship->x_speed;
-  int old_y = ship->y_pos - ship->y_speed;
-  int new_x = ship->x_pos;
-  int new_y = ship->y_pos;
+int release_draw()
+{
+  game_debug("Releasing draw module ...\n");
 
-  update_partial_display(old_x, old_y, new_x, new_y, ship->collision_box);
+  // Unmap framebuffer device from memory
+  error = munmap((void*)fbmem, DISPLAY_SIZE * sizeof(uint16_t));
+  if(error < 0){
+    game_error("Error unmapping device file from memory: %s\n", strerror(errno));
+    return -1;
+  }
+  game_error("OK: Unmapped device file from memory\n");
+
+  // Close framebuffer device
+  error = close(fbfd);
+  if(error < 0){
+    game_error("Error closing framebuffer device: %s\n", strerror(errno));
+    return -1;
+  }
+  game_debug("OK: Closed framebuffer device\n");
+
+  // No errors
+  game_debug("DONE: No errors releasing module\n");
+  return 0;
 }
 
-static void update_partial_display(int old_x, int old_y, int new_x, int new_y, bounding_box collision_box) {
-  // Convert to pixels coordinates and make shure they are inside the screen
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+////////////////
+////////////////        Static functions
+////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+// Updates a rectangular screen area that contains the collision box before and after movement
+static void do_update_moving_bounding_box(
+    int32_t x_pos_new, // the position of the bounding box after movement
+    int32_t y_pos_new, // 
+    int32_t x_speed, // the speed of the bounding box
+    int32_t y_speed, //
+    bounding_box* bounding_box)
+{
+
+  // Calculate bounding box world coordinates
+  int32_t x_left_upper  = x_pos_new + bounding_box->x_left_upper;
+  int32_t y_left_upper  = y_pos_new + bounding_box->y_left_upper;
+  int32_t x_right_lower = x_pos_new + bounding_box->x_right_lower;
+  int32_t y_right_lower = y_pos_new + bounding_box->y_right_lower;
+
+  // Modify coordinates to account for movement
+  if(x_speed >= 0){
+    x_left_upper  -= x_speed;
+  }else{
+    x_right_lower -= x_speed;
+  }
+  if(y_speed >= 0){
+    y_left_upper  -= y_speed;
+  }else{
+    y_right_lower -= y_speed;
+  }
+
+  // Convert world coordinates to screen coordinates
+  x_left_upper = x_left_upper / SCREEN_TO_WORLD_RATIO;      // round down
+  y_left_upper = y_left_upper / SCREEN_TO_WORLD_RATIO;      //
+  x_right_lower = (x_right_lower + SCREEN_TO_WORLD_RATIO - 1) / SCREEN_TO_WORLD_RATIO; // round up
+  y_right_lower = (y_right_lower + SCREEN_TO_WORLD_RATIO - 1) / SCREEN_TO_WORLD_RATIO; //
+
+  // Update the rectangular area
+  do_update_rectangle(x_left_upper, y_left_upper, x_right_lower, y_right_lower);
+}
+
+static void do_update_rectangle(int32_t x_left_upper, int32_t y_left_upper, int32_t x_right_lower, int32_t y_right_lower){
+
+  // If the rectangle overlaps any vertical boundaries, split it in two and recurse
+  if(x_left_upper < 0){
+    do_update_rectangle(
+        x_left_upper + DISPLAY_WIDTH,
+        y_left_upper,
+        DISPLAY_WIDTH - 1,
+        y_right_lower
+    );
+    x_left_upper = 0;
+  }else if(x_right_lower > DISPLAY_WIDTH - 1){
+    do_update_rectangle(
+        0,
+        y_left_upper,
+        x_right_lower - DISPLAY_WIDTH,
+        y_right_lower
+    );
+    x_right_lower = DISPLAY_WIDTH - 1;
+  }
+    
+  // If the rectangle overlaps any horizontal boundaries, split it in two and recurse
+  if(y_left_upper < 0){
+    do_update_rectangle(
+        x_left_upper,
+        y_left_upper + DISPLAY_HEIGHT,
+        x_right_lower,
+        DISPLAY_HEIGHT - 1
+    );
+    y_left_upper = 0;
+  }else if(y_right_lower > DISPLAY_HEIGHT - 1){
+    do_update_rectangle(
+        x_left_upper,
+        0,
+        x_right_lower,
+        y_right_lower - DISPLAY_HEIGHT
+    );
+    y_right_lower = DISPLAY_HEIGHT - 1;
+  }
+
+  // Set update rectangle and update screen
+  rect.dx = x_left_upper;
+  rect.dy = y_left_upper;
+  rect.width  = x_right_lower - x_left_upper + 1;
+  rect.height = y_right_lower - y_left_upper + 1;
+  game_debug("rect: %d, %d, %d, %d\n", rect.dx, rect.dy, rect.width, rect.height);
+  ioctl(fbfd, 0x4680, &rect);
+}
+
+// NOTE: NOT USED AND WITH BUGS. Use do_update_bounding_box() instead.
+static void do_update_partial_display(int old_x, int old_y, int new_x, int new_y, bounding_box collision_box) {
+
+  // Convert to screen coordinates and make shure they are inside the screen
   world_to_screen_coordinate(&old_x, &old_y);
   closest_screen_coordinate(&old_x, &old_y);
 
-  // Convert to pixels coordinates and make shure they are inside the screen
+  // Convert to screen coordinates and make shure they are inside the screen
   world_to_screen_coordinate(&new_x, &new_y);
   closest_screen_coordinate(&new_x, &new_y);
   
   int dx = abs(old_x - new_x);
   int dy = abs(old_y - new_y);
 
-  // Convert to pixels coordinates and make shure they are inside the screen
+  // Convert to screen coordinates and make shure they are inside the screen
   world_to_screen_coordinate(&collision_box.x_right_lower, &collision_box.y_right_lower);
   closest_screen_coordinate(&collision_box.y_right_lower, &collision_box.y_right_lower);
 
-  // Convert to pixels coordinates and make shure they are inside the screen
+  // Convert to screen coordinates and make shure they are inside the screen
   world_to_screen_coordinate(&collision_box.x_left_upper, &collision_box.y_left_upper);
   closest_screen_coordinate(&collision_box.x_left_upper, &collision_box.y_left_upper);
 
@@ -153,43 +332,20 @@ static void update_partial_display(int old_x, int old_y, int new_x, int new_y, b
   ioctl(fbfd, 0x4680, &rect);
 }
 
-void draw_all(void)
-{
-  draw_color = FB_COLOR_GRAY;
-  do_draw_all();
-}
-
-void clear_all(void)
-{
-  draw_color = FB_COLOR_BLACK;
-  do_draw_all();
-}
-
 static void do_draw_all(void)
 {
-
   const int num_asteroids = my_gamestate->n_asteroids;
   const int num_projectiles = my_gamestate->n_projectiles;
   
   struct asteroid** asteroids = my_gamestate->active_asteroids;
   struct asteroid* asteroid;
-  
   struct projectile** projectiles = my_gamestate->active_projectiles;
   struct projectile* projectile;
-  
-  struct polygon* pol;
   struct spaceship* spaceship;
-
-  if(asteroids == NULL){
-    game_debug("NULL asteroids\n");
-  }
+  struct polygon* pol;
   
   // Draw all asteroids
   for(int i=0; i<num_asteroids; i++){
-    
-    if(asteroids[i] == NULL){
-      game_debug("NULL asteroid[%d]\n", i);
-    }
     
     asteroid = asteroids[i];
     my_screen_transform.translate_x = asteroid->x_pos;
@@ -224,7 +380,16 @@ static void do_draw_all(void)
   pol = &(spaceship->poly);
   do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
 
-  // TODO: Draw bullets
+  // Draw bullets
+  // TODO: Uncomment when bullets are ready
+  //for(int i=0; i<num_bullets; i++){
+  //  
+  //  bullet = bullets[i];
+  //  my_screen_transform.translate_x = bullet->x_pos;
+  //  my_screen_transform.translate_y = bullet->y_pos;
+  //  pol = &(bullet->poly);
+  //  do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
+  //} 
 }
 
 static void inline set_pixel(int x, int y)
@@ -245,9 +410,9 @@ static void inline world_to_screen_coordinate(int32_t* x, int32_t* y)
 
 static void inline closest_screen_coordinate(int32_t* x, int32_t* y)
 {
-  *x = ARG_MIN(*x, SCREEN_TO_WORLD_RATIO - 1);
+  *x = ARG_MIN(*x, DISPLAY_WIDTH - 1);
   *x = ARG_MAX(*x, 0);
-  *y = ARG_MIN(*y, SCREEN_TO_WORLD_RATIO - 1);
+  *y = ARG_MIN(*y, DISPLAY_HEIGHT - 1);
   *y = ARG_MAX(*y, 0);
 }
 
@@ -485,119 +650,4 @@ static void draw_line_octant8(int i, int i_end, int dx, int dy)
     }
     fbmem[i] = draw_color;
   }
-}
-
-void test_draw()
-{
-  game_debug("Running the drawing test ...\n");
-
-  // a rectangle
-  int rx = DISPLAY_WIDTH  / 16;
-  int ry = DISPLAY_HEIGHT / 16;
-  int rw = DISPLAY_WIDTH  - (2 * rx);
-  int rh = DISPLAY_HEIGHT - (2 * ry);
-
-  // center of the rectangle
-  int cx = rx + (rw / 2);
-  int cy = ry + (rh / 2);
-
-  // set drawing color
-  draw_color = FB_COLOR_GREEN;
-
-  // draw the rectangle
-  do_draw_line(rx         , ry         , rx + rw - 1, ry         );
-  do_draw_line(rx + rw - 1, ry         , rx + rw - 1, ry + rh - 1);
-  do_draw_line(rx + rw - 1, ry + rh - 1, rx         , ry + rh - 1);
-  do_draw_line(rx         , ry + rh - 1, rx         , ry         );
-
-  // draw lines from the center of the rectangle to the edges
-  int lines = 10;
-  for(int i=0; i<lines; i++){
-    do_draw_line(cx, cy, rx + (rw * i / lines), ry);
-    do_draw_line(cx, cy, rx + (rw * i / lines), ry + rh - 1);
-    do_draw_line(cx, cy, rx, ry + (rh * i / lines));
-    do_draw_line(cx, cy, rx + rw - 1, ry + (rh * i / lines));
-  }
-  game_debug("OK: Wrote lines to the framebuffer\n");
-
-  // update the display
-  rect.dx = 0;
-  rect.dy = 0;
-  rect.width  = DISPLAY_WIDTH;
-  rect.height = DISPLAY_HEIGHT;
-  ioctl(fbfd, 0x4680, &rect);
-  game_debug("OK: Updated the display\n");
-
-  game_debug("DONE: Drawing test completed. Can you see lines on the display?\n");
-}
-
-int init_draw(struct gamestate* gamestate)
-{
-  game_debug("Initializing draw module ...\n");
-
-  // Remember the gamestate
-  my_gamestate = gamestate;
-
-  // Open framebuffer device with read-write permissions.
-  //
-  // NOTE: read-write is needed for mmap()
-  fbfd = open(FB_DEVICE_PATH, O_RDWR);
-  if(fbfd < 0){
-    game_error("Error opening framebuffer device: %s\n", strerror(errno));
-  }
-  game_debug("OK: Opened framebuffer device %s\n", FB_DEVICE_PATH);
-
-  // Map the framebuffer device to memory
-  fbmem = (uint16_t*)mmap(
-      NULL,                               // let kernel decide physical memory address
-      DISPLAY_SIZE * sizeof(uint16_t), // framebuffer size
-      PROT_READ | PROT_WRITE,             // memory is read-write
-      MAP_SHARED,                         // updates are carried immediately
-      fbfd,                               // the mapped file
-      0);                                 // offset
-  if(fbmem == MAP_FAILED){
-    game_error("Error mapping file to memory: %s\n", strerror(errno));
-    return -1;
-  }
-  game_debug("OK: Mapped framebuffer device to memory\n");
-
-  // Initialize the screen transform
-  my_screen_transform.translate_x = 0;
-  my_screen_transform.translate_y = 0;
-
-  // Clear the display
-  for(int i=0; i<DISPLAY_SIZE; i++){
-    fbmem[i] = FB_COLOR_BLACK;
-  }
-  update_display();
-  game_debug("OK: Removed Tux (some people have spheniscidaeaphobia)\n");
-
-  // No errors
-  game_debug("DONE: No errors initializing the draw module\n");
-  return 0;
-}
-
-int release_draw()
-{
-  game_debug("Releasing draw module ...\n");
-
-  // Unmap framebuffer device from memory
-  error = munmap((void*)fbmem, DISPLAY_SIZE * sizeof(uint16_t));
-  if(error < 0){
-    game_error("Error unmapping device file from memory: %s\n", strerror(errno));
-    return -1;
-  }
-  game_error("OK: Unmapped device file from memory\n");
-
-  // Close framebuffer device
-  error = close(fbfd);
-  if(error < 0){
-    game_error("Error closing framebuffer device: %s\n", strerror(errno));
-    return -1;
-  }
-  game_debug("OK: Closed framebuffer device\n");
-
-  // No errors
-  game_debug("DONE: No errors releasing module\n");
-  return 0;
 }

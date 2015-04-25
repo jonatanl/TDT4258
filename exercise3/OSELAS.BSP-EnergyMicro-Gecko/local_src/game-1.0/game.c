@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     game_debug("starting draw_all\n");
     draw_all();
     game_debug("starting update_display\n");
-    update_display();
+    update_partial_display();
     game_debug("game loop ended\n");
   }
 
