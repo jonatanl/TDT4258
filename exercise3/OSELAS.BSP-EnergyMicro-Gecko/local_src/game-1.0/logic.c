@@ -30,7 +30,7 @@
 
 // Function prototypes
 void do_shoot(void);
-void update_gamestate(uint8_t input);
+void update_logic(uint8_t input);
 void update_projectiles();
 void check_box_collisions(void);
 bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2);
@@ -46,7 +46,7 @@ void kill_projectile(int index);
 // Global variables
 struct gamestate game;
 
-void do_logic(){
+void update_logic(){
   game_debug("Do logic called\n");
   uint8_t input = get_input();
 
@@ -68,17 +68,17 @@ void do_logic(){
   if(CHECK_SHOOT(input)){
     do_shoot();
   }
-  update_gamestate(input);
+  update_logic(input);
   game_debug("Do logic done\n");
 }
 
-void update_gamestate(uint8_t input){
-  game_debug("update_gamestate called\n");
+void update_logic(uint8_t input){
+  game_debug("update_logic called\n");
   //update_projectiles();
   //update_asteroids();
   update_spaceship(input);
   // Check collisions
-  game_debug("update_gamestate done\n");
+  game_debug("update_logic done\n");
 
 }
 

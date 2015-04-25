@@ -99,7 +99,7 @@ int init_logic(struct gamestate** gamestate_ptr);
 int release_logic();
 
 // Updates the state of the game
-// void update_gamestate();
-void do_logic();
+// void update_logic();
+void update_logic();
 
 #endif // !_LOGIC_H
