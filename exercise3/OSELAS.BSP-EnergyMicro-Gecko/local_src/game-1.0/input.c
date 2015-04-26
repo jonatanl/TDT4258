@@ -24,8 +24,8 @@
 static void signal_handler(int signal);
 
 // Global variables
-static uint8_t input_raw;     // Stores the current input and output
-static uint8_t output = 0x00; //
+static uint8_t input_raw = 0xFF;     // Stores the current input and output
+static uint8_t output = 0xFF; //
 static int devfd; // device file descriptor
 static int error; // error variable
 
@@ -33,19 +33,25 @@ static int error; // error variable
 static void signal_handler(int signal){
   int count;
   
+  game_debug("signal handler called\n");
+
   // Read all available input
   count = read(devfd, (void*)&input_raw, sizeof(uint8_t));
   while(count > 0){
-    output = output & (INPUT_SHOOT); // Clear all bits except INPUT_SHOOT
-    output |= (~input_raw) & (INPUT_ROTATE_LEFT | INPUT_ROTATE_RIGHT | INPUT_ACCELERATE | INPUT_SHOOT);
-    output |= (~input_raw) & (INPUT_PAUSE | INPUT_EXIT | INPUT_DEBUG);
+    output |= ((~input_raw) & (INPUT_ROTATE_LEFT | INPUT_ROTATE_RIGHT | INPUT_ACCELERATE | INPUT_SHOOT));
+    output |= ((~input_raw) & (INPUT_PAUSE | INPUT_EXIT | INPUT_DEBUG));
     count = read(devfd, (void*)&input_raw, sizeof(uint8_t));
+    game_debug("[%d]",  output);
   }
+  game_debug("signal handler done\n");
 }
 
 uint8_t get_input(){
+
   uint8_t output = input_raw;
-  input_raw = input_raw & (~INPUT_SHOOT); // clear the shoot bit
+  // input_raw = input_raw & (~INPUT_SHOOT); // clear the shoot bit
+  output = ~output;
+  game_debug("get_input returned %d\n", output);
   return output;
 }
 

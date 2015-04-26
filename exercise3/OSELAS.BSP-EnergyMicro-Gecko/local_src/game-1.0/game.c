@@ -15,7 +15,7 @@
 #include <string.h>
 #include <time.h>         // clock_nanosleep(), clock_gettime()
 
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 #include "draw.h"
 #include "logic.h"
@@ -104,7 +104,7 @@ static void sleep_to_next_frame(void)
   // Skip missed frames
   while(sleep_ns < 0){  
     sleep_ns += NANOSECONDS_PER_FRAME;
-    game_debug("(frame skipped!)\n");
+    // game_debug("(frame skipped!)\n");
   }
   sleep_ns = NANOSECONDS_PER_FRAME - sleep_ns;
 

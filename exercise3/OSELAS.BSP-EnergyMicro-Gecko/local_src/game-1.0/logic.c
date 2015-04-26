@@ -7,7 +7,7 @@
 #include "util.h"
 #include "logic.h"
 #include "input.h"
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 #include "spaceship.h"
 #include "asteroids.h"
@@ -42,19 +42,14 @@ struct gamestate game;
 
 
 void update_logic(){
-  game_debug("update_logic() called\n");
+  //game_debug("update_logic() called\n");
   uint8_t input = get_input();
-
-  //if(CHECK_PAUSE(input)){
-  //    // Do pause
-  //}
 
   if(CHECK_DEBUG(input)){
     kill_asteroid(0);
   }
 
   update_asteroids();
-  // Check collisions
 
   update_spaceship(input);
   if(PRINT_POSITION){
