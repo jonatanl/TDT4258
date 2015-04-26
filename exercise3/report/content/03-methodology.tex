@@ -349,6 +349,4 @@ Floating point operations is not supported in hardware in the ARM Cortex-M3 CPU.
 \end{itemize}
 
 \section{Testing}
-% Add content in this section that describes how you tested and verified the
-% correctness of your implementation, with respect to the requirements of the
-% assignment.
+In order to get accurate readouts we made sure the board that was warmed up to reduce randomness. We did several tests in succession with different versions of the game to gauge the impact of our optimizations. We ran tests with drawing the entire screen every update, different amounts of objects on screen and with tickless idle enabled in ptxdist kernelconfig. To collect the statistics we used eAProfiler on a laptop connected to the board.
