@@ -296,7 +296,7 @@ When a driver registers a facility during initialization, there is no guarantee 
 
 \subsection{Mechanism versus Policy}
 \todo{Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1}
-
+In linux it is a desire to split mechanism and policy when writing a driver. This means a driver should offer some capability, but it should not decide how those capabilities should be used. For instance a gamepad driver should simply offer a memory area from which button inputs can be read, and a notification when new input is availible.
 
 
 \section{Accessing the EFM32GG-DK3750 Hardware}
