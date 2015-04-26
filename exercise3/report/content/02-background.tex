@@ -248,34 +248,11 @@ An interrupt handler that needs to perform a lengthy amount of work, or some wor
 \subsubsection{Monitoring Interrupts}
 Interrupts on a system can be monitored in the file \texttt{/proc/interrupts}.
 
-
-\subsection{Wait Queues}\label{sec:wait-queues}
-\todo{Write about wait queues (wait\_queue\_head\_t and such, see LDD ch. 6: Simple Sleeping (p. 149)).}
-
-
-\subsection{Work Scheduling}\label{sec:work-scheduling}
-\todo{Write about how work is scheduled with tasklets and work queues (LDD, chapter 7, p. 202)}
-
-
-\subsection{Advanced I/O Operation}
-\todo{Write about more advanced I/O operation: Asynchronous, Blocking, etc. (see Linux Device Drivers, ch 6)}
-\subsubsection{The poll file operation}\label{sec:the-poll-file-operation}
-\todo{(uncompleted)}
-\subsubsection{Asynchronous Notification}\label{sec:asynchronous-notification}
-\todo{(uncompleted)}
-
-
-
 \subsection{Handling Concurrency}\label{sec:handling-concurrency}
 \todo{Expand this section when we have some experience about concurrency handling.}
 The driver is shared between the processes running on a system, and must correctly handle the scenario that two or more processes wants to use the driver at once. To share the driver between multiple processes, it might be necessary to manage resources on a per-process basis using data structures. In addition, the resources shared between the processes needs to be sufficiently protected with synchronization primitives to avoid race conditions.
 
 As a driver registers its facilities, other parts of the kernel might try to use those facilities immediately. The driver needs to handle this case that some parts of the kernel try to use it before it is completely initialized.
-
-\subsubsection{Synchronization Mechanisms}\label{sec:synchronization-mechanisms}
-\todo{Write about kernel synchronization mechanisms (semaphores, spin locks, etc)}
-
-
 
 \subsection{Kernel Data Types}\label{sec:kernel-data-types}
 The Linux kernel defines several data types, in addition to the standard C types. Some of these types make it easier to write portable code, like the type \texttt{u32} and friends, and some types implement useful functionality, such as the linked list implementation.
@@ -304,11 +281,6 @@ The first three macros should be self-explaining. The fourth macro is more inter
 
 \subsection{Handling Errors}
 When a driver registers a facility during initialization, there is no guarantee that the kernel is able grant the driver's request. The driver might still recover from such an event to provide either full or some partial service, but in the event that the driver is not able to continue, it should unregister all facilities previously registered successfully. This may require that the driver uses some sort of scheme to track which facilities was registered successfully and which failed. 
-
-
-\subsection{Debugging Modules}
-\todo{Write about techniques for debugging modules: printk(), dev\_dbg(), pr\_debug() and friends. (See chapter 4 in Linux Device Drivers)}
-
 
 \subsection{Mechanism versus Policy}
 \todo{Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1}
