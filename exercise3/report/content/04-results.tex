@@ -3,14 +3,30 @@
 % implementation. These can be correctness results, i.e whether the
 % implementation behaved as expected, or numerical results that express runtime
 % or energy measurements.
-During our development we focused on performance, and this focus manifested into our results. With performance in mind, we were able to achieve a acceptable FPS, even though we created a real time game.
+During our development we focused on performance, and this focus manifested into our results. With performance in mind during development, we were able to achieve an acceptable FPS, even though we created a real time game.
 
 \section{Energy Efficiency}
-We chose to make a real time game which requires frequent screen updates. Therefore we needed to utilize the complete performance of the board. Between each frame the boards is put to sleep. When it is woken up and finished it checks if it has made the time count for the frame, if not the frame is skipped. If the time constraint is not met the board starts to calculate the new frame immediately, without any sleep.
+We chose to make a real time game, which requires frequent screen updates. Therefore we needed to utilize the complete performance of the board. Because of our requirements, there were limited sleep time between each frame.
 
 \subsection{Energy Readings}
-During idle we measured TODO: add measurment. When we started our game the power consumption increased to TODO: add measurement.
+When the board is idle and only the OS is running, the energy consumption is about 10 mA. Even when our game was running the energy consumption did not increase drastically. Energy consumption readings can be seen in table \ref{tab:energy-with-game}.
 
+\begin{table}[H]
+	\begin{center}
+	\begin{tabular}{ |c|c|c|c| }
+	  \hline
+	  Idle & Spaceship & Spaceship + Astroids & Spaceship + Astroids + Projectiles \\
+	  \hline
+	  10 mA & 12 mA & 18-19 mA & 20 mA \\
+	  \hline
+
+	\end{tabular}
+	\caption{Energy consumption with different amount of elements to calculate and draw}
+	\label{tab:energy-with-game}
+	\end{center}
+\end{table}
+
+From the table we can see that the energy consumption depends on number of elements to calculate and draw on the screen. As mentioned earlier the board is put to sleep between each frame, and the sleep time is then calculated. If there is more work to be done, the sleep time necessarily has to be shorter.
 
 \section{Optimizations}
-During development we used strategicly placed debug messages. However this messages wrote to \texttt{stdout} and then flushed the stream, these messages appeared to use a significant amount of resources. With debug messages we were able to achieve about 3-5 FPS, and after removing debug messages we achieved close to 30 FPS.
+During development we used strategicly placed debug messages. However these messages wrote to \texttt{stdout} and then flushed the stream, and appeared to use a significant amount of resources. With debug messages we were able to achieve about 3-5 FPS, and after removing debug messages we achieved above 20 FPS.
