@@ -244,10 +244,10 @@ static void do_update_moving_bounding_box(
   }
 
   // Convert world coordinates to screen coordinates
-  x_left_upper = x_left_upper / SCREEN_TO_WORLD_RATIO;      // round down
-  y_left_upper = y_left_upper / SCREEN_TO_WORLD_RATIO;      //
-  x_right_lower = (x_right_lower + SCREEN_TO_WORLD_RATIO - 1) / SCREEN_TO_WORLD_RATIO; // round up
-  y_right_lower = (y_right_lower + SCREEN_TO_WORLD_RATIO - 1) / SCREEN_TO_WORLD_RATIO; //
+  x_left_upper = x_left_upper / SCREEN_TO_WORLD_RATIO - 2;      // round down
+  y_left_upper = y_left_upper / SCREEN_TO_WORLD_RATIO - 2;      //
+  x_right_lower = (x_right_lower + SCREEN_TO_WORLD_RATIO - 1) / SCREEN_TO_WORLD_RATIO + 2; // round up
+  y_right_lower = (y_right_lower + SCREEN_TO_WORLD_RATIO - 1) / SCREEN_TO_WORLD_RATIO + 2; //
 
   // Update the rectangular area
   do_update_rectangle(x_left_upper, y_left_upper, x_right_lower, y_right_lower);
