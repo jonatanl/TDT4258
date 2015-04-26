@@ -8,8 +8,6 @@
 
 This chapter is an introduction to theory and concepts needed to understand the rest of the report. It begins with a section explaining operating systems terminology and a section introducing the Linux operating systems and important system calls. Then it continues with a section on driver programming in Linux. The next section introduces some relevant hardware of the EFM32GG-DK3750 prototyping board, and the final section provides an overview of the PTXdist build system.
 
-\todo{Verify that this is consistent with the rest of the chapter}
-
 \section{Basic Terminology}\label{basic-terminology}
 This section introduces some general terminology and concepts concerning operating systems and device drivers in general.
 
@@ -89,8 +87,6 @@ After the application is done with the memory map, it may call \texttt{unmap()} 
 
 \section{Writing Device Drivers for Linux}\label{writing-device-drivers-for-linux}
 This section is an introduction to device driver development for the Linux kernel. It begins by explaining some practical details regarding driver development, then it highlights some important parts of the Linux kernel and common programming constructs, and finally it provides a brief outline on driver design. The main focus is on drivers implemented as kernel modules. For an explanation on the terminology used in this section, see section \ref{basic-terminology}. This section relies heavily on the book \emph{Linux Device Drivers} (see \cite{linux-device-drivers}) as a source of information on driver programming and the Linux kernel.
-
-\todo{Verify that this is consistent with the rest of the chapter}
 
 
 \subsection{Programming in the Kernel}
@@ -249,7 +245,6 @@ An interrupt handler that needs to perform a lengthy amount of work, or some wor
 Interrupts on a system can be monitored in the file \texttt{/proc/interrupts}.
 
 \subsection{Handling Concurrency}\label{sec:handling-concurrency}
-\todo{Expand this section when we have some experience about concurrency handling.}
 The driver is shared between the processes running on a system, and must correctly handle the scenario that two or more processes wants to use the driver at once. To share the driver between multiple processes, it might be necessary to manage resources on a per-process basis using data structures. In addition, the resources shared between the processes needs to be sufficiently protected with synchronization primitives to avoid race conditions.
 
 As a driver registers its facilities, other parts of the kernel might try to use those facilities immediately. The driver needs to handle this case that some parts of the kernel try to use it before it is completely initialized.
@@ -283,7 +278,6 @@ The first three macros should be self-explaining. The fourth macro is more inter
 When a driver registers a facility during initialization, there is no guarantee that the kernel is able grant the driver's request. The driver might still recover from such an event to provide either full or some partial service, but in the event that the driver is not able to continue, it should unregister all facilities previously registered successfully. This may require that the driver uses some sort of scheme to track which facilities was registered successfully and which failed. 
 
 \subsection{Mechanism versus Policy}
-\todo{Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1}
 In linux it is a desire to split mechanism and policy when writing a driver. This means a driver should offer some capability, but it should not decide how those capabilities should be used. For instance a gamepad driver should simply offer a memory area from which button inputs can be read, and a notification when new input is availible.
 
 

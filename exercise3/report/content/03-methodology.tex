@@ -277,7 +277,7 @@ Asteroids is a 1979 video game released by Atari in which the player maneuvers a
 
 
 \subsection{Development}
-To develop our game we used an incremental approach, adding features whenever we had debugged our current features, and refactoring when nescessary. Our first versions of the game never outputted anything to the buffer at all, using only the serial connection to write status messages. We then implemented the basic draw system allowing us to draw a simple trianlge depicting the player spaceship. We then added features such as asteroids, ship movement, destroyable asteroids (destruction by button press) and firing projectiles.
+To develop our game we used an incremental approach, adding features whenever we had debugged our current features, and refactoring when nescessary. Our first versions of the game never outputted anything to the buffer at all, using only the serial connection to write status messages. We then implemented the basic draw system allowing us to draw a simple trianlge depicting the player spaceship. We then added features such as asteroids, ship movement, destroyable asteroids (destruction by button press) and firing projectiles. In the end we did not implement collision, feeling that we had spent enough time on the game and that adding additional features was out of the scope of the exercise.
 
 \subsection{Program Modules}
 To be able to manage a growing code base, we divided our program into five modules, each with a distinct area of responsibility:
@@ -311,7 +311,7 @@ Supplies some debugging tools, most notably the macros \texttt{game\_debug()} an
 \end{description}
 
 \subsection{Optimization}
-The board itself, has very limited performance. There is not a seperate GPU on the board. In other words, all the graphic calculations has to be done in the CPU. As a result we implemented some GPU algorithms ourself. 
+The board itself, has very limited performance. There is not a seperate GPU on the board. In other words, all the graphic calculations has to be done in the CPU. As a result we implemented some rendering algorithms ourself. 
 
 Another performance heavy part of the game was the game logic. In order to reduce expensive data operations we made sure to always use references to our data structures. We allocated some data to the data segment at compile time, and made sure that heap data was only allocated once and referred to in other parts of the program.
 
