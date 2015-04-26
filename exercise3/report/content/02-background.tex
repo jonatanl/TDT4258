@@ -43,7 +43,7 @@ In Linux, the root filesystem is the filesystem available at the top-level direc
 This introduces some relevant concepts of the Linux operating system, such as system calls and certain Linux devices.
 
 \subsection{The Frame Buffer}\label{sec:the-framebuffer}
-The frame buffer device is an abstraction that allows user applications to access the frame buffer of some underlying graphics hardware, and usually appears as \texttt{/dev/fb0}. The pixels displayed on the screen are stored in the frame buffer in a hardware-dependent format, and can be changed by writing to the frame buffer. Frame buffers are \emph{memory devices} and can be mapped into process virtual memory with \texttt{mmap()} as explained in section \ref{mapping-files-to-memory}.\cite{linux-kernel-documentation-framebuffer}
+The frame buffer device is an abstraction that allows user applications to access the frame buffer of some underlying graphics hardware, and usually appears as \texttt{/dev/fb0}. The pixels displayed on the screen are stored in the frame buffer in a hardware-dependent format, and can be changed by writing to the frame buffer. Frame buffers are \emph{memory devices} and can be mapped into process virtual memory with \texttt{mmap()} as explained in section \ref{sec:mapping-files-to-memory}.\cite{linux-kernel-documentation-framebuffer}
 
 
 \subsection{Linux System Calls}
@@ -66,7 +66,7 @@ Read and write operations on a file is performed at the bytes located at a speci
 After an application is done with a file it should call \texttt{close()} to release the file's associated resources. This will invalidate the file descriptor.
 \end{description}
 
-\subsubsection{Mapping files to memory}\label{mapping-files-to-memory}
+\subsubsection{Mapping files to memory}\label{sec:mapping-files-to-memory}
 Accessing a file in an arbitrary manner using the system calls described in section \ref{sec:reading-and-writing-files} will involve many redundant calls to \texttt{lseek()}. A better alternative then is to map the file into the virtual address space of the process, allowing the file to be accessed with ordinary memory accesses. The following system calls are available from the headers \texttt{<sys/mman.h>} and \texttt{<unistd.h>}.
 \cite{linux-man-pages}
 
@@ -105,7 +105,7 @@ Again, because a module runs in privileged mode, it cannot be linked against any
 \subsubsection{Module debugging is different}
 Debugging a module is different from using ordinary software debuggers such as the GNU Debugger. The Linux kernel must be debugged with the built-in kernel debugger.
 
-\subsubsection{Modules must are linked against the kernel source tree}
+\subsubsection{Modules must be linked against the kernel source tree}
 Since modules are linked against the kernel, the developer must have a kernel source tree available to build it against. The process of manually downloading, configuring and building a kernel source tree involves a fair amount of work, especially for a novice module programmer.
 
 
@@ -280,6 +280,7 @@ As a driver registers its facilities, other parts of the kernel might try to use
 \subsection{Kernel Data Types}\label{sec:kernel-data-types}
 The Linux kernel defines several data types, in addition to the standard C types. Some of these types make it easier to write portable code, like the type \texttt{u32} and friends, and some types implement useful functionality, such as the linked list implementation.
 
+\begin{comment}
 \subsubsection{The linked list}
 The kernel provides an implementation of a circular doubly linked list, and driver writers needing a linked is encouraged to use it rather than writing their own. The linked list is accessed through the type \texttt{struct list\_head} of \texttt{<linux/list.h>}:
 \begin{verbatim}
@@ -299,7 +300,7 @@ By itself, this structure cannot implement a linked list as there is no list ele
     This macro is replaced with a pointer to the structure containing the specified \texttt{list\_head}. Here, \texttt{type\_of\_struct} is the type of the structure containing the \texttt{list\_head}, and \texttt{field\_name} is the name of the corresponding field.
 \end{description}
 The first three macros should be self-explaining. The fourth macro is more interesting: it gives access to the list elements by giving access to the structure embedding the \texttt{list\_head} structure.
-
+\end{comment}
 
 \subsection{Handling Errors}
 When a driver registers a facility during initialization, there is no guarantee that the kernel is able grant the driver's request. The driver might still recover from such an event to provide either full or some partial service, but in the event that the driver is not able to continue, it should unregister all facilities previously registered successfully. This may require that the driver uses some sort of scheme to track which facilities was registered successfully and which failed. 
@@ -311,7 +312,7 @@ When a driver registers a facility during initialization, there is no guarantee 
 
 \subsection{Mechanism versus Policy}
 \todo{Write about "Mechanism vs Policy", as discussed by "Linux Device Driver" early in chapter 1}
-
+In linux it is a desire to split mechanism and policy when writing a driver. This means a driver should offer some capability, but it should not decide how those capabilities should be used. For instance a gamepad driver should simply offer a memory area from which button inputs can be read, and a notification when new input is availible.
 
 
 \section{Accessing the EFM32GG-DK3750 Hardware}

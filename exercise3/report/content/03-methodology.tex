@@ -56,14 +56,14 @@ OSELAS(R)-Gecko-2012.10.0+ / energymicro-efm32gg-dk3750-2012.10.0+
 ptxdist-2013.07.1/2015-03-16T15:23:07+0100
 
 / # game
-Hello World, I'm game!
+Hello World, Im game!
 \end{lstlisting}
 
 To further verify that our code was actually compiling, we made a small modification to the game application by changing the \texttt{printf()} function arguments in \texttt{game.c}. After rerunning the necessary ptxdist actions, the output of the \texttt{game} command had indeed changed:
 \lstset{style=lststyle-terminal}
 \begin{lstlisting}[caption=A modified game application,label=lst:initial-shell-commands2]
 / # game
-Hello World, I'm also game!
+Hello World, Im also game!
 \end{lstlisting}
 Notably, in order for \texttt{ptxdist compile game} to actually compile the modified sources of the game, we first had to run the command \texttt{ptxdist clean game}.
 
@@ -71,9 +71,10 @@ Notably, in order for \texttt{ptxdist compile game} to actually compile the modi
 Our next step was to write a simple application accessing the framebuffer device described in section \ref{sec:the-framebuffer}.
 
 \subsubsection{Accessing the framebuffer as a file}
-Initially we used the Linux system calls \texttt{open()}, \texttt{write()}, and \texttt{close()} described in section \ref{sec:reading-and-writing-files} to write data to the framebuffer. The application would fill an array with \texttt{uint16\_t} values corresponding to yellow pixels, and then write those values to the framebuffer. The array was large enough that half the screen was drawn yellow, making Tux disappear. A small artifact was observed at the left edge of the screen area. An image of the screen is shown in figure \ref{fig:TODO}.
+Initially we used the Linux system calls \texttt{open()}, \texttt{write()}, and \texttt{close()} described in section \ref{sec:reading-and-writing-files} to write data to the framebuffer. The application would fill an array with \texttt{uint16\_t} values corresponding to yellow pixels, and then write those values to the framebuffer. The array was large enough that half the screen was drawn yellow, making Tux disappear. 
 
-\todo{Add picture of screen artifact}
+% The artifact was the cursor
+% A small artifact was observed at the left edge of the screen area. An image of the screen is shown in figure \ref{fig:TODO}. \todo{Add picture of screen artifact}
 
 \subsubsection{Accessing the framebuffer with a memory map}
 The compendium recommended to access the framebuffer through a memory mapping. This was achieved with the function \texttt{mmap()} described in section \ref{sec:mapping-files-to-memory}. Mapping the framebuffer to memory allowed us to access the framebuffer as an array of pixels. To demonstrate the increased freedom, the application colored every other pixel yellow, partly obscuring Tux behind a yellow haze.
@@ -276,21 +277,77 @@ Before starting development, we needed a game concept. To save the work of devel
 Asteroids is a 1979 video game released by Atari in which the player maneuvers a small spaceship in space amidst asteroids and hostile ufos. The objective of the game is to use the spaceship's frontal cannon to eliminate all the asteroids, upon which the player will advance to the next level. At its release, the game was acclaimed for its use of vector graphics.
 
 
-\subsection{A Minimal Implementation}
-First we created a minimal implementation of the game. In the minimal implementation, the spaceship was positioned at the middle of the screen, and the player could use the gamepad to rotate the spaceship. \todo{Verify consistency}
-
+\subsection{Development}
+To develop our game we used an incremental approach, adding features whenever we had debugged our current features, and refactoring when nescessary. Our first versions of the game never outputted anything to the buffer at all, using only the serial connection to write status messages. We then implemented the basic draw system allowing us to draw a simple trianlge depicting the player spaceship. We then added features such as asteroids, ship movement, destroyable asteroids (destruction by button press) and firing projectiles.
 
 \subsection{Program Modules}
 To be able to manage a growing code base, we divided our program into five modules, each with a distinct area of responsibility:
+
 \begin{description}
-\item[Game] \quad The application starting point. It initializes modules on startup, and shuts them down on exit. It also contains the game loop and does game updates. See \texttt{game.h} and \texttt{game.c}.
-\item[Logic] \quad The game logic. It is responsible for manipulating the internal state of the game. It moves the spaceship, asteroids, bullets and ufos, in addition to computing collisions. See \texttt{logic.h} and \texttt{logic.c}.
-\item[Input] \quad The input processing module. It is responsible for interfacing with the gamepad driver, and provides a clean interface for the rest of the game modules. See \texttt{input.h} and \texttt{input.c}.
-\item[Draw] \quad The graphics module. It is responsible for updating the frame buffer, and for rendering various objects of the game model. See \texttt{draw.h} and \texttt{draw.c}.
-\item[Debug] \quad Supplies some debugging tools, most notably the macros \texttt{game\_debug()} and \texttt{game\_error()}. The debug statements are enabled by defining the macro \texttt{DEBUG} before including the module header. See \texttt{debug.h} and \texttt{debug.c}.
+\item[Game] \hfill \\
+The application starting point. It initializes modules on startup, and shuts them down on exit. It also contains the game loop and does game updates. See \texttt{game.h} and \texttt{game.c}.
+
+\item[Logic] \hfill \\
+The game logic. It is responsible for manipulating the internal state of the game. It moves the spaceship, asteroids, bullets and ufos, in addition to computing collisions. See \texttt{logic.h} and \texttt{logic.c}. \\
+The logic module itself is also divided into the following submodules:
+\begin{description}
+\item[Asteroids] \hfill \\ 
+A module for containing methods related to asteroids, such as spawning, despawning and handling movement of asteroids.
+
+\item[Spaceship] \hfill \\
+A module containing methods to handle the player ship, tracking its orientation, speed and a handler for some input actions.
+
+\item[Projectiles] \hfill \\
+A module containing methods to keep track of projectiles, working in a similar way to the asteroid module.  
 \end{description}
 
+\item[Input] \hfill \\
+The input processing module. It is responsible for interfacing with the gamepad driver, and provides a clean interface for the rest of the game modules. See \texttt{input.h} and \texttt{input.c}.
 
+\item[Draw] \hfill \\
+The graphics module. It is responsible for updating the frame buffer, and for rendering various objects of the game model. See \texttt{draw.h} and \texttt{draw.c}.
+
+\item[Debug] \hfill \\
+Supplies some debugging tools, most notably the macros \texttt{game\_debug()} and \texttt{game\_error()}. The debug statements are enabled by defining the macro \texttt{DEBUG} before including the module header. See \texttt{debug.h} and \texttt{debug.c}.
+\end{description}
+
+\subsection{Optimization}
+The board itself, has very limited performance. There is not a seperate GPU on the board. In other words, all the graphic calculations has to be done in the CPU. As a result we implemented some GPU algorithms ourself. 
+
+Another performance heavy part of the game was the game logic. In order to reduce expensive data operations we made sure to always use references to our data structures. We allocated some data to the data segment at compile time, and made sure that heap data was only allocated once and referred to in other parts of the program.
+
+\begin{lstlisting}[caption=Allocating asteroid data on data segment.,label=lst:Asteroid allocation]
+...
+static struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
+...
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Updating the asteroids using their references.,label=lst:Asteroid updating]
+void update_asteroids(){
+  struct asteroid* current_asteroid;
+
+  for(int i = 0; i < game->n_asteroids; i++){
+    current_asteroid = game->active_asteroids[i];
+    current_asteroid->x_pos += current_asteroid->x_speed;
+    current_asteroid->y_pos += current_asteroid->y_speed;
+    wrap_coordinate(&current_asteroid->x_pos, &current_asteroid->y_pos);
+    ...
+  }
+}
+\end{lstlisting}
+
+This way we could make sure that no expensive allocations or data moves were made in the middle of the game, thus increasing performance.
+
+The board is not capable of refreshing the whole screen each frame and at the same time have a reasonable FPS. To solve this problem, we implemented an algorithm to only update the moving parts of the screen. It is not necessary to update 320 x 240 pixels, when only parts of the screen move each frame. The only moving parts on the screen are: spaceship, astroids and bullets. These items are considerably smaller together compared to the total screen size.
+
+Floating point operations is not supported in hardware in the ARM Cortex-M3 CPU. This makes floating point operations quite expensive. In our game we avoided floating point operations altogether, except when we calculated spaceship rotation.
+
+\paragraph{Specialized algorithms we implemented in our game}
+\begin{itemize}
+\item Bresenham algorithm (line rasterization) \cite{graphics-algorithms}
+\item The method of seperating axes (collision detection) \cite{collision-algorithms}
+
+\end{itemize}
 
 \section{Testing}
 % Add content in this section that describes how you tested and verified the
