@@ -77,14 +77,6 @@ Updates to a memory mapped file might not become visible immediately. To synchro
 After the application is done with the memory map, it may call \texttt{unmap()} to delete the mapping and release its associated resources. This will also synchronize the file with the memory map.
 \end{description}
 
-
-\subsection{Asynchronous Signalling}\label{sec:asynchronous-signalling}
-
-\subsubsection{Signals}
-\todo{Write about signals in Unix/Linux}
-
-
-
 \section{Writing Device Drivers for Linux}\label{writing-device-drivers-for-linux}
 This section is an introduction to device driver development for the Linux kernel. It begins by explaining some practical details regarding driver development, then it highlights some important parts of the Linux kernel and common programming constructs, and finally it provides a brief outline on driver design. The main focus is on drivers implemented as kernel modules. For an explanation on the terminology used in this section, see section \ref{basic-terminology}. This section relies heavily on the book \emph{Linux Device Drivers} (see \cite{linux-device-drivers}) as a source of information on driver programming and the Linux kernel.
 

@@ -26,7 +26,12 @@ When the board is idle and only the OS is running, the energy consumption is abo
 	\end{center}
 \end{table}
 
-From the table we can see that the energy consumption depends on number of elements to calculate and draw on the screen. As mentioned earlier the board is put to sleep between each frame, and the sleep time is then calculated. If there is more work to be done, the sleep time necessarily has to be shorter.
+From the table we can see that the energy consumption depends on number of elements to calculate and draw on the screen. As mentioned earlier the board is put to sleep between each frame, and the sleep time is calculated dynamically. If there is more work to be done, the sleep time necessarily has to be shorter.
+
+We also made an interesting discovery while measuring energy consumption. When we turned off screen update and only did the calculations, the energy consumption was about 12 mA. The screen updating alone requires about 8 mA alone.
+
+\subsubsection{Tickless idle}
+As suggested in the exercise we tried tickless idle. This had no effect while our program was running normally, but when we turned off screen drawing this lowered energy consumption with about 1 mA.
 
 \section{Optimizations}
 During development we used strategicly placed debug messages. However these messages wrote to \texttt{stdout} and then flushed the stream, and appeared to use a significant amount of resources. With debug messages we were able to achieve about 3-5 FPS, and after removing debug messages we achieved above 20 FPS.
