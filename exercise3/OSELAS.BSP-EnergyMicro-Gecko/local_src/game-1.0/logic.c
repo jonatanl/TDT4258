@@ -90,10 +90,15 @@ void check_collisions(void){
 
     // Check asteroid-projectile collisions
     for(int j=0; j<game.n_projectiles; j++){
-      // TODO: Check collision
+      if(check_asteroid_projectile_collision(game.active_asteroids[i], game.active_projectiles[j])){
+        kill_asteroid(i);
+        kill_projectile(i);
+      }
     }
   }
 }
+
+
 
 static inline bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaceship* spaceship){
   struct bounding_box* box1 = &asteroid->collision_box;
@@ -112,17 +117,16 @@ static inline bool check_asteroid_spaceship_collision(struct asteroid* asteroid,
 
 static inline bool check_asteroid_projectile_collision(struct asteroid* asteroid, struct projectile* projectile){
   struct bounding_box* box1 = &asteroid->collision_box;
-  struct bounding_box* box2 = &projectile->collision_box;
   return  INTERSECTS(
               box1->x_left_upper  + asteroid->x_pos,
               box1->x_right_lower + asteroid->x_pos,
-              box2->x_left_upper  + projectile->x_pos,
-              box2->x_right_lower + projectile->x_pos) && 
+              projectile->x_pos,
+              projectile->x_pos) && 
           INTERSECTS(
               box1->y_right_lower + asteroid->y_pos,
               box1->y_left_upper  + asteroid->y_pos,
-              box2->y_right_lower + projectile->y_pos,
-              box2->y_left_upper  + projectile->y_pos);
+              projectile->y_pos,
+              projectile->y_pos);
 }
 
 
