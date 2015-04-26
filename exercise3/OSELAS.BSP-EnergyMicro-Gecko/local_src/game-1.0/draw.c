@@ -79,6 +79,8 @@ void update_partial_display(void)
 {
   asteroid** asteroids = my_gamestate->active_asteroids;
   asteroid* asteroid;
+  struct projectile** projectiles = my_gamestate->active_projectiles;
+  struct projectile* projectile;
   spaceship* spaceship = my_gamestate->ship;
 
   // Update asteroids
@@ -102,7 +104,17 @@ void update_partial_display(void)
       &spaceship->collision_box
   );
 
-  // TODO: Update bullets
+  // Draw all projectiles
+  for(int i=0; i < my_gamestate->n_projectiles; i++){
+    projectile = projectiles[i];
+    do_update_moving_bounding_box(
+      projectile->x_pos,
+      projectile->y_pos,
+      projectile->x_speed,
+      projectile->y_speed,
+      &projectile->collision_box
+    );
+  }
 }
 
 void update_full_display(void){
@@ -388,17 +400,6 @@ static void do_draw_all(void)
   my_screen_transform.translate_y = spaceship->y_pos;
   pol = &(spaceship->poly);
   do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
-
-  // Draw bullets
-  // TODO: Uncomment when bullets are ready
-  //for(int i=0; i<num_bullets; i++){
-  //  
-  //  bullet = bullets[i];
-  //  my_screen_transform.translate_x = bullet->x_pos;
-  //  my_screen_transform.translate_y = bullet->y_pos;
-  //  pol = &(bullet->poly);
-  //  do_draw_polyline(pol->x_coords, pol->y_coords, pol->n_vertices);
-  //} 
 }
 
 static void inline set_pixel(int x, int y)

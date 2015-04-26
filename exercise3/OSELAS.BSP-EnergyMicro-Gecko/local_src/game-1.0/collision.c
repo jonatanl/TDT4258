@@ -14,7 +14,7 @@ static struct collision
   int projectile_id;
 
   unsigned time;
-}
+};
 
 
 // Collision queue used to keep track of potential collisions. When an asteroid
