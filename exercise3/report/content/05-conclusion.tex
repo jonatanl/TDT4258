@@ -3,10 +3,7 @@ In this exercise we have compiled an OS and implemented the necessary drivers to
 
 On these foundations we have developed a fairly complex game running in real time with a lot of calculations, taxing the recourses of the board heavily. Even with the relatively large demands of our game, and the added overhead of running an operating system, we have shown that hitting 30 frames per second with a fairly complex vector based game is possible.
 
-\section{Evaluation of the Assignment}
-% You can include comments about the assignment itself here. While this part is
-% not obligatory and not graded, it is valuable feedback to the course staff
-% that can be used to improve the exercises in the future.
+We have investigated the energy requirements of the game, showing how only drawing the changed part of the screen is a necessity to reach an acceptable level of performance. We have also shown that the power requirements double when several objects are on screen, giving a reasonable measure of how costly drawing an object is. We have also shown that a majority of the energy consumption for a game comes from updating the frame buffer, the payoff for writing complex algorithms to deduce necessary update rectangles is fairly large.
 
 \subsection{Compendium Feedback}
 This section contains feedback and suggested improvements for the compendium.
