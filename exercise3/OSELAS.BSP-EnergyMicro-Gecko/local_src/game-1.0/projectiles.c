@@ -10,7 +10,6 @@
 
 // Prototypes
 static void spawn_projectile();
-static void kill_projectile(int index);
 void print_projectiles_status(void);
 
 // Global variables
@@ -54,17 +53,8 @@ static void spawn_projectile(){
   game->active_projectiles[game->n_projectiles++] = projectile;
 }
 
-void kill_projectile_id(int id){
-  for(int i = 0; i < game->n_projectiles; i++){
-    if(id == game->active_projectiles[i]->id){
-      kill_projectile(i);
-      return;
-    }
-  }
-  game_debug("kill projectile id error for projectile id: %d", id);
-}
 
-static void kill_projectile(int index){
+void kill_projectile(int index){
   if(game->n_projectiles < index){
     game_debug("kill projectile issued on non existing projectile %d\n", index);
   }
@@ -73,6 +63,15 @@ static void kill_projectile(int index){
   }
   free_spots[game->active_projectiles[index] - my_projectiles] = 0;
   game->active_projectiles[index] = game->active_projectiles[--game->n_projectiles];
+}
+
+void kill_projectile_id(int id){
+  for(int i = 0; i < game->n_projectiles; i++){
+    if(id == game->active_projectiles[i]->id){
+      kill_projectile(i);
+      return;
+    }
+  }
 }
 
 void update_projectiles(){

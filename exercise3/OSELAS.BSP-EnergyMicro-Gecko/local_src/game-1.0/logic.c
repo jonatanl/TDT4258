@@ -117,16 +117,15 @@ static inline bool check_asteroid_spaceship_collision(struct asteroid* asteroid,
 
 static inline bool check_asteroid_projectile_collision(struct asteroid* asteroid, struct projectile* projectile){
   struct bounding_box* box1 = &asteroid->collision_box;
-  return  INTERSECTS(
-              box1->x_left_upper  + asteroid->x_pos,
-              box1->x_right_lower + asteroid->x_pos,
+  return  POINT_LINE_INTERSECTS(
               projectile->x_pos,
-              projectile->x_pos) && 
-          INTERSECTS(
-              box1->y_right_lower + asteroid->y_pos,
-              box1->y_left_upper  + asteroid->y_pos,
+              box1->x_left_upper  + asteroid->x_pos,
+              box1->x_right_lower + asteroid->x_pos) && 
+          POINT_LINE_INTERSECTS(
               projectile->y_pos,
-              projectile->y_pos);
+              box1->y_right_lower + asteroid->y_pos,
+              box1->y_left_upper  + asteroid->y_pos
+              );
 }
 
 
