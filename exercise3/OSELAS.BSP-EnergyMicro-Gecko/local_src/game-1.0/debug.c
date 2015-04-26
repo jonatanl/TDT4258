@@ -2,14 +2,14 @@
 
 void game_print(FILE* outstream, const char* fmt, ...)
 {
-  va_list ap;
+  //va_list ap;
 
   // print prefix
-  fprintf(outstream, "game: ");
+  //fprintf(outstream, "game: ");
 
   // initialize va_list and call vfprintf to print the formatted message
-  va_start(ap, fmt);
-  vfprintf(outstream, fmt, ap);
-  fflush(outstream);
-  va_end(ap);
+  //va_start(ap, fmt);
+  //vfprintf(outstream, fmt, ap);
+  //fflush(outstream);
+  //va_end(ap);
 }

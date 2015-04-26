@@ -9,7 +9,7 @@
 
 #include "draw.h"
 #include "game.h"
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 #include "logic.h"
 #include "util.h"

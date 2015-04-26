@@ -2,7 +2,7 @@
 #include "input.h"
 #include "logic.h"
 #include "util.h"
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 #include "draw.h"
 

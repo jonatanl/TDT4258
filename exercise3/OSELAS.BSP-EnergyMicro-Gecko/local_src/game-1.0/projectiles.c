@@ -2,7 +2,7 @@
 #include "input.h"
 #include "logic.h"
 #include "util.h"
-#define DEBUG
+// #define DEBUG
 #include "debug.h"
 
 #include <stdbool.h>
@@ -39,8 +39,8 @@ static void spawn_projectile(){
   projectile->x_pos = game->ship->x_pos;
   projectile->y_pos = game->ship->y_pos;
 
-  projectile->x_speed = (int)(game->ship->x_orientation*SCREEN_TO_WORLD_RATIO*10);
-  projectile->y_speed = (int)(game->ship->y_orientation*SCREEN_TO_WORLD_RATIO*10);
+  projectile->x_speed = (int)(game->ship->x_orientation*-SCREEN_TO_WORLD_RATIO*10);
+  projectile->y_speed = (int)(game->ship->y_orientation*-SCREEN_TO_WORLD_RATIO*10);
 
   projectile->lifetime = PROJECTILE_LIFETIME;
 
@@ -76,7 +76,7 @@ void kill_projectile_id(int id){
 
 void update_projectiles(){
   game_debug("Attempting to update projectile despawns\n");
-  print_projectiles_status();
+  // print_projectiles_status();
   for (int i = game->n_projectiles; i >= 0; --i) {
     if(game->active_projectiles[i]->lifetime-- == 0){
       kill_projectile(i);
