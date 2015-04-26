@@ -92,7 +92,7 @@ void check_collisions(void){
     for(int j=0; j<game.n_projectiles; j++){
       if(check_asteroid_projectile_collision(game.active_asteroids[i], game.active_projectiles[j])){
         kill_asteroid(i);
-        kill_projectile(i);
+        kill_projectile(j);
       }
     }
   }
