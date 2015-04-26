@@ -6,7 +6,11 @@
 During our development we focused on performance, and this focus manifested into our results. With performance in mind, we were able to achieve a acceptable FPS, even though we created a real time game.
 
 \section{Energy Efficiency}
-We chose to make a real time game which requires frequent screen updates. Therefore we needed to utilize the complete performance of the board. 
+We chose to make a real time game which requires frequent screen updates. Therefore we needed to utilize the complete performance of the board. Between each frame the boards is put to sleep. When it is woken up and finished it checks if it has made the time count for the frame, if not the frame is skipped. If the time constraint is not met the board starts to calculate the new frame immediately, without any sleep.
+
+\subsection{Energy Readings}
+During idle we measured TODO: add measurment. When we started our game the power consumption increased to TODO: add measurement.
+
 
 \section{Optimizations}
 During development we used strategicly placed debug messages. However this messages wrote to \texttt{stdout} and then flushed the stream, these messages appeared to use a significant amount of resources. With debug messages we were able to achieve about 3-5 FPS, and after removing debug messages we achieved close to 30 FPS.
