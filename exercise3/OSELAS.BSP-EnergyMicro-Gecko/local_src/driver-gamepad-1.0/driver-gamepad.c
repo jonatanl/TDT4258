@@ -1,4 +1,4 @@
-#define DEBUG // enable debugging: pr_debug(), dev_dbg()
+// #define DEBUG // enable debugging: pr_debug(), dev_dbg()
 
 #include <linux/kernel.h>         // kernel stuff
 #include <linux/module.h>         // module stuff

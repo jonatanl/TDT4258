@@ -49,7 +49,6 @@ static void signal_handler(int signal){
 uint8_t get_input(){
 
   uint8_t output = input_raw;
-  // input_raw = input_raw & (~INPUT_SHOOT); // clear the shoot bit
   output = ~output;
   game_debug("get_input returned %d\n", output);
   return output;
