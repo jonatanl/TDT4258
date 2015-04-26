@@ -312,7 +312,7 @@ Supplies some debugging tools, most notably the macros \texttt{game\_debug()} an
 \end{description}
 
 \subsection{Optimization}
-The board itself, has very limited performence. There is not a seperate GPU on the board. In other words, all the graphic calculations has to be done in the CPU. As a result we implemented a lot of the GPU algorithms ourself. 
+The board itself, has very limited performance. There is not a seperate GPU on the board. In other words, all the graphic calculations has to be done in the CPU. As a result we implemented some GPU algorithms ourself. 
 
 Another performance heavy part of the game was the game logic. In order to reduce expensive data operations we made sure to always use references to our data structures. We allocated some data to the data segment at compile time, and made sure that heap data was only allocated once and referred to in other parts of the program.
 
