@@ -30,9 +30,10 @@
 
 
 // Static function prototypes
-static void check_box_collisions(void);
-static bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2);
-static bool check_poly_collision(polygon* p1, polygon* p2);
+static void check_collisions(void);
+static inline bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaceship* spaceship);
+static inline bool check_asteroid_projectile_collision(struct asteroid* asteroid, struct projectile* projectile);
+
 static void print_bounding_box(struct bounding_box* box);
 static void print_ship_coords(int32_t x_pos, int32_t y_pos, int32_t x_speed, int32_t y_speed);
 
@@ -75,7 +76,26 @@ void update_logic(){
   game_debug("update_logic() done\n");
 }
 
-bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaceship* spaceship){
+// Check for collisions
+void check_collisions(void){
+
+  for(int i=0; i<game.n_asteroids; i++){
+
+    // Check asteroid-spaceship collisions
+    if(check_asteroid_spaceship_collision(game.active_asteroids[i], game.ship)){
+      // TODO: Game over
+      // TODO: Check polygon collisions
+      game_debug("GAME OVER MAN, GAME OVER\n");
+    }
+
+    // Check asteroid-projectile collisions
+    for(int j=0; j<game.n_projectiles; j++){
+      // TODO: Check collision
+    }
+  }
+}
+
+static inline bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaceship* spaceship){
   struct bounding_box* box1 = &asteroid->collision_box;
   struct bounding_box* box2 = &spaceship->collision_box;
   return  INTERSECTS(
@@ -90,24 +110,21 @@ bool check_asteroid_spaceship_collision(struct asteroid* asteroid, struct spaces
               box2->y_left_upper  + spaceship->y_pos);
 }
 
-bool check_bounding_box_collision(struct bounding_box* box1, struct bounding_box* box2){
-    return( INTERSECTS(box1->x_left_upper,  box1->x_right_lower, box2->x_left_upper,  box2->x_right_lower)
-        &&  INTERSECTS(box1->y_right_lower, box1->y_left_upper,  box2->y_right_lower, box2->y_left_upper));
+static inline bool check_asteroid_projectile_collision(struct asteroid* asteroid, struct projectile* projectile){
+  struct bounding_box* box1 = &asteroid->collision_box;
+  struct bounding_box* box2 = &projectile->collision_box;
+  return  INTERSECTS(
+              box1->x_left_upper  + asteroid->x_pos,
+              box1->x_right_lower + asteroid->x_pos,
+              box2->x_left_upper  + projectile->x_pos,
+              box2->x_right_lower + projectile->x_pos) && 
+          INTERSECTS(
+              box1->y_right_lower + asteroid->y_pos,
+              box1->y_left_upper  + asteroid->y_pos,
+              box2->y_right_lower + projectile->y_pos,
+              box2->y_left_upper  + projectile->y_pos);
 }
 
-void check_box_collisions(){
-  for(int i = 0; i < game.n_asteroids; i++){
-    if(check_asteroid_spaceship_collision(game.active_asteroids[i], game.ship)){
-      if(check_poly_collision(&game.ship->poly, &game.active_asteroids[i]->poly)){
-        game_debug("GAME OVER MAN, GAME OVER\n");
-      }
-    }
-  }
-}
-
-bool check_poly_collision(polygon* p1, polygon* p2){
-    return true;
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

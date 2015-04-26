@@ -53,11 +53,9 @@ struct spaceship{
     int32_t y_speed;
     float x_orientation;
     float y_orientation;
-    int gun_cooldown;
     struct polygon poly;
-    
-    // Used for simple collision check and to update framebuffer area.
     struct bounding_box collision_box;
+    int gun_cooldown;
 };
 
 struct asteroid{
@@ -66,9 +64,9 @@ struct asteroid{
     int32_t x_speed;
     int32_t y_speed;
     struct polygon poly;
+    struct bounding_box collision_box;
     uint8_t type;   // small, med and big
     uint8_t index;  // when an asteroid is hit we need to know which
-    struct bounding_box collision_box;  // Asteroid collision box
     int32_t id;
 };
 
@@ -77,8 +75,9 @@ struct projectile{
     int32_t y_pos;
     int32_t x_speed;
     int32_t y_speed;
-    int32_t lifetime;
     struct polygon poly;
+    struct bounding_box collision_box;
+    int32_t lifetime;
     int32_t id; 
 };
 
