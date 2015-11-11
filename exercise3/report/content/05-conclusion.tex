@@ -1,0 +1,18 @@
+\chapter{Conclusion}
+In this exercise we have compiled an OS and implemented the necessary drivers to interact with the board via a gamepad.\\ \\
+On these foundations we have developed a fairly complex game running in real time with a lot of calculations, taxing the recourses of the board heavily. Even with the relatively large demands of our game, and the added overhead of running an operating system, we have shown that hitting 30 frames per second with a fairly complex vector based game is possible.\\ \\
+We have investigated the energy requirements of the game, showing how only drawing the changed part of the screen is a necessity to reach an acceptable level of performance. We have also shown that the power requirements double when several objects are on screen, giving a reasonable measure of how costly drawing an object is. We have also shown that a majority of the energy consumption for a game comes from updating the frame buffer, the payoff for writing complex algorithms to deduce necessary update rectangles is fairly large. Lastly we observed that running tickless idle made no real difference for the game when drawing, however, when not drawing, spending ore time sleeping, it reduced the energy consumption by ~1 mA. For a game with more idle time the payoff would probably be more substantial. \\ 
+
+\subsection{Compendium Feedback}
+This section contains feedback and suggested improvements for the compendium.
+
+\subsubsection{Mention \texttt{ptxdist clean} in section 5.3.3}
+As mentioned in the compendium in section \textbf{5.3.3. Building and Flashing}, a single package can be flashed with the following four commands:
+\begin{enumerate}
+  \item \texttt{ptxdist compile <packagename>, e.g game or driver-gamepad}
+  \item \texttt{ptxdist targetinstall <packagename>}
+  \item \texttt{ptxdist image root.romfs}
+  \item \texttt{ptxdist test flash-rootfs}
+\end{enumerate}
+However, in order for the modified sources to be compiled, we also needed run one of the commands \texttt{ptxdist clean game} and \texttt{ptxdist drop game compile}. Maybe it would be useful to mention this in this section.
+

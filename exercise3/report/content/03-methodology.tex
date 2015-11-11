@@ -1,0 +1,352 @@
+\chapter{Methodology}
+% This chapter should discuss the details of your implementation for the
+% assignment. Everything related to \emph{how} things were done should go here.
+% Remember to avoid going into too much details, summarize appropriately and
+% try to use figures/charts. Make sure you refer to the figures (such as Figure
+% \ref{fig:universe}) and charts you add in the text. Avoid putting lots of
+% source code here -- small code snippets are fine if you want to discuss
+% something specific.
+This chapter explains the complete process that lead to our final product, and the details of the implementation. It begins by explaining the development setup we used, and then goes through the process step by step. The exercise compendium recommended to complete the exercise sequentially in three parts:
+\begin{enumerate}
+  \item Part 1: Linux Build and Warm-Up
+  \item Part 2: The Driver
+  \item Part 3: The Game
+\end{enumerate}
+We tried to follow this approach closely. This chapter dedicates an individual section to each part.
+
+
+\section{Development Setup}
+This section briefly describes technical details regarding the system setup we used on our development computers.
+
+\subsection{PTXdist}
+The build process of this exercise was quite involved, and for this reason it was necessary to use the PTXdist build management tool, described in section \ref{sec:ptxdist}. In order to install PTXdist on our computers, two options were provided along with the exercise:
+\begin{itemize}
+  \item A virtual machine with PTXdist and cross toolchain installed.
+  \item A README file with instructions on how to build and install PTXdist and cross toolchain from sources.
+\end{itemize}
+Initially we used a computer with limited processing resources for development, and building PTXdist from sources was therefore the favoured alternative. By following the instructions, PTXdist and cross toolchain was installed successfully in a couple of hours.
+
+A possible third option was to use the lab computers with PTXdist and cross toolchain already installed. This option was regarded as a fall-back solution in case of technical difficulties.
+
+\subsection{Serial Terminal Emulator}\label{sec:serial-terminal-emulator}
+In order to access the running operating system, we connected a laptop running a serial terminal emulator to the serial port of the EFM32GG. The program used for terminal emulation was \emph{minicom}, an open source communication program available for most Unix and Unix-like operating systems.\cite{minicom-man-page} According to the compendium, the serial port was configured with the following parameters:
+\begin{itemize}
+  \item Baud rate: 115200 bps
+  \item Data bits: 8
+  \item 1 stop bit
+  \item No parity
+  \item No flow control
+\end{itemize}
+
+\subsection{Git Version Control}
+To manage different code revisions, we used the Git version control system. The free hosting service GitHub was used to host a Git repository at \url{https://github.com/jonatanl/TDT4258}. During exercise 3, code was developed on the branch ``master'', and the report was written on branch ``report3''.
+
+
+\section{Part 1: Linux Build and Warm-Up}
+When solving the exercise, we started out by doing the preliminary warm-up steps recommended by the compendium: building the uClinux operating system, and creating a simple application that used the framebuffer device \texttt{/dev/fb0}. The purpose of these steps was to familiarize with the development workflow and driver interfacing in Linux.
+
+\subsection{Building uClinux}
+We used PTXdist to build uClinux by executing the commands \texttt{ptxdist images} and \texttt{ptxdist test flash-all} in the top-level project directory. A large amount of sources were downloaded and compiled, and the whole process took about fifteen minutes. PTXdist and its build process is described in section \ref{sec:ptxdist}. After the board was restarted, Tux appeared on the display showing that uClinux was running.
+
+\subsection{Communicating with uClinux}
+In order to communicate with the operating system, we configured the serial terminal emulator \emph{minicom} as described in section \ref{sec:serial-terminal-emulator}. This gave us access to a shell where we could execute commands. The output of executing the unmodified game application is shown in listing \ref{lst:initial-shell-commands1}.
+\lstset{style=lststyle-terminal}
+\begin{lstlisting}[caption=The original game application,label=lst:initial-shell-commands1]
+OSELAS(R)-Gecko-2012.10.0+ / energymicro-efm32gg-dk3750-2012.10.0+
+ptxdist-2013.07.1/2015-03-16T15:23:07+0100
+
+/ # game
+Hello World, Im game!
+\end{lstlisting}
+
+To further verify that our code was actually compiling, we made a small modification to the game application by changing the \texttt{printf()} function arguments in \texttt{game.c}. After rerunning the necessary ptxdist actions, the output of the \texttt{game} command had indeed changed:
+\lstset{style=lststyle-terminal}
+\begin{lstlisting}[caption=A modified game application,label=lst:initial-shell-commands2]
+/ # game
+Hello World, Im also game!
+\end{lstlisting}
+Notably, in order for \texttt{ptxdist compile game} to actually compile the modified sources of the game, we first had to run the command \texttt{ptxdist clean game}.
+
+\subsection{Creating a framebuffer application}
+Our next step was to write a simple application accessing the framebuffer device described in section \ref{sec:the-framebuffer}.
+
+\subsubsection{Accessing the framebuffer as a file}
+Initially we used the Linux system calls \texttt{open()}, \texttt{write()}, and \texttt{close()} described in section \ref{sec:reading-and-writing-files} to write data to the framebuffer. The application would fill an array with \texttt{uint16\_t} values corresponding to yellow pixels, and then write those values to the framebuffer. The array was large enough that half the screen was drawn yellow, making Tux disappear. 
+
+% The artifact was the cursor
+% A small artifact was observed at the left edge of the screen area. An image of the screen is shown in figure \ref{fig:TODO}. \todo{Add picture of screen artifact}
+
+\subsubsection{Accessing the framebuffer with a memory map}
+The compendium recommended to access the framebuffer through a memory mapping. This was achieved with the function \texttt{mmap()} described in section \ref{sec:mapping-files-to-memory}. Mapping the framebuffer to memory allowed us to access the framebuffer as an array of pixels. To demonstrate the increased freedom, the application colored every other pixel yellow, partly obscuring Tux behind a yellow haze.
+
+
+\section{Part 2: The Driver}
+Having completed the first part of the exercise, it was time to write the gamepad driver. Before continuing, the reader might consider reviewing section \ref{writing-device-drivers-for-linux}, as it introduces theory fundamental to this section.
+
+Our initial aim for the driver was to implement a driver that supported interrupt-driver I/O with asynchronous notification to notify user processes of available data. This was highly recommended in the compendium as a solution with superior energy efficiency to polling. However, the road there was not quite straight, and our driver accumulated several other features along the way.
+
+\subsection{Registering a Character Device}
+Following steps described in the compendium and in \cite{linux-device-drivers}, we wrote a simple driver that requested dynamically allocated device numbers and registered a character device in the kernel on initialization. On exit, the driver would remove the character device from the kernel and then deallocate the device numbers.
+
+To pick up any errors, we checked for relevant errors by using \texttt{printk()} to print out any nonzero error codes. To verify our implementation, we checked the devices in \texttt{/proc/devices} before and after using \texttt{modprobe} and \texttt{rmmod}: the driver would appear with major device number 253 after running \texttt{modprobe}, and disappear again after calling \texttt{rmmod}.
+
+\subsection{Accessing the Driver}
+The next step was to access the driver through the functions in the \texttt{file\_operations} structure. We added a \texttt{printk()} statement to each of the functions \texttt{open()} and \texttt{close()} that would output the name of the function, and rewrote the game application so that it would try to open and close the file \texttt{/dev/gamepad0}. Then we rebooted the operating system, loaded the new driver and created a driver device file manually with the command \texttt{mknod /dev/gamepad0 c 253 0}. unning the game application produced the expected output:
+\lstset{style=lststyle-terminal}
+\begin{lstlisting}[caption=Accessing the driver,label=lst:accessing-the-driver]
+/ # game
+Trying to open the gamepad at /dev/gamepad0 ...
+[   99.810000] my_open()
+Trying to close the gamepad ...
+[   99.820000] my_release()
+\end{lstlisting}
+
+\subsection{Creating the Device File Automatically}
+So that we would not have to create the device file manually with \texttt{mknod} each time testing the driver, we rewrote the driver so that it would create the device file ``driver-gamepad'' on initialization, as described in section \ref{sec:creating-device-files}.
+
+\subsection{Reading the Gamepad Buttons}
+In order to receive input from the gamepad buttons, we needed to access the GPIO port to which the gamepad was connected. For a description of the GPIO hardware on the EFM32GG, see section \ref{sec:gpio-access}. However, we could not access the hardware directly: the Linux operating system manages hardware access through so-called I/O ports. Drivers that want to access hardware must acquire access to that hardware through special kernel calls. A description of I/O ports and hardware access in Linux is found in section \ref{sec:accessing-hardware-registers}.
+
+In our implementation, the function \texttt{setup\_gpio()} would be called during driver initialization. This function would request access to the GPIO registers, map them to memory, and set up the GPIO pins on port C for input. A similar function \texttt{teardown\_gpio} would release the resources on driver exit. On a read, the driver would simply copy the value of \texttt{GPIO\_PC\_DIN} to the user buffer.
+
+To verify our implementation, we rewrote the game application so that it would sit in a tight loop, reading the device and printing new results received to output. The output is shown in listing \ref{lst:reading-the-gamepad-buttons}.
+\begin{lstlisting}[caption=Reading the gamepad buttons,label=lst:reading-the-gamepad-buttons]
+/ # game
+Trying to open the gamepad at /dev/driver-gamepad ...
+[   12.960000] gamepad_open()
+Waiting for button input ... (Press Button 8 to exit)
+GPIO_PC_DIN: 1
+GPIO_PC_DIN: 0
+GPIO_PC_DIN: 64
+GPIO_PC_DIN: 0
+GPIO_PC_DIN: 128
+Trying to close the gamepad ...
+[   20.360000] gamepad_release()
+\end{lstlisting}
+
+\subsection{Implementing the Seek Operation}
+At this point, we implemented the \texttt{llseek} file operation. The \texttt{llseek} file operation is the back-end implementation of the \texttt{lseek} system call, described in section \ref{sec:reading-and-writing-files}. The \texttt{read} operation was also rewritten to update the file offset on read and return \texttt{EOF} on any offset beyond the start of the file. To read the new device without having to call \texttt{lseek} manually each time, the \texttt{pread()} system way used. 
+
+At this point the utility of \texttt{llseek} was not very much. However, it was reasoned that this was a good way to provide access multiple registers.
+
+\subsection{Registering an Interrupt Handler}
+Currently, the game used polling to discover button presses, a solution with poor energy-efficiency. A much better alternative was \emph{interrupt-driven I/O}. The first step was to register an interrupt handler, as described in section \ref{sec:interrupt-handling}. Then we needed to set up the hardware to receive interrupts, as described in section \ref{sec:gpio-interrupts}.
+
+The function \texttt{setup\_gpio()} was extended with setup code that registered the interrupt handler. It would allocate memory for registers, map the memory into process virtual memory, and set up the registers to generate interrupts on both button press and button release. In addition, before enabling interrupts, it would register a simple interrupt handler. This handler would simply print an interrupt count using \texttt{pr\_debug()}, clear the interrupts, and then return. The output is shown in listing \ref{lst:a-simple-interrupt-handler}.
+\begin{lstlisting}[caption=A simple interrupt handler,label=lst:a-simple-interrupt-handler]
+/ # modprobe driver-gamepad
+[   10.370000] Initializing the module:
+[   10.370000] Setting up GPIO ...
+[   10.380000] INTERRUPT: 1
+[   10.390000] OK: No errors setting up GPIO.
+[   10.400000] allocating device numbers ...
+[   10.400000] setting up character device ...
+[   10.410000] creating device file...
+[   10.430000] OK: No errors during module initialization.
+/ # [   17.120000] INTERRUPT: 2
+[   18.730000] INTERRUPT: 3
+[   19.440000] INTERRUPT: 4
+[   20.060000] INTERRUPT: 5
+[   20.660000] INTERRUPT: 6
+[   21.080000] INTERRUPT: 7
+\end{lstlisting}
+
+Several more steps were needed to fully implement interrupt-driven I/O. However, we felt that other issues were more pressing and chose to implement interrupt-driven I/O at a later time.
+
+\subsection{Releasing resources when not needed}
+When a driver needs exclusive access to some resources, it should only claim those resources when absolutely necessary. This way other drivers can access those resources in the meantime and the system becomes more flexible.
+
+Our driver needed exclusive access to two regions of GPIO memory, namely the port C registers and the interrupt registers. To make the driver more flexible, we rewrote it so that it initialized the GPIO hardware when the device was opened for the first time. Similarly, the driver would release the GPIO resources only when a release was called on the last open device instance. The driver needed to keep a count on the number of open device instances, stored in the field \texttt{open\_count} of the \texttt{gamepad\_device} structure.
+
+\subsection{Buffering Gamepad Input}
+The gamepad device now worked as a simple hardware interface providing access to a single register. However, we discovered a small problem with this approach. User applications that did not read the device immediately after button input was available would risk that some register states would be overwritten by new ones, thus they might lose valuable information about the exact sequence of button presses. This was especially true when the user pressed two gamepad buttons in rapid succession.
+
+The solution we came up with was to store register states within the driver in a cyclic buffer; processes reading the device would then be able to read the complete sequence of button presses. For more than just four or five button presses, the user (or users) should be unable to generate input at a very high rate. Thus it should be possible to avoid most overflow even with a small buffer size. In the event that overflow should still occur, the buffer would operate on the FIFO principle, overwriting the oldest values first.
+
+With the buffering technique, seeking no longer made sense and support was removed from the device by initializing the field \texttt{llseek} in the \texttt{file\_operations} structure with the helper function \texttt{no\_llseek}.
+
+\subsection{Implementing the Input Buffer}
+A first version of the buffer was quickly implemented, and the interrupt handler was rewritten so that it would fill the buffer with values. The buffer was initialized and destroyed together with the GPIO hardware in the functions \texttt{gamepad\_open()} and \texttt{gamepad\_release()}. The only remaining step was to rewrite the \texttt{gamepad\_read()} function so that it would take its values from the buffer instead of directly reading them from the register. 
+
+\subsubsection{Sharing the device among multiple processes}
+Before we could implement the \texttt{read()} function, we needed to make a decision regarding the driver design. The previous driver could be shared among multiple processes: they would simply read the same register, accessing it using individual file offsets. But in the first input buffer implementation the readers shared a global pointer to the oldest unread element, and multiple readers would compete for the gamepad input, an unfortunate situation.
+
+As described in \cite{linux-device-drivers}, one solution would be to make the gamepad device \emph{single-open}, only allowing a single open device file instance at any time. Any call to \texttt{open()} other than the first would fail with the error code \texttt{EBUSY}.
+
+Another solution described in \cite{linux-device-drivers} was to create a private copy of the device on each call to \texttt{open()}. We opted for this approach, as we felt it was both more correct and interesting. To solve the problem with input being consumed, an individual read pointer was associated with each open file instance, stored in the field \texttt{private\_data} of the \texttt{file} structure (see section \ref{sec:file-structure}).
+
+\subsubsection{Concurrency and safe access}
+The previous implementation of \texttt{read()} was in its simplicity safe against race conditions: there was simply no way a serious race condition could occur. With the input buffer, however, the input handler would need to increment a pointer to the newest element, a pointer that might be read at exactly the same time by a process in the \texttt{read()} function. To avoid problems, the \texttt{semaphore} structure was used to achieve mutual exclusion between all regions of code accessing the write pointer.
+
+\subsubsection{Work scheduling}
+Using semaphores to protect the shared buffer data introduced a new problem: an input handler is not allowed to sleep, but the handler needed to sleep to acquire the buffer semaphore. While this could have been solved by using a spinlock instead, we felt this was a bad idea as lengthy reads might potentially stall the whole system.
+
+To solve the problem we used the technique \emph{work scheduling}. The interrupt handler routine was divided into two halves as described in \cite{linux-device-drivers}. The \emph{top half} would do a minimal amount of work, then schedule the remaining work to run on the \emph{bottom half} as a different process. The work routine would insert the new value into the user buffer, and was scheduled on the global work queue. The kernel would run it later at some safe time, and it would be allowed to sleep to access the semaphores. For all its glory, this solution had its own little defects, as was discovered afterwards. 
+
+\subsubsection{Testing the input buffer implementation}
+Having implemented shared access, safe access, and work scheduling, we reused the test code in the game application to test the input buffer implementation. Three important conditions were tested: single reader, multiple readers, and rapid input. With single and multiple readers everything worked as expected. The output from the multiple readers test is shown  listing \ref{lst:buffered-read-multiple-reader}.
+
+\begin{lstlisting}[caption=Buffered read with three readers. The program output was sorted.,label=lst:buffered-read-multiple-reader]
+game: Waiting for button input ... (Press Button 8 to exit)
+game: Waiting for button input ... (Press Button 8 to exit)
+game: Waiting for button input ... (Press Button 8 to exit)
+[   21.050000] gamepad-class gamepad: (interrupt on irq = 17)
+[   21.060000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 4
+game: got input: 4
+game: got input: 4
+[   21.660000] gamepad-class gamepad: (interrupt on irq = 17)
+[   21.680000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 0
+game: got input: 0
+game: got input: 0
+[   26.930000] gamepad-class gamepad: (interrupt on irq = 18)
+[   26.940000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 128
+game: got input: 128
+game: got input: 128
+game: Trying to close the gamepad ...
+game: Trying to close the gamepad ...
+game: Trying to close the gamepad ...
+\end{lstlisting}
+A bug was discovered when testing with rapid input. If the user pressed buttons in rapid succession, the work routine did not always finish in time to service the interrupt handler on the second interrupt. The consequence of this was that valuable information about the sequence of button presses was lost, which was what the input buffer was supposed to prevent in the first place! This is shown in the output of listing \ref{lst:buffered-read-rapid-input}, where two register states are missed (in both cases the register value was 1).
+\begin{lstlisting}[caption=Buffered read with rapid input. The program output was sorted.,label=lst:buffered-read-rapid-input]
+game: Waiting for button input ... (Press Button 8 to exit)
+[  260.680000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.690000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 1
+[  260.770000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.780000] gamepad-class gamepad: (buffer tasklet executed)
+[  260.790000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.790000] gamepad-class gamepad: (interrupt missed!)
+game: got input: 0
+[  260.880000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.890000] gamepad-class gamepad: (buffer tasklet executed)
+[  260.900000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.900000] gamepad-class gamepad: (interrupt missed!)
+game: got input: 0
+[  260.980000] gamepad-class gamepad: (interrupt on irq = 17)
+[  260.990000] gamepad-class gamepad: (buffer tasklet executed)
+game: got input: 0
+\end{lstlisting}
+
+\subsection{Improving Device I/O Capabilities}
+After implementing the input buffer, a number of improvements was made to the drivers I/O capabilities. These mostly consisted of simple changes implementing some standard driver functionality expected by many user applications.
+
+\subsubsection{Blocking I/O}
+Currently, the \texttt{read} operation only performed asynchronous I/O, regardless of the value of the \texttt{O\_NONBLOCK} flag set in the file. This was changed by adding a \texttt{wait\_queue\_head\_t} structure to the input buffer. The \texttt{gamepad\_read} function was rewritten so that a process reading the device would now block on this queue until input was available.
+
+\subsubsection{Nonblocking I/O}
+Having implemented blocking I/O, we reimplemented nonblocking I/O. This was done simply by checking the flag \texttt{O\_NONBLOCK} in the read method and returning the error code \texttt{-EAGAIN} if no data was available.
+
+\subsubsection{The poll file operation}
+Any decent driver supporting nonblocking I/O should also support the file operation \texttt{poll}. Without \texttt{poll}, the user applications accessing the driver's nonblocking I/O must either resort to busy waiting, or they must implement their own polling scheme, not a satisfying situation. The function \texttt{gamepad\_poll()} specified the input buffer read queue introduced with blocking I/O as poll wait queue. The bit mask returned would contain the bits \texttt{POLLIN} and \texttt{POLLRDNORM} to indicate that data was available for a normal read. The input buffer semaphore was used for synchronization.
+
+\subsection{Asynchronous Notification}
+Finally we were in a position to complete the interrupt-driven I/O operation with asynchronous notification, our goal all along. The last remaining step was to implement asynchronous notification.
+
+On the driver-side, the modifications were small. First we needed to implement the \texttt{fasync} file operation used to notify the driver that a process had enabled asynchronous notification on the device file. To keep track of all the asynchronous readers, we wrote the simple function \texttt{gamepad\_fasync} that would simply call the helper function \texttt{fasync\_helper()}. To notify the asynchronous readers that data was available, we rewrote the work tasklet to call the function \texttt{kill\_fasync()} and signal all readers on the \texttt{fasync\_struct} structure that data was available each time after inserting a new value into the input buffer.
+
+To test the driver, we needed to do a few modifications to the game application. We added the necessary code to set up asynchronous signalling, and wrote a signal handler routine that would read once from the device and print the results. The resulting output is shown in listing \ref{lst:reading-with-asynchronous-signalling}.
+\begin{lstlisting}[caption=Reading with asynchronous signalling.,label=lst:reading-with-asynchronous-signalling]
+game: Waiting for button input ... (Press Button 8 to exit)
+[   52.120000] gamepad-class gamepad: (interrupt on irq = 18)
+[   52.130000] gamepad-class gamepad: (tasklet started)
+game: Signal received!
+game: got 1 bytes of input: 32
+[   52.640000] gamepad-class gamepad: (interrupt on irq = 18)
+[   52.650000] gamepad-class gamepad: (tasklet started)
+game: Signal received!
+game: got 1 bytes of input: 0
+[   53.310000] gamepad-class gamepad: (interrupt on irq = 18)
+[   53.320000] gamepad-class gamepad: (tasklet started)
+game: Signal received!
+game: got 1 bytes of input: 128
+game: Trying to close the gamepad ...
+\end{lstlisting}
+
+
+
+\section{Part 3: The Game}
+With a stable and functional driver we were ready to start developing the game.
+
+\subsection{Choosing a Game Concept}
+Before starting development, we needed a game concept. To save the work of developing a game concept from scratch, we decided to develop a clone of an existing game. There were two main candidates, Asteroids and Space Invaders, of which we choose Asteroids.
+
+Asteroids is a 1979 video game released by Atari in which the player maneuvers a small spaceship in space amidst asteroids and hostile ufos. The objective of the game is to use the spaceship's frontal cannon to eliminate all the asteroids, upon which the player will advance to the next level. At its release, the game was acclaimed for its use of vector graphics.
+
+
+\subsection{Development}
+To develop our game we used an incremental approach, adding features whenever we had debugged our current features, and refactoring when nescessary. Our first versions of the game never outputted anything to the buffer at all, using only the serial connection to write status messages. We then implemented the basic draw system allowing us to draw a simple trianlge depicting the player spaceship. We then added features such as asteroids, ship movement, destroyable asteroids (destruction by button press) and firing projectiles. In the end we did not implement collision, feeling that we had spent enough time on the game and that adding additional features was out of the scope of the exercise.
+
+\subsection{Program Modules}
+To be able to manage a growing code base, we divided our program into five modules, each with a distinct area of responsibility:
+
+\begin{description}
+\item[Game] \hfill \\
+The application starting point. It initializes modules on startup, and shuts them down on exit. It also contains the game loop and does game updates. See \texttt{game.h} and \texttt{game.c}.
+
+\item[Logic] \hfill \\
+The game logic. It is responsible for manipulating the internal state of the game. It moves the spaceship, asteroids, bullets and ufos, in addition to computing collisions. See \texttt{logic.h} and \texttt{logic.c}. \\
+The logic module itself is also divided into the following submodules:
+\begin{description}
+\item[Asteroids] \hfill \\ 
+A module for containing methods related to asteroids, such as spawning, despawning and handling movement of asteroids.
+
+\item[Spaceship] \hfill \\
+A module containing methods to handle the player ship, tracking its orientation, speed and a handler for some input actions.
+
+\item[Projectiles] \hfill \\
+A module containing methods to keep track of projectiles, working in a similar way to the asteroid module.  
+\end{description}
+
+\item[Input] \hfill \\
+The input processing module. It is responsible for interfacing with the gamepad driver, and provides a clean interface for the rest of the game modules. See \texttt{input.h} and \texttt{input.c}.
+
+\item[Draw] \hfill \\
+The graphics module. It is responsible for updating the frame buffer, and for rendering various objects of the game model. See \texttt{draw.h} and \texttt{draw.c}.
+
+\item[Debug] \hfill \\
+Supplies some debugging tools, most notably the macros \texttt{game\_debug()} and \texttt{game\_error()}. The debug statements are enabled by defining the macro \texttt{DEBUG} before including the module header. See \texttt{debug.h} and \texttt{debug.c}.
+\end{description}
+
+\subsection{Optimization}
+The board itself, has very limited performance. There is not a seperate GPU on the board. In other words, all the graphic calculations has to be done in the CPU. As a result we implemented some rendering algorithms ourself. 
+
+Another performance heavy part of the game was the game logic. In order to reduce expensive data operations we made sure to always use references to our data structures. We allocated some data to the data segment at compile time, and made sure that heap data was only allocated once and referred to in other parts of the program.
+
+\begin{lstlisting}[caption=Allocating asteroid data on data segment.,label=lst:Asteroid allocation]
+...
+static struct asteroid my_asteroids[MAX_AMOUNT_ASTEROIDS];
+...
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Updating the asteroids using their references.,label=lst:Asteroid updating]
+void update_asteroids(){
+  struct asteroid* current_asteroid;
+
+  for(int i = 0; i < game->n_asteroids; i++){
+    current_asteroid = game->active_asteroids[i];
+    current_asteroid->x_pos += current_asteroid->x_speed;
+    current_asteroid->y_pos += current_asteroid->y_speed;
+    wrap_coordinate(&current_asteroid->x_pos, &current_asteroid->y_pos);
+    ...
+  }
+}
+\end{lstlisting}
+
+This way we could make sure that no expensive allocations or data moves were made in the middle of the game, thus increasing performance.
+
+The board is not capable of refreshing the whole screen each frame and at the same time have a reasonable FPS. To solve this problem, we implemented an algorithm to only update the moving parts of the screen. It is not necessary to update 320 x 240 pixels, when only parts of the screen move each frame. The only moving parts on the screen are: spaceship, astroids and bullets. These items are considerably smaller together compared to the total screen size.
+
+Floating point operations is not supported in hardware in the ARM Cortex-M3 CPU. This makes floating point operations quite expensive. In our game we avoided floating point operations altogether, except when we calculated spaceship rotation.
+
+\paragraph{Specialized algorithms we implemented in our game}
+\begin{itemize}
+\item Bresenham algorithm (line rasterization) \cite{graphics-algorithms}
+\item The method of seperating axes (collision detection) \cite{collision-algorithms}
+
+\end{itemize}
+
+\section{Testing}
+In order to get accurate readouts we made sure the board that was warmed up to reduce randomness. We did several tests in succession with different versions of the game to gauge the impact of our optimizations. We ran tests with drawing the entire screen every update, different amounts of objects on screen and with tickless idle enabled in ptxdist kernelconfig. To collect the statistics we used eAProfiler on a laptop connected to the board.

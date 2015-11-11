@@ -1,0 +1,46 @@
+% Fill in the report title, group number and student names here
+\newcommand{\mytitle}{Energy Efficient Computer Game}
+\newcommand{\mygroupnumber}{24}
+\newcommand{\myauthor}{Peter Aaser\\Audun Sutterud\\Jonatan Lund}
+
+\title{\mytitle}
+\author{\myauthor}
+\date{\today}
+
+% Defining styles for code listing environments
+\usepackage{color}
+\definecolor{mybgcolor}{rgb}{0.9, 0.9, 0.9}
+\definecolor{mycommentcolor}{rgb}{1.0, 0.0, 0.0}
+\definecolor{mykeywordcolor}{rgb}{0.58,0,0.82}
+\definecolor{mystringcolor}{rgb}{0.9,0.5,0.15}
+\lstdefinestyle{lststyle-c}{
+    language=C,
+    backgroundcolor=\color{mybgcolor},      % set background color
+    frame=single,                           % draw border
+    basicstyle=\ttfamily,                   % font
+    commentstyle=\color{mycommentcolor},    % styles
+    keywordstyle=\color{mykeywordcolor},    %
+    stringstyle=\color{mystringcolor},      %
+    breakatwhitespace=true, % break lines if necessary
+    breaklines=true,        %
+    tabsize=4,              % indentation size
+    columns=flexible,       % preserve indentation
+    keepspaces=true,        %
+    morekeywords={as},      % additional keywords
+    captionpos=b,           % place captions below listing
+}
+\definecolor{terminal-bg}{rgb}{0.9, 0.9, 0.9}
+\lstdefinestyle{lststyle-terminal}{
+    backgroundcolor=\color{terminal-bg},      % set background color
+    frame=single,                           % draw border
+    basicstyle=\ttfamily,                   % font
+    breakatwhitespace=true, % break lines if necessary
+    breaklines=true,        %
+    tabsize=4,              % indentation size
+    columns=flexible,       % preserve indentation
+    keepspaces=true,        %
+    captionpos=b,           % place captions below listing
+}
+
+% Command to place a red TODO in the output pdf
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
